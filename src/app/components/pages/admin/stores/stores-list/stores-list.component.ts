@@ -1,103 +1,144 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, OnInit, inject, DestroyRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
 import { BadgeComponent, BadgeVariant } from '../../../../shared/badge/badge.component';
-import { StoreAddComponent, StoreFormData } from '../store-add/store-add.component';
+import { StoreAddComponent } from '../store-add/store-add.component';
+import { StoreService } from '@services/store.service';
+import { StoreDto, StoreListFilters } from '@models/store.model';
 
-type StoreStatus = 'active' | 'inactive' | 'setup';
-type SortCol = 'id' | 'name' | 'location' | 'tenant' | 'manager' | 'status';
-
-interface Store {
-  id: string; name: string; location: string; tenant: string;
-  email: string; phone: string; status: StoreStatus; manager: string;
-}
-
-const STATUS_VARIANT: Record<StoreStatus, BadgeVariant> = {
-  active: 'success', inactive: 'neutral', setup: 'info',
-};
-
-const STATUS_LABEL: Record<StoreStatus, string> = {
-  active: 'Active', inactive: 'Inactive', setup: 'Setup',
-};
+type SortCol = 'name' | 'city' | 'tenantName' | 'isActive';
 
 @Component({
   selector: 'app-stores-list',
-  imports: [FormsModule, KlCardComponent, BadgeComponent, StoreAddComponent],
+  standalone: true,
+  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent, StoreAddComponent],
   templateUrl: './stores-list.component.html',
   styleUrl: './stores-list.component.scss',
 })
-export class StoresListComponent {
-  search = signal('');
-  statusFilter = signal('All status');
-  tenantFilter = signal('All tenants');
-  openFilter = signal<string | null>(null);
-  activeTab = signal<StoreStatus | 'All'>('All');
+export class StoresListComponent implements OnInit {
+  private readonly storeService = inject(StoreService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchSubject = new Subject<string>();
+
+  readonly pageSize = 20;
+
+  // ── Data ────────────────────────────────────────────────────────────────────
+  stores = signal<StoreDto[]>([]);
+  loading = signal(true);
+  error = signal<string | null>(null);
+  totalCount = signal(0);
+  totalPages = signal(1);
+  hasPreviousPage = signal(false);
+  hasNextPage = signal(false);
+  currentPage = signal(1);
+
+  // ── Filters ─────────────────────────────────────────────────────────────────
+  searchValue = signal('');
   sortCol = signal<SortCol>('name');
   sortDir = signal<'asc' | 'desc'>('asc');
+
+  // ── Drawer ──────────────────────────────────────────────────────────────────
   drawerOpen = signal(false);
-  editStore = signal<StoreFormData | null>(null);
+  editStore = signal<StoreDto | null>(null);
 
-  readonly statuses = ['All status', 'Active', 'Setup', 'Inactive'];
+  ngOnInit(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      this.currentPage.set(1);
+      this.load();
+    });
 
-  readonly allStores: Store[] = [
-    { id: 'S-001', name: 'Bharatpur Hub',     location: 'Chitwan',   tenant: 'Terai Fields Co-op',    email: 'bharatpur@teraifields.np',  phone: '+977 56 521 100', status: 'active',   manager: 'Bishal Tamang' },
-    { id: 'S-002', name: 'Pokhara Depot',     location: 'Kaski',     tenant: 'Pokhara Growers',        email: 'depot@pokharagrowers.np',   phone: '+977 61 452 200', status: 'active',   manager: 'Sunita Poudel' },
-    { id: 'S-003', name: 'Damak Collection',  location: 'Jhapa',     tenant: 'East Plantations',       email: 'damak@eastplant.np',        phone: '+977 23 312 300', status: 'setup',    manager: 'Arjun Rai' },
-    { id: 'S-004', name: 'Besisahar Centre',  location: 'Lamjung',   tenant: 'Terai Fields Co-op',    email: 'besi@teraifields.np',       phone: '+977 65 220 400', status: 'active',   manager: 'Maya Gurung' },
-    { id: 'S-005', name: 'Gulariya Store',    location: 'Bardiya',   tenant: 'Bardiya Farmers Union',  email: 'gulariya@bfu.np',           phone: '+977 84 221 500', status: 'inactive', manager: 'Dipak Shrestha' },
-    { id: 'S-006', name: 'Butwal Warehouse',  location: 'Rupandehi', tenant: 'Kaski Agri Networks',    email: 'butwal@kaskinets.np',       phone: '+977 71 330 600', status: 'active',   manager: 'Kamala Thapa' },
-  ];
-
-  get tenantOptions() {
-    return ['All tenants', ...new Set(this.allStores.map(s => s.tenant))];
+    this.load();
   }
 
-  readonly tabCounts = computed(() => ({
-    All: this.allStores.length,
-    Active: this.allStores.filter(s => s.status === 'active').length,
-    Setup: this.allStores.filter(s => s.status === 'setup').length,
-    Inactive: this.allStores.filter(s => s.status === 'inactive').length,
-  }));
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
 
-  readonly filtered = computed(() => {
-    const q = this.search().toLowerCase();
-    const status = this.statusFilter();
-    const tenant = this.tenantFilter();
-    const tab = this.activeTab();
-    const col = this.sortCol();
-    const dir = this.sortDir();
+    const filters: StoreListFilters = {
+      search: this.searchValue() || undefined,
+      sortBy: this.sortCol(),
+      sortDir: this.sortDir(),
+    };
 
-    return [...this.allStores]
-      .filter(s =>
-        (!q || (s.name + s.id + s.location + s.tenant + s.manager).toLowerCase().includes(q)) &&
-        (status === 'All status' || s.status === status.toLowerCase()) &&
-        (tenant === 'All tenants' || s.tenant === tenant) &&
-        (tab === 'All' || s.status === (tab as string).toLowerCase())
-      )
-      .sort((a, b) => {
-        const va = String(a[col as keyof Store]), vb = String(b[col as keyof Store]);
-        return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    this.storeService.getAll(this.currentPage(), this.pageSize, filters)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.stores.set(result.items);
+          this.totalCount.set(result.totalCount);
+          this.totalPages.set(result.totalPages);
+          this.hasPreviousPage.set(result.hasPreviousPage);
+          this.hasNextPage.set(result.hasNextPage);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load stores. Please try again.');
+          this.loading.set(false);
+        },
       });
-  });
-
-  tabCount(tab: string): number {
-    return (this.tabCounts() as Record<string, number>)[tab] ?? 0;
   }
 
-  statusVariant(s: StoreStatus): BadgeVariant { return STATUS_VARIANT[s]; }
-  statusLabel(s: StoreStatus): string { return STATUS_LABEL[s]; }
-  initials(name: string) { return name.split(' ').map(p => p[0]).slice(0, 2).join(''); }
-
-  toggleSort(col: SortCol) {
-    if (this.sortCol() === col) this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
-    else { this.sortCol.set(col); this.sortDir.set('asc'); }
+  onSearch(value: string): void {
+    this.searchValue.set(value);
+    this.searchSubject.next(value);
   }
 
-  toggleFilter(name: string) {
-    this.openFilter.set(this.openFilter() === name ? null : name);
+  toggleSort(col: SortCol): void {
+    if (this.sortCol() === col) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortCol.set(col);
+      this.sortDir.set('asc');
+    }
+    this.currentPage.set(1);
+    this.load();
   }
 
-  openAdd() { this.editStore.set(null); this.drawerOpen.set(true); }
-  openEdit(s: StoreFormData, e: Event) { e.stopPropagation(); this.editStore.set(s); this.drawerOpen.set(true); }
-  closeDrawer() { this.drawerOpen.set(false); }
+  prevPage(): void {
+    if (this.hasPreviousPage()) { this.currentPage.update(p => p - 1); this.load(); }
+  }
+
+  nextPage(): void {
+    if (this.hasNextPage()) { this.currentPage.update(p => p + 1); this.load(); }
+  }
+
+  openAdd(): void { this.editStore.set(null); this.drawerOpen.set(true); }
+
+  openEdit(s: StoreDto, e: Event): void {
+    e.stopPropagation();
+    this.editStore.set(s);
+    this.drawerOpen.set(true);
+  }
+
+  closeDrawer(reload = false): void {
+    this.drawerOpen.set(false);
+    if (reload) this.load();
+  }
+
+  statusVariant(isActive: boolean): BadgeVariant { return isActive ? 'success' : 'neutral'; }
+  statusLabel(isActive: boolean): string { return isActive ? 'Active' : 'Inactive'; }
+
+  initials(name: string | null): string {
+    if (!name) return '?';
+    return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  cityState(s: StoreDto): string {
+    const parts = [s.city, s.state].filter((v): v is string => !!v);
+    return parts.length ? parts.join(', ') : '—';
+  }
+
+  pageRange(): string {
+    const start = (this.currentPage() - 1) * this.pageSize + 1;
+    const end = Math.min(this.currentPage() * this.pageSize, this.totalCount());
+    return `${start}–${end} of ${this.totalCount()}`;
+  }
 }

@@ -97,6 +97,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./components/pages/admin/stores/stores-list/stores-list.component').then(m => m.StoresListComponent),
       },
+      {
+        path: 'admin/stores/:id',
+        data: { title: 'Store detail', subtitle: 'Store profile and settings' },
+        loadComponent: () =>
+          import('./components/pages/admin/stores/store-detail/store-detail.component').then(m => m.StoreDetailComponent),
+      },
     ],
   },
 ];
