@@ -1,0 +1,91 @@
+<kl-card title="Products">
+  <a routerLink="/products/create" class="kl-btn kl-btn-primary" card-actions>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Add product
+  </a>
+  <!-- Toolbar -->
+  <div class="kl-toolbar">
+    <div class="kl-search" style="flex:1; min-width:220px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Search products…" />
+    </div>
+    <div class="kl-filter-wrap">
+      <button class="kl-filter" [class.is-active]="categoryFilter() !== 'All'" (click)="toggleFilter('category')">
+        Category
+        @if (categoryFilter() !== 'All') { <span class="kl-filter-val">{{ categoryFilter() }}</span> }
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (openFilter() === 'category') {
+        <div class="kl-filter-menu">
+          @for (cat of categories; track cat) {
+            <button class="kl-filter-opt" [class.is-sel]="categoryFilter() === cat" (click)="setCategory(cat)">
+              {{ cat }}
+              @if (categoryFilter() === cat) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Unit</th>
+          <th>Stock</th>
+          <th>Price (₹)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (filtered.length === 0) {
+          <tr>
+            <td colspan="7" style="text-align:center; padding:40px 16px; color:#6B7A6E;">
+              No products match your search.
+            </td>
+          </tr>
+        }
+        @for (p of filtered; track p.id) {
+          <tr>
+            <td><code class="kl-mono">{{ p.sku }}</code></td>
+            <td style="font-weight:600;">{{ p.name }}</td>
+            <td>{{ p.category }}</td>
+            <td class="kl-fg-3">{{ p.unit }}</td>
+            <td>
+              <kl-badge [variant]="stockVariant(p)">{{ p.stock }}</kl-badge>
+            </td>
+            <td>{{ p.price | number }}</td>
+            <td>
+              <a [routerLink]="['/products', p.id]" class="kl-link">View</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="kl-pagination">
+    <span>Showing {{ filtered.length }} of {{ products.length }} products</span>
+    <div class="kl-pager">
+      <button disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="is-active">1</button>
+      <button>2</button>
+      <button>3</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</kl-card>

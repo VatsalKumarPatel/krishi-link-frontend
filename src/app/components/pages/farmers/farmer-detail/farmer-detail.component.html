@@ -1,0 +1,203 @@
+<!-- Breadcrumb + header -->
+<div class="kl-page-header" style="align-items:center; gap:12px;">
+  <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+    <a routerLink="/farmers" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="kl-crumbs" style="margin:0;">
+      <a routerLink="/farmers">Farmers</a>
+      <span class="sep">/</span>
+      <span>{{ farmer.name }}</span>
+      <span class="sep">·</span>
+      <code class="kl-mono">{{ farmer.id }}</code>
+      <kl-badge [variant]="statusVariant(farmer.status)" style="margin-left:4px;">{{ farmer.status }}</kl-badge>
+    </div>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button class="kl-btn kl-btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Message
+    </button>
+    <button class="kl-btn kl-btn-primary" (click)="drawerOpen.set(true)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+      </svg>
+      Edit
+    </button>
+  </div>
+</div>
+
+<!-- Detail grid -->
+<div class="kl-detail-grid">
+
+  <!-- Left: farmer info card -->
+  <div class="kl-card">
+    <div class="kl-detail-header">
+      <div class="kl-avatar-lg">{{ initials(farmer.name) }}</div>
+      <div>
+        <div class="kl-detail-name" [title]="farmer.name">{{ farmer.name }}</div>
+        <div class="kl-detail-meta">
+          <code class="kl-mono">{{ farmer.id }}</code>
+          <span>·</span>
+          <span>{{ farmer.coop }}</span>
+        </div>
+      </div>
+    </div>
+    <dl class="kl-dl">
+      <dt>Phone</dt>          <dd>{{ farmer.phone }}</dd>
+      <dt>Region</dt>         <dd>{{ farmer.region }}</dd>
+      <dt>Co-operative</dt>   <dd>{{ farmer.coop }}</dd>
+      <dt>Joined</dt>         <dd>{{ farmer.joined }}</dd>
+      <dt>Total area</dt>     <dd>{{ totalArea.toFixed(1) }} ha across {{ plots.length }} plot{{ plots.length !== 1 ? 's' : '' }}</dd>
+      <dt>Crops this season</dt><dd>{{ cropCount }} crop{{ cropCount !== 1 ? 's' : '' }}</dd>
+      <dt>Current season</dt> <dd>Kharif · 2026</dd>
+      <dt>Risk score</dt>
+      <dd><kl-badge variant="success">Low · 12/100</kl-badge></dd>
+    </dl>
+  </div>
+
+  <!-- Right: KPI row + tabs -->
+  <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+    <!-- KPI pills -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Plots</div>
+        <div class="kl-stat-pill-val">{{ plots.length }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Area</div>
+        <div class="kl-stat-pill-val">{{ totalArea.toFixed(1) }}<span class="kl-stat-pill-unit">ha</span></div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Crops</div>
+        <div class="kl-stat-pill-val">{{ cropCount }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Yield YoY</div>
+        <div class="kl-stat-pill-val is-up">+14%</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Risk</div>
+        <div class="kl-stat-pill-val">12/100</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="kl-tabs" style="margin-top:0;">
+      <button class="kl-tab" [class.is-active]="activeTab()==='overview'" (click)="activeTab.set('overview')">Overview</button>
+      <button class="kl-tab" [class.is-active]="activeTab()==='plots'" (click)="activeTab.set('plots')">
+        Plots &amp; crops<span class="kl-count">{{ plots.length }}</span>
+      </button>
+      <button class="kl-tab" [class.is-active]="activeTab()==='activity'" (click)="activeTab.set('activity')">Activity</button>
+      <button class="kl-tab" [class.is-active]="activeTab()==='files'" (click)="activeTab.set('files')">Files</button>
+    </div>
+
+    <!-- Overview tab -->
+    @if (activeTab() === 'overview') {
+      <!-- Crops this season -->
+      <kl-card title="Crops this season" [subtitle]="'Kharif 2026 · ' + plots.length + ' plots · ' + totalArea.toFixed(1) + ' ha'">
+        <button class="kl-btn kl-btn-secondary" card-actions (click)="activeTab.set('plots')">Manage plots</button>
+        <div style="padding:4px 18px 16px; display:flex; gap:10px; flex-wrap:wrap;">
+          @for (entry of cropsByArea(); track entry[0]) {
+            <div class="kl-crop-bar">
+              <div class="kl-crop-bar-head">
+                <span>{{ entry[0] }}</span>
+                <span class="kl-fg-3">{{ (entry[1] / totalArea * 100).toFixed(0) }}%</span>
+              </div>
+              <div class="kl-crop-track">
+                <div [style.width.%]="entry[1] / totalArea * 100"></div>
+              </div>
+              <div style="font-size:11px; color:#6B7A6E; margin-top:6px;">{{ entry[1].toFixed(1) }} ha</div>
+            </div>
+          }
+        </div>
+      </kl-card>
+
+      <!-- Next action + Assigned to -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="kl-card" style="padding:16px;">
+          <div style="font-family:'Fraunces',serif; font-weight:700; font-size:14px; margin-bottom:4px;">Next action</div>
+          <div style="font-size:12px; color:#6B7A6E; margin-bottom:10px;">Recommended by the system</div>
+          <div class="kl-next-action">
+            <strong>Schedule soil test</strong>
+            <p>Last test was 94 days ago.</p>
+          </div>
+        </div>
+        <div class="kl-card" style="padding:16px;">
+          <div style="font-family:'Fraunces',serif; font-weight:700; font-size:14px; margin-bottom:10px;">Assigned to</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="kl-avatar">RA</div>
+            <div>
+              <div style="font-family:'Fraunces',serif; font-weight:600; font-size:13px;">Riya Acharya</div>
+              <div style="font-size:11px; color:#6B7A6E;">Regional admin · Chitwan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Plots tab -->
+    @if (activeTab() === 'plots') {
+      <kl-card title="Plots &amp; crops">
+        <div class="kl-table-wrap">
+          <table class="kl-table">
+            <thead>
+              <tr>
+                <th>Plot</th>
+                <th>Crop</th>
+                <th>Area</th>
+                <th>Sowing</th>
+                <th>Harvest</th>
+                <th>Stage</th>
+                <th>Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of plots; track p.code) {
+                <tr>
+                  <td><code class="kl-mono">{{ p.code }}</code></td>
+                  <td style="font-weight:500;">{{ p.crop }}</td>
+                  <td>{{ p.area }} ha</td>
+                  <td class="kl-fg-3">{{ p.sowing }}</td>
+                  <td class="kl-fg-3">{{ p.harvest }}</td>
+                  <td><kl-badge [variant]="stageVariant(p.stage)">{{ p.stage }}</kl-badge></td>
+                  <td><kl-badge [variant]="healthVariant(p.health)">{{ p.health }}</kl-badge></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </kl-card>
+    }
+
+    <!-- Activity tab -->
+    @if (activeTab() === 'activity') {
+      <kl-card>
+        <kl-activity-feed
+          [feed]="feed"
+          [placeholder]="'Add an internal note about ' + farmer.name + '…'" />
+      </kl-card>
+    }
+
+    <!-- Files tab -->
+    @if (activeTab() === 'files') {
+      <kl-card>
+        <div style="padding:48px 20px; text-align:center; color:#6B7A6E;">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#9AA69C;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <div style="font-family:'Fraunces',serif; font-weight:600; font-size:14px; color:#445245; margin-bottom:4px;">No files yet</div>
+          <div style="font-size:13px;">Soil tests, certificates, and field photos will appear here.</div>
+        </div>
+      </kl-card>
+    }
+
+  </div>
+</div>
+
+<!-- Edit drawer -->
+<app-farmer-add
+  [open]="drawerOpen()"
+  [farmer]="farmer"
+  (close)="drawerOpen.set(false)" />

@@ -1,0 +1,156 @@
+<!-- Header -->
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage registered farmers across all regions.</p>
+  <div style="display:flex; gap:8px;">
+    <button class="kl-btn kl-btn-secondary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export CSV
+    </button>
+    <button class="kl-btn kl-btn-primary" (click)="openAdd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add farmer
+    </button>
+  </div>
+</div>
+
+<!-- Status tabs -->
+<div class="kl-tabs">
+  @for (tab of (['All', 'Active', 'Needs review', 'Overdue', 'Draft']); track tab) {
+    <button class="kl-tab" [class.is-active]="activeTab() === tab" (click)="activeTab.set($any(tab))">
+      {{ tab }}<span class="kl-count">{{ tabCount(tab) }}</span>
+    </button>
+  }
+</div>
+
+<!-- Table card -->
+<kl-card>
+  <div class="kl-toolbar">
+    <div class="kl-search" style="flex:1; min-width:220px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Search by name, ID, region, or crop…" />
+    </div>
+
+    <div class="kl-filter-wrap">
+      <button class="kl-filter" [class.is-active]="regionFilter() !== 'All regions'" (click)="toggleFilter('region')">
+        Region
+        @if (regionFilter() !== 'All regions') { <span class="kl-filter-val">{{ regionFilter() }}</span> }
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (openFilter() === 'region') {
+        <div class="kl-filter-menu">
+          @for (r of regions; track r) {
+            <button class="kl-filter-opt" [class.is-sel]="regionFilter() === r" (click)="regionFilter.set(r); openFilter.set(null)">
+              {{ r }}
+              @if (regionFilter() === r) { <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="kl-filter-wrap">
+      <button class="kl-filter" [class.is-active]="cropFilter() !== 'All crops'" (click)="toggleFilter('crop')">
+        Crop
+        @if (cropFilter() !== 'All crops') { <span class="kl-filter-val">{{ cropFilter() }}</span> }
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (openFilter() === 'crop') {
+        <div class="kl-filter-menu">
+          @for (c of crops; track c) {
+            <button class="kl-filter-opt" [class.is-sel]="cropFilter() === c" (click)="cropFilter.set(c); openFilter.set(null)">
+              {{ c }}
+              @if (cropFilter() === c) { <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="kl-filter-wrap">
+      <button class="kl-filter" [class.is-active]="statusFilter() !== 'All status'" (click)="toggleFilter('status')">
+        Status
+        @if (statusFilter() !== 'All status') { <span class="kl-filter-val">{{ statusFilter() }}</span> }
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (openFilter() === 'status') {
+        <div class="kl-filter-menu">
+          @for (s of statuses; track s) {
+            <button class="kl-filter-opt" [class.is-sel]="statusFilter() === s" (click)="statusFilter.set(s); openFilter.set(null)">
+              {{ s }}
+              @if (statusFilter() === s) { <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th class="sortable" [class.is-sorted]="sortCol()==='id'" (click)="toggleSort('id')">ID <span class="kl-sort-ind">{{ sortCol()==='id' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='name'" (click)="toggleSort('name')">Name <span class="kl-sort-ind">{{ sortCol()==='name' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='region'" (click)="toggleSort('region')">Region <span class="kl-sort-ind">{{ sortCol()==='region' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='crop'" (click)="toggleSort('crop')">Primary crop <span class="kl-sort-ind">{{ sortCol()==='crop' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='area'" (click)="toggleSort('area')">Area <span class="kl-sort-ind">{{ sortCol()==='area' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='status'" (click)="toggleSort('status')">Status <span class="kl-sort-ind">{{ sortCol()==='status' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='updated'" (click)="toggleSort('updated')">Last update <span class="kl-sort-ind">{{ sortCol()==='updated' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filtered(); track f.id) {
+          <tr class="kl-row-link" [routerLink]="['/farmers', f.id]">
+            <td><code class="kl-mono">{{ f.id }}</code></td>
+            <td>
+              <div class="kl-user">
+                <div class="kl-avatar kl-avatar-sm">{{ initials(f.name) }}</div>
+                <span style="font-weight:500;">{{ f.name }}</span>
+              </div>
+            </td>
+            <td>{{ f.region }}</td>
+            <td>{{ f.crop }}</td>
+            <td>{{ f.area }} ha</td>
+            <td><kl-badge [variant]="statusVariant(f.status)">{{ f.status }}</kl-badge></td>
+            <td class="kl-fg-3">{{ f.updated }}</td>
+            <td>
+              <button class="kl-icon-btn" (click)="openEdit(f, $event)" title="Edit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        }
+        @if (filtered().length === 0) {
+          <tr><td colspan="8" style="text-align:center; padding:40px 20px; color:#6B7A6E;">No farmers match the current filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kl-pagination">
+    <span>Showing {{ filtered().length }} of {{ allFarmers.length }} farmers</span>
+    <div class="kl-pager">
+      <button disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="is-active">1</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</kl-card>
+
+<!-- Add / Edit drawer -->
+<app-farmer-add
+  [open]="drawerOpen()"
+  [farmer]="editFarmer()"
+  (close)="closeDrawer()" />

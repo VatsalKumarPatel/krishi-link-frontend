@@ -1,0 +1,16 @@
+<div class="kl-card">
+  @if (title) {
+    <div class="kl-card-head">
+      <div>
+        <div class="kl-card-title">{{ title }}</div>
+        @if (subtitle) {
+          <div class="kl-card-sub">{{ subtitle }}</div>
+        }
+      </div>
+      <div class="kl-card-actions">
+        <ng-content select="[card-actions]" />
+      </div>
+    </div>
+  }
+  <ng-content />
+</div>

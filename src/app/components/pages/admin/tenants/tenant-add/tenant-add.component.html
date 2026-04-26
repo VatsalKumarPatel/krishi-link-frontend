@@ -1,0 +1,97 @@
+<kl-drawer
+  [open]="open"
+  [title]="title"
+  [subtitle]="subtitle"
+  (close)="close.emit()">
+
+  <div class="kl-form">
+
+    <!-- Organisation -->
+    <div class="kl-form-section">Organisation</div>
+    <div class="full">
+      <label class="kl-form-label">Organisation name <span style="color:#C0392B;">*</span></label>
+      <input class="kl-input" [(ngModel)]="form.name" name="name" placeholder="e.g. Terai Fields Co-op" />
+    </div>
+    @if (!isEdit) {
+      <div class="full">
+        <label class="kl-form-label">Slug</label>
+        <input class="kl-input" [(ngModel)]="form.slug" name="slug" placeholder="terai-fields-coop" />
+        <span class="kl-form-hint">Unique URL-friendly identifier. Auto-generated if left blank.</span>
+      </div>
+    }
+    <div>
+      <label class="kl-form-label">Email</label>
+      <input class="kl-input" [(ngModel)]="form.email" name="email" type="email" placeholder="admin@org.np" />
+    </div>
+    <div>
+      <label class="kl-form-label">Phone</label>
+      <input class="kl-input" [(ngModel)]="form.phone" name="phone" placeholder="+977 …" />
+    </div>
+    <div>
+      <label class="kl-form-label">GSTIN</label>
+      <input class="kl-input" [(ngModel)]="form.gstin" name="gstin" placeholder="22AAAAA0000A1Z5" />
+    </div>
+    <div>
+      <label class="kl-form-label">PAN</label>
+      <input class="kl-input" [(ngModel)]="form.pan" name="pan" placeholder="AAAAA0000A" />
+    </div>
+
+    <!-- Address -->
+    <div class="kl-form-section">Address</div>
+    <div class="full">
+      <label class="kl-form-label">Address line 1</label>
+      <input class="kl-input" [(ngModel)]="form.addressLine1" name="addressLine1" placeholder="Street / Ward" />
+    </div>
+    <div class="full">
+      <label class="kl-form-label">Address line 2</label>
+      <input class="kl-input" [(ngModel)]="form.addressLine2" name="addressLine2" placeholder="Municipality / VDC" />
+    </div>
+    <div>
+      <label class="kl-form-label">City</label>
+      <input class="kl-input" [(ngModel)]="form.city" name="city" placeholder="Bharatpur" />
+    </div>
+    <div>
+      <label class="kl-form-label">State / Province</label>
+      <input class="kl-input" [(ngModel)]="form.state" name="state" placeholder="Bagmati" />
+    </div>
+    <div>
+      <label class="kl-form-label">Pincode</label>
+      <input class="kl-input" [(ngModel)]="form.pincode" name="pincode" placeholder="44600" />
+    </div>
+
+    <!-- Subscription -->
+    <div class="kl-form-section">Subscription</div>
+    <div>
+      <label class="kl-form-label">Subscription expires</label>
+      <input class="kl-input" [(ngModel)]="form.subscriptionExpiresAt" name="subscriptionExpiresAt" type="date" />
+    </div>
+
+    @if (isEdit) {
+      <!-- Status — edit mode only -->
+      <div class="kl-form-section">Status</div>
+      <div class="full">
+        <label class="kl-form-label">Account status</label>
+        <select class="kl-select" [(ngModel)]="form.isActive" name="isActive">
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (saveError) {
+      <div class="full" style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; color:#991B1B; font-size:13px;">
+        {{ saveError }}
+      </div>
+    }
+
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="close.emit()" [disabled]="saving">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="submit()" [disabled]="saving">
+      @if (saving) { Saving… } @else { {{ isEdit ? 'Save changes' : 'Create tenant' }} }
+    </button>
+  </ng-container>
+
+</kl-drawer>

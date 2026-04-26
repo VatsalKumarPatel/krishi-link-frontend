@@ -1,0 +1,243 @@
+<!-- Loading state -->
+@if (loading()) {
+  <div class="kl-page-header" style="align-items:center;">
+    <div class="animate-pulse bg-bg-muted rounded h-6 w-48"></div>
+    <div style="display:flex; gap:8px;">
+      <div class="animate-pulse bg-bg-muted rounded-md h-9 w-28"></div>
+      <div class="animate-pulse bg-bg-muted rounded-md h-9 w-20"></div>
+    </div>
+  </div>
+  <div class="kl-detail-grid">
+    <div class="kl-card" style="padding:24px;">
+      <div class="animate-pulse bg-bg-muted rounded-full" style="width:56px;height:56px;margin-bottom:16px;"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-5 w-40 mb-2"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-4 w-32 mb-6"></div>
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+      }
+    </div>
+    <div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded-md" style="width:90px;height:56px;"></div>
+        }
+      </div>
+      <div class="kl-card" style="padding:24px;">
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-3/4 mb-3"></div>
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-5/6"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error state -->
+@if (!loading() && error()) {
+  <div style="padding:48px; text-align:center; color:#6B7A6E;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#C0392B;">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div style="font-weight:600; color:#445245; margin-bottom:4px;">{{ error() }}</div>
+    <button class="kl-btn kl-btn-secondary" style="margin-top:12px;" (click)="loadTenant()">Retry</button>
+  </div>
+}
+
+<!-- Loaded state -->
+@if (!loading() && !error() && tenant(); as t) {
+
+  <!-- Breadcrumb + header -->
+  <div class="kl-page-header" style="align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <a routerLink="/admin/tenants" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="kl-crumbs" style="margin:0;">
+        <a routerLink="/admin/tenants">Tenants</a>
+        <span class="sep">/</span>
+        <span>{{ t.name }}</span>
+        <span class="sep">·</span>
+        <code class="kl-mono" [title]="t.id">{{ shortId(t.id) }}</code>
+        <kl-badge [variant]="statusVariant(t.isActive)" style="margin-left:4px;">{{ statusLabel(t.isActive) }}</kl-badge>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="kl-btn kl-btn-secondary" style="color:#C0392B;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        {{ t.isActive ? 'Deactivate' : 'Activate' }}
+      </button>
+      <button class="kl-btn kl-btn-primary" (click)="drawerOpen.set(true)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+        </svg>
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <!-- Detail grid -->
+  <div class="kl-detail-grid">
+
+    <!-- Left: tenant info card -->
+    <div class="kl-card">
+      <div class="kl-detail-header">
+        <div class="kl-avatar-lg">{{ initials(t.name) }}</div>
+        <div>
+          <div class="kl-detail-name" [title]="t.name ?? ''">{{ t.name }}</div>
+          <div class="kl-detail-meta">
+            @if (t.slug) { <code class="kl-mono">{{ t.slug }}</code><span>·</span> }
+            <span>{{ location(t) }}</span>
+          </div>
+        </div>
+      </div>
+      <dl class="kl-dl">
+        <dt>Email</dt>       <dd>{{ t.email ?? '—' }}</dd>
+        <dt>Phone</dt>       <dd>{{ t.phone ?? '—' }}</dd>
+        @if (t.gstin) { <dt>GSTIN</dt> <dd><code class="kl-mono">{{ t.gstin }}</code></dd> }
+        @if (t.pan) { <dt>PAN</dt> <dd><code class="kl-mono">{{ t.pan }}</code></dd> }
+        @if (t.addressLine1) { <dt>Address</dt> <dd>{{ addressLine(t) }}</dd> }
+        <dt>Stores</dt>      <dd>{{ t.storeCount }}</dd>
+        <dt>Expires</dt>     <dd>{{ formatDate(t.subscriptionExpiresAt) }}</dd>
+        <dt>Status</dt>      <dd><kl-badge [variant]="statusVariant(t.isActive)">{{ statusLabel(t.isActive) }}</kl-badge></dd>
+      </dl>
+    </div>
+
+    <!-- Right: KPI pills + tabs + content -->
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+      <!-- KPI pills -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Stores</div>
+          <div class="kl-stat-pill-val">{{ t.storeCount }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Expires</div>
+          <div class="kl-stat-pill-val" style="font-size:13px;">{{ formatDate(t.subscriptionExpiresAt) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Status</div>
+          <div class="kl-stat-pill-val" style="font-size:13px;">{{ statusLabel(t.isActive) }}</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="kl-tabs" style="margin-top:0;">
+        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="setTab('details')">Details</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='stores'" (click)="setTab('stores')">
+          Stores<span class="kl-count">{{ t.storeCount }}</span>
+        </button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='activity'" (click)="setTab('activity')">Activity</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='files'" (click)="setTab('files')">Files</button>
+      </div>
+
+      <!-- Details tab -->
+      @if (activeTab() === 'details') {
+        <kl-card title="Organisation details">
+          <dl class="kl-dl">
+            <dt>Name</dt>         <dd>{{ t.name ?? '—' }}</dd>
+            <dt>Slug</dt>         <dd>{{ t.slug ?? '—' }}</dd>
+            <dt>Email</dt>        <dd>{{ t.email ?? '—' }}</dd>
+            <dt>Phone</dt>        <dd>{{ t.phone ?? '—' }}</dd>
+            @if (t.gstin) { <dt>GSTIN</dt> <dd><code class="kl-mono">{{ t.gstin }}</code></dd> }
+            @if (t.pan)   { <dt>PAN</dt>   <dd><code class="kl-mono">{{ t.pan }}</code></dd>   }
+          </dl>
+        </kl-card>
+
+        <kl-card title="Address">
+          <dl class="kl-dl">
+            @if (t.addressLine1) { <dt>Line 1</dt>   <dd>{{ t.addressLine1 }}</dd> }
+            @if (t.addressLine2) { <dt>Line 2</dt>   <dd>{{ t.addressLine2 }}</dd> }
+            @if (t.city)         { <dt>City</dt>     <dd>{{ t.city }}</dd>         }
+            @if (t.state)        { <dt>State</dt>    <dd>{{ t.state }}</dd>        }
+            @if (t.pincode)      { <dt>Pincode</dt>  <dd>{{ t.pincode }}</dd>      }
+            @if (!t.addressLine1 && !t.city && !t.state) {
+              <dt></dt><dd style="color:#9AA69C;">No address on record.</dd>
+            }
+          </dl>
+        </kl-card>
+
+        <kl-card title="Subscription">
+          <dl class="kl-dl">
+            <dt>Stores</dt>  <dd>{{ t.storeCount }}</dd>
+            <dt>Expires</dt> <dd>{{ formatDate(t.subscriptionExpiresAt) }}</dd>
+            <dt>Status</dt>  <dd><kl-badge [variant]="statusVariant(t.isActive)">{{ statusLabel(t.isActive) }}</kl-badge></dd>
+          </dl>
+        </kl-card>
+      }
+
+      <!-- Stores tab -->
+      @if (activeTab() === 'stores') {
+        <kl-card title="Stores">
+          @if (storesLoading()) {
+            @for (i of [1,2,3]; track i) {
+              <div style="padding:12px 0; border-bottom:1px solid var(--border-1);">
+                <div class="animate-pulse bg-bg-muted rounded h-4 w-full"></div>
+              </div>
+            }
+          } @else {
+            <div class="kl-table-wrap">
+              <table class="kl-table">
+                <thead>
+                  <tr>
+                    <th>Store</th>
+                    <th>Location</th>
+                    <th>GSTIN</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (s of stores(); track s.id) {
+                    <tr>
+                      <td>
+                        <div style="font-weight:600;">{{ s.name }}</div>
+                        <code class="kl-mono" style="font-size:11px;">{{ s.code }}</code>
+                      </td>
+                      <td class="kl-fg-3">{{ storeCityState(s) }}</td>
+                      <td class="kl-fg-3 kl-small">{{ s.gstin ?? '—' }}</td>
+                      <td><kl-badge [variant]="storeStatusVariant(s.isActive)">{{ s.isActive ? 'Active' : 'Inactive' }}</kl-badge></td>
+                      <td><a [routerLink]="['/admin/stores', s.id]" class="kl-link">View</a></td>
+                    </tr>
+                  }
+                  @if (stores().length === 0) {
+                    <tr><td colspan="5" style="text-align:center; padding:32px; color:#9AA69C;">No stores yet.</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </kl-card>
+      }
+
+      <!-- Activity tab -->
+      @if (activeTab() === 'activity') {
+        <kl-card>
+          <kl-activity-feed
+            [feed]="feed()"
+            [placeholder]="'Add an internal note about ' + (t.name ?? 'this tenant') + '…'" />
+        </kl-card>
+      }
+
+      <!-- Files tab -->
+      @if (activeTab() === 'files') {
+        <kl-card>
+          <div style="padding:48px 20px; text-align:center; color:#6B7A6E;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#9AA69C;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <div style="font-family:'Fraunces',serif; font-weight:600; font-size:14px; color:#445245; margin-bottom:4px;">No files yet</div>
+            <div style="font-size:13px;">Contracts, agreements, and attachments will appear here.</div>
+          </div>
+        </kl-card>
+      }
+
+    </div>
+  </div>
+
+  <!-- Edit drawer -->
+  <app-tenant-add
+    [open]="drawerOpen()"
+    [tenant]="t"
+    (close)="drawerOpen.set(false)"
+    (saved)="reloadAfterSave()" />
+}

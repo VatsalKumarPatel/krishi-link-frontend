@@ -1,0 +1,3 @@
+:host { display: contents; }
+
+.kl-row-link { cursor: pointer; &:hover td { background: theme('colors.bg-muted'); } }

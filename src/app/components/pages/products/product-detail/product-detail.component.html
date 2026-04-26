@@ -1,0 +1,52 @@
+<div class="kl-crumbs">
+  <a routerLink="/products">Products</a>
+  <span class="sep">/</span>
+  <span style="color:#14251B;">{{ product.name }}</span>
+</div>
+
+<div class="kl-page-header">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div class="kl-avatar-lg">{{ product.name[0] }}</div>
+    <div>
+      <div class="kl-detail-name" [title]="product.name">{{ product.name }}</div>
+      <div class="kl-detail-meta">
+        <code class="kl-key">{{ product.sku }}</code>
+        <span>·</span>
+        <kl-badge variant="success">Active</kl-badge>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <a routerLink="/products" class="kl-btn kl-btn-secondary">Back</a>
+    <button class="kl-btn kl-btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+      </svg>
+      Edit product
+    </button>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;">
+
+  <kl-card title="Product details">
+    <dl class="kl-dl" style="padding:0;">
+      <dt>Category</dt><dd>{{ product.category }}</dd>
+      <dt>Unit</dt><dd>{{ product.unit }}</dd>
+      <dt>Price</dt><dd>₹{{ product.price }}</dd>
+      <dt>Description</dt><dd>{{ product.description }}</dd>
+    </dl>
+  </kl-card>
+
+  <kl-card title="Stock levels">
+    <dl class="kl-dl" style="padding:0;">
+      <dt>Current stock</dt>
+      <dd>
+        <kl-badge variant="success">{{ product.stock }} {{ product.unit }}</kl-badge>
+      </dd>
+      <dt>Minimum level</dt><dd>{{ product.minStock }} {{ product.unit }}</dd>
+      <dt>Maximum level</dt><dd>{{ product.maxStock }} {{ product.unit }}</dd>
+    </dl>
+  </kl-card>
+
+</div>

@@ -1,0 +1,83 @@
+<div class="kl-crumbs">
+  <a routerLink="/products">Products</a>
+  <span class="sep">/</span>
+  <span style="color:#14251B;">Add product</span>
+</div>
+
+@if (error()) {
+  <kl-alert variant="danger" [message]="error()" />
+}
+
+<kl-card title="Product details">
+  <div class="kl-dlg-body" style="padding: 18px;">
+    <form (ngSubmit)="onSubmit()" #form="ngForm">
+      <div class="kl-form">
+
+        <div class="kl-form-section">Identity</div>
+
+        <div>
+          <label class="kl-form-label" for="name">Product name *</label>
+          <input id="name" class="kl-input" placeholder="e.g. Hybrid Rice Seed" [(ngModel)]="product.name" name="name" required />
+        </div>
+        <div>
+          <label class="kl-form-label" for="sku">SKU *</label>
+          <input id="sku" class="kl-input" placeholder="e.g. KL-S001" [(ngModel)]="product.sku" name="sku" required />
+        </div>
+
+        <div class="kl-form-section">Classification</div>
+
+        <div>
+          <label class="kl-form-label" for="category">Category *</label>
+          <select id="category" class="kl-select" [(ngModel)]="product.categoryId" name="categoryId" required>
+            <option value="">Select category</option>
+            <option value="1">Seeds</option>
+            <option value="2">Fertilizers</option>
+            <option value="3">Tools</option>
+            <option value="4">Pesticides</option>
+          </select>
+        </div>
+        <div>
+          <label class="kl-form-label" for="unit">Unit *</label>
+          <select id="unit" class="kl-select" [(ngModel)]="product.unitId" name="unitId" required>
+            <option value="">Select unit</option>
+            <option value="1">kg</option>
+            <option value="2">piece</option>
+            <option value="3">litre</option>
+            <option value="4">bag</option>
+          </select>
+        </div>
+
+        <div class="kl-form-section">Pricing &amp; stock</div>
+
+        <div>
+          <label class="kl-form-label" for="price">Price (₹) *</label>
+          <input id="price" type="number" class="kl-input" placeholder="0.00" [(ngModel)]="product.price" name="price" required />
+        </div>
+        <div></div>
+        <div>
+          <label class="kl-form-label" for="minStock">Min stock level *</label>
+          <input id="minStock" type="number" class="kl-input" placeholder="e.g. 50" [(ngModel)]="product.minStock" name="minStock" required />
+        </div>
+        <div>
+          <label class="kl-form-label" for="maxStock">Max stock level *</label>
+          <input id="maxStock" type="number" class="kl-input" placeholder="e.g. 500" [(ngModel)]="product.maxStock" name="maxStock" required />
+        </div>
+
+        <div class="kl-form-section">Additional</div>
+
+        <div class="full">
+          <label class="kl-form-label" for="desc">Description</label>
+          <textarea id="desc" class="kl-textarea" placeholder="Optional product notes visible to store managers…" [(ngModel)]="product.description" name="description" rows="3"></textarea>
+        </div>
+
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #E4E8E1;">
+        <a routerLink="/products" class="kl-btn kl-btn-secondary">Cancel</a>
+        <button type="submit" class="kl-btn kl-btn-primary" [disabled]="isLoading() || !form.valid">
+          @if (isLoading()) { Saving… } @else { Save product }
+        </button>
+      </div>
+    </form>
+  </div>
+</kl-card>

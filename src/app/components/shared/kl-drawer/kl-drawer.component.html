@@ -1,0 +1,23 @@
+<div class="kl-drawer-root" [class.is-open]="open">
+  <div class="kl-drawer-scrim" (click)="close.emit()"></div>
+  <div class="kl-drawer">
+    <div class="kl-dlg-head">
+      <div>
+        <div class="kl-dlg-title">{{ title }}</div>
+        <div class="kl-dlg-sub">{{ subtitle }}</div>
+      </div>
+      <button class="kl-dlg-close" (click)="close.emit()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="kl-dlg-body">
+      <ng-content />
+    </div>
+    <div class="kl-dlg-foot">
+      <div style="font-size:12px; color:#6B7A6E;">All changes are audit-logged.</div>
+      <div class="kl-right">
+        <ng-content select="[drawer-actions]" />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<kl-drawer
+  [open]="open"
+  [title]="farmer ? 'Edit · ' + farmer.name : 'Add farmer'"
+  [subtitle]="farmer ? 'Farmer ID ' + farmer.id : 'Register a new farmer. Crops and plots are managed on the detail page.'"
+  (close)="close.emit()">
+
+  <div class="kl-form">
+    <div class="kl-form-section">Identity</div>
+    <div>
+      <label class="kl-form-label">Full name</label>
+      <input class="kl-input" [value]="farmer?.name ?? ''" placeholder="e.g. Bishal Tamang" />
+    </div>
+    <div>
+      <label class="kl-form-label">Farmer ID</label>
+      <input class="kl-input" [value]="farmer?.id ?? 'KL-0443'" readonly style="background:var(--bg-muted, #F1F3EF); color:#6B7A6E;" />
+    </div>
+    <div>
+      <label class="kl-form-label">Phone</label>
+      <input class="kl-input" [value]="farmer?.phone ?? ''" placeholder="+977 …" />
+    </div>
+    <div>
+      <label class="kl-form-label">Co-operative</label>
+      <select class="kl-select" [value]="farmer?.coop ?? '—'">
+        @for (c of coops; track c) { <option>{{ c }}</option> }
+      </select>
+    </div>
+
+    <div class="kl-form-section">Location</div>
+    <div>
+      <label class="kl-form-label">Region</label>
+      <select class="kl-select" [value]="farmer?.region ?? 'Chitwan'">
+        @for (r of regions; track r) { <option>{{ r }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="kl-form-label">Village / ward</label>
+      <input class="kl-input" placeholder="e.g. Bharatpur-4" />
+    </div>
+
+    <div class="kl-form-section">Status</div>
+    <div class="full">
+      <label class="kl-form-label">Registration status</label>
+      <select class="kl-select" [value]="farmer?.status ?? 'Active'">
+        @for (s of statuses; track s) { <option>{{ s }}</option> }
+      </select>
+    </div>
+    <div class="full">
+      <label class="kl-form-label">Notes</label>
+      <textarea class="kl-textarea" placeholder="Optional internal notes visible only to admins…"></textarea>
+    </div>
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="close.emit()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="close.emit()">{{ farmer ? 'Save changes' : 'Create farmer' }}</button>
+  </ng-container>
+
+</kl-drawer>

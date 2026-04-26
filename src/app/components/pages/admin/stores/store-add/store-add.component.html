@@ -1,0 +1,57 @@
+<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="close.emit()">
+  <div class="kl-form">
+    <div class="kl-form-section">Store details</div>
+    <div class="full">
+      <label class="kl-form-label">Store name</label>
+      <input class="kl-input" [value]="store?.name ?? ''" placeholder="e.g. Bharatpur Hub" />
+    </div>
+    <div>
+      <label class="kl-form-label">Location</label>
+      <select class="kl-select" [value]="store?.location ?? locations[0]">
+        @for (l of locations; track l) {
+          <option>{{ l }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="kl-form-label">Tenant</label>
+      <select class="kl-select" [value]="store?.tenant ?? ''">
+        <option value="" disabled>Select tenant…</option>
+        @for (t of tenants; track t) {
+          <option>{{ t }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="kl-form-section">Contact</div>
+    <div>
+      <label class="kl-form-label">Manager</label>
+      <input class="kl-input" [value]="store?.manager ?? ''" placeholder="Full name" />
+    </div>
+    <div>
+      <label class="kl-form-label">Email</label>
+      <input class="kl-input" [value]="store?.email ?? ''" placeholder="store@org.np" />
+    </div>
+    <div class="full">
+      <label class="kl-form-label">Phone</label>
+      <input class="kl-input" [value]="store?.phone ?? ''" placeholder="+977 …" />
+    </div>
+
+    <div class="kl-form-section">Status</div>
+    <div class="full">
+      <label class="kl-form-label">Store status</label>
+      <select class="kl-select" [value]="store?.status ?? 'setup'">
+        <option value="active">Active</option>
+        <option value="setup">Setup</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="close.emit()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="close.emit()">
+      {{ store ? 'Save changes' : 'Create store' }}
+    </button>
+  </ng-container>
+</kl-drawer>

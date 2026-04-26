@@ -1,0 +1,42 @@
+:host { display: contents; }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #E4E8E1;
+
+  &:last-child { border-bottom: none; }
+}
+
+.toggle-label { font-size: 13px; color: #14251B; font-weight: 500; }
+.toggle-sub   { font-size: 12px; color: #6B7A6E; margin-top: 2px; }
+
+input[type=checkbox] {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #D5DBD1;
+  cursor: pointer;
+  position: relative;
+  transition: background 180ms ease;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 180ms ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+
+  &:checked {
+    background: #2F7D3B;
+    &::after { transform: translateX(16px); }
+  }
+}

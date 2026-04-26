@@ -1,0 +1,151 @@
+<aside class="kl-sidebar">
+
+  <!-- Brand -->
+  <div class="kl-brand">
+     <img src="../../../assets/logo.svg" alt="Krishilink logo" class="kl-brand-logo" />
+    <div>
+      <div class="kl-brand-name">Krishilink</div>
+      <div class="kl-brand-sub">Admin console</div>
+    </div>
+  </div>
+
+  <!-- Main nav -->
+  <nav class="kl-nav">
+    <div class="kl-nav-label">Menu</div>
+
+    <a
+      [routerLink]="'/dashboard'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
+          <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
+        </svg>
+      </span>
+      Dashboard
+    </a>
+
+    <a
+      [routerLink]="'/products'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16.5 9.4 7.5 4.21"/>
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+        </svg>
+      </span>
+      Products
+    </a>
+
+    <a
+      [routerLink]="'/inventory'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
+          <path d="M7 7h.01"/>
+        </svg>
+      </span>
+      Inventory
+    </a>
+
+    <a
+      [routerLink]="'/transfers'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/>
+          <path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
+        </svg>
+      </span>
+      Transfers
+    </a>
+
+    <a
+      [routerLink]="'/farmers'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </span>
+      Farmers
+    </a>
+
+    <a
+      [routerLink]="'/settings'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </span>
+      Settings
+    </a>
+
+    <!-- Admin section -->
+    <div class="kl-nav-label" style="margin-top: 12px;">Administration</div>
+
+    <a
+      [routerLink]="'/admin/tenants'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+          <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+        </svg>
+      </span>
+      Tenants
+    </a>
+
+    <a
+      [routerLink]="'/admin/stores'"
+      routerLinkActive="is-active"
+      class="kl-nav-item"
+    >
+      <span class="kl-nav-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+          <path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>
+        </svg>
+      </span>
+      Stores
+    </a>
+  </nav>
+
+  <!-- Season card -->
+  <div class="kl-sidebar-foot">
+    <div class="kl-season-card">
+      <div class="kl-season-label">Current season</div>
+      <div class="kl-season-name">Kharif · 2026</div>
+      <div class="kl-season-meter">
+        <div style="width: 68%"></div>
+      </div>
+      <div class="kl-season-sub">68% through window</div>
+    </div>
+  </div>
+
+</aside>

@@ -1,0 +1,135 @@
+<!-- Stat grid -->
+<div class="kl-stats-grid">
+
+  <kl-stat-card label="Registered farmers" value="12,480" delta="↑ 4.2%" tone="up" sub="this week">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  </kl-stat-card>
+
+  <kl-stat-card label="Active plots" value="3,214" delta="↑ 120" tone="up" sub="new this month">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 20A7 7 0 0 1 4 13c0-6 5-10 16-10 0 8-4 17-9 17z"/>
+      <path d="M2 22c4-4 6-6 10-10"/>
+    </svg>
+  </kl-stat-card>
+
+  <kl-stat-card label="Inventory in stock" value="48.2 t" delta="↓ 3.1%" tone="down" sub="seed + fertilizer">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16.5 9.4 7.5 4.21"/>
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      <path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+    </svg>
+  </kl-stat-card>
+
+  <kl-stat-card label="Yield forecast" value="+18%" delta="↑ vs baseline" tone="up" sub="season estimate">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>
+  </kl-stat-card>
+
+</div>
+
+<!-- Registrations chart -->
+<kl-card title="Registrations over time" subtitle="Last 12 weeks · all regions">
+  <button card-actions class="kl-btn kl-btn-secondary" style="font-size:12px; padding:6px 12px;">This quarter</button>
+  <div class="kl-card-body" style="padding-top:0;">
+    <svg viewBox="0 0 600 80" width="100%" height="80" preserveAspectRatio="none" aria-hidden="true">
+      <path [attr.d]="sparkFill" fill="#3C9A4A" opacity="0.12"/>
+      <path [attr.d]="sparkPath" fill="none" stroke="#3C9A4A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</kl-card>
+
+<!-- Two-column: table + sidebar cards -->
+<div class="kl-two-col">
+
+  <!-- Recent registrations table -->
+  <kl-card title="Recent farmer registrations" subtitle="6 of 12,480 · sorted by most recent">
+    <div card-actions>
+      <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:6px 12px;">Export</button>
+      <button class="kl-btn kl-btn-primary" style="font-size:12px; padding:6px 12px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add farmer
+      </button>
+    </div>
+    <div class="kl-table-wrap">
+      <table class="kl-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Region</th>
+            <th>Primary crop</th>
+            <th>Area</th>
+            <th>Status</th>
+            <th>Last update</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of farmers; track f.id) {
+            <tr>
+              <td><code class="kl-mono">{{ f.id }}</code></td>
+              <td>
+                <div class="kl-user">
+                  <div class="kl-avatar kl-avatar-sm">{{ initials(f.name) }}</div>
+                  <span>{{ f.name }}</span>
+                </div>
+              </td>
+              <td>{{ f.region }}</td>
+              <td>{{ f.crop }}</td>
+              <td>{{ f.area }}</td>
+              <td>
+                <kl-badge [variant]="statusVariant[f.status]">{{ f.status }}</kl-badge>
+              </td>
+              <td class="kl-fg-3">{{ f.updated }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </kl-card>
+
+  <!-- Activity + Weather column -->
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <!-- Activity feed -->
+    <kl-card title="Activity" subtitle="Last 24 hours">
+      <button card-actions class="kl-link">View all</button>
+      <ul class="kl-activity">
+        @for (a of activity; track a.ago) {
+          <li>
+            <span class="kl-activity-dot" [style.background]="toneDot[a.tone]"></span>
+            <div class="kl-activity-body">
+              <div><strong>{{ a.who }}</strong> {{ a.what }}</div>
+              <div class="kl-fg-3 kl-small">{{ a.plot }} · {{ a.ago }} ago</div>
+            </div>
+          </li>
+        }
+      </ul>
+    </kl-card>
+
+    <!-- Weather -->
+    <kl-card title="Regional weather" subtitle="Next 5 days · Terai belt">
+      <kl-badge card-actions variant="info">Monsoon</kl-badge>
+      <div class="kl-weather-row">
+        @for (w of weather; track w.day) {
+          <div class="kl-weather-cell">
+            <div class="kl-small kl-fg-3">{{ w.day }}</div>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6EA8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 17H7a4 4 0 0 1 0-8 5 5 0 0 1 9.5-1.5A3.5 3.5 0 0 1 17 17z"/>
+              @if (w.rain > 40) {
+                <path d="M9 20v2M13 20v2M17 20v2"/>
+              }
+            </svg>
+            <div class="kl-weather-temp">{{ w.temp }}°</div>
+            <div class="kl-small kl-fg-3">{{ w.rain }}%</div>
+          </div>
+        }
+      </div>
+    </kl-card>
+
+  </div>
+</div>

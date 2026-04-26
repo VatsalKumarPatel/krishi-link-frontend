@@ -1,0 +1,161 @@
+<!-- Header -->
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage organisations and their access to the platform.</p>
+  <div style="display:flex; gap:8px;">
+    <button class="kl-btn kl-btn-secondary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export CSV
+    </button>
+    <button class="kl-btn kl-btn-primary" (click)="openAdd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add tenant
+    </button>
+  </div>
+</div>
+
+<!-- Status tabs -->
+<div class="kl-tabs">
+  @for (tab of tabs; track tab) {
+    <button class="kl-tab" [class.is-active]="activeTab() === tab" (click)="setTab(tab)">
+      {{ tab }}
+    </button>
+  }
+</div>
+
+<!-- Table card -->
+<kl-card>
+  <div class="kl-toolbar">
+    <div class="kl-search" style="flex:1; min-width:220px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input
+        [value]="searchValue()"
+        (input)="onSearch($any($event.target).value)"
+        placeholder="Search by name, ID, or email…" />
+    </div>
+  </div>
+
+  <!-- Error banner -->
+  @if (error()) {
+    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">
+      {{ error() }}
+      <button class="kl-link" style="margin-left:8px;" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th class="sortable" [class.is-sorted]="sortCol()==='name'" (click)="toggleSort('name')">
+            Name <span class="kl-sort-ind">{{ sortCol()==='name' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
+          </th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='city'" (click)="toggleSort('city')">
+            Address <span class="kl-sort-ind">{{ sortCol()==='city' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
+          </th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='storeCount'" (click)="toggleSort('storeCount')">
+            Stores <span class="kl-sort-ind">{{ sortCol()==='storeCount' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
+          </th>
+          <th>Status</th>
+          <th class="sortable" [class.is-sorted]="sortCol()==='subscriptionExpiresAt'" (click)="toggleSort('subscriptionExpiresAt')">
+            Expires <span class="kl-sort-ind">{{ sortCol()==='subscriptionExpiresAt' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
+          </th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loading skeleton rows -->
+        @if (loading()) {
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <tr>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-16"></div></td>
+              <td>
+                <div class="kl-user">
+                  <div class="animate-pulse bg-bg-muted rounded-full" style="width:28px;height:28px;flex-shrink:0;"></div>
+                  <div class="animate-pulse bg-bg-muted rounded h-4" style="width:140px;"></div>
+                </div>
+              </td>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-32"></div></td>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-20"></div></td>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-8"></div></td>
+              <td><div class="animate-pulse bg-bg-muted rounded-full h-5 w-14"></div></td>
+              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-24"></div></td>
+              <td></td>
+            </tr>
+          }
+        }
+
+        <!-- Data rows -->
+        @if (!loading()) {
+          @for (t of tenants(); track t.id) {
+            <tr class="kl-row-link" [routerLink]="['/admin/tenants', t.id]">
+              <!-- <td><code class="kl-mono">{{ t.id }}</code></td> -->
+              <td>
+                <div class="kl-user">
+                  <div class="kl-avatar kl-avatar-sm">{{ initials(t.name) }}</div>
+                  <span style="font-weight:500;">{{ t.name }}</span>
+                </div>
+              </td>
+              <td class="kl-fg-3 kl-small">{{ t.email ?? '—' }}</td>
+              <td class="kl-fg-3 kl-small">{{ t.phone ?? '—' }}</td>
+              <td class="kl-fg-3 kl-small">{{ cityState(t) }}</td>
+              <td style="text-align:center;">{{ t.storeCount }}</td>
+              <td><kl-badge [variant]="statusVariant(t.isActive)">{{ statusLabel(t.isActive) }}</kl-badge></td>
+              <td class="kl-fg-3 kl-small">{{ formatExpiry(t.subscriptionExpiresAt) }}</td>
+              <td>
+                <button class="kl-icon-btn" (click)="openEdit(t, $event)" title="Edit">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          }
+
+          @if (!loading() && tenants().length === 0) {
+            <tr>
+              <td colspan="9" style="text-align:center; padding:48px 20px; color:#6B7A6E;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#9AA69C;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                No tenants match the current filters.
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  @if (!loading() && totalCount() > 0) {
+    <div class="kl-pagination">
+      <span>{{ pageRange() }}</span>
+      <div class="kl-pager">
+        <button [disabled]="!hasPreviousPage()" (click)="prevPage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        @for (p of [].constructor(totalPages()); track $index) {
+          <button [class.is-active]="currentPage() === $index + 1" (click)="currentPage.set($index + 1); load()">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button [disabled]="!hasNextPage()" (click)="nextPage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  }
+</kl-card>
+
+<!-- Add / Edit drawer -->
+<app-tenant-add
+  [open]="drawerOpen()"
+  [tenant]="editTenant()"
+  (close)="closeDrawer()"
+  (saved)="closeDrawer(true)" />

@@ -1,0 +1,87 @@
+<kl-card title="Transfers">
+  <button class="kl-btn kl-btn-primary" card-actions>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    New transfer
+  </button>
+
+  <div class="kl-toolbar">
+    <div class="kl-search" style="flex:1; min-width:220px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input placeholder="Search by ID, product, or store…" />
+    </div>
+
+    <div class="kl-filter-wrap">
+      <button class="kl-filter" [class.is-active]="statusFilter() !== 'All'" (click)="toggleFilter('status')">
+        Status
+        @if (statusFilter() !== 'All') { <span class="kl-filter-val">{{ statusFilter() }}</span> }
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      @if (openFilter() === 'status') {
+        <div class="kl-filter-menu">
+          @for (s of statuses; track s) {
+            <button class="kl-filter-opt" [class.is-sel]="statusFilter() === s" (click)="statusFilter.set(s); openFilter.set(null)">
+              {{ s }}
+              @if (statusFilter() === s) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <button class="kl-btn kl-btn-secondary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export
+    </button>
+  </div>
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>Transfer ID</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Product</th>
+          <th>Qty</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of filteredTransfers; track t.id) {
+          <tr>
+            <td><code class="kl-mono">{{ t.id }}</code></td>
+            <td>{{ t.from }}</td>
+            <td>{{ t.to }}</td>
+            <td style="font-weight:500;">{{ t.product }}</td>
+            <td>{{ t.qty }}</td>
+            <td><kl-badge [variant]="statusVariant(t.status)">{{ t.status }}</kl-badge></td>
+            <td class="kl-fg-3 kl-small">{{ t.date }}</td>
+            <td><button class="kl-link">View</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kl-pagination">
+    <span>Showing {{ filteredTransfers.length }} transfers</span>
+    <div class="kl-pager">
+      <button disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="is-active">1</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</kl-card>

@@ -1,0 +1,17 @@
+<div class="kl-stat">
+  <div class="kl-stat-head">
+    <span class="kl-stat-label">{{ label }}</span>
+    <span class="kl-stat-icon">
+      <ng-content />
+    </span>
+  </div>
+  <div class="kl-stat-value">{{ value }}</div>
+  <div class="kl-stat-foot">
+    @if (delta) {
+      <span class="kl-stat-delta" [ngClass]="'is-' + tone">{{ delta }}</span>
+    }
+    @if (sub) {
+      <span class="kl-stat-sub">{{ sub }}</span>
+    }
+  </div>
+</div>

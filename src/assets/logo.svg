@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="la" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6FB53A"></stop><stop offset="1" stop-color="#2F7D3B"></stop></linearGradient>
+    <linearGradient id="lb" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#3C9A4A"></stop><stop offset="1" stop-color="#8FCB4E"></stop></linearGradient>
+    <linearGradient id="ls" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#2F7D3B"></stop><stop offset="1" stop-color="#5BA03E"></stop></linearGradient>
+  </defs>
+  <circle cx="24" cy="24" r="24" fill="#F3F9F1"></circle>
+  <circle cx="24" cy="24" r="23.5" fill="none" stroke="#D5E6CC"></circle>
+  <path d="M24 40 C24 32 24 22 24 10" stroke="url(#ls)" stroke-width="2.2" stroke-linecap="round"></path>
+  <path d="M24 12 C19 10 16 12 15 15 C18 17 22 16 24 14 Z" fill="url(#la)"></path>
+  <path d="M24 12 C29 10 32 12 33 15 C30 17 26 16 24 14 Z" fill="url(#lb)"></path>
+  <path d="M24 20 C18 18 14 20 12 24 C16 26 21 25 24 22 Z" fill="url(#la)"></path>
+  <path d="M24 20 C30 18 34 20 36 24 C32 26 27 25 24 22 Z" fill="url(#lb)"></path>
+  <path d="M24 28 C17 27 12 30 10 34 C15 36 21 34 24 31 Z" fill="url(#la)" opacity=".92"></path>
+  <path d="M24 28 C31 27 36 30 38 34 C33 36 27 34 24 31 Z" fill="url(#lb)" opacity=".92"></path>
+  <circle cx="24" cy="9" r="2.2" fill="#F5B93E"></circle>
+</svg>
