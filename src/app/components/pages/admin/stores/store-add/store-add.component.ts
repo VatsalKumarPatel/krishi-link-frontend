@@ -1,10 +1,12 @@
 import {
-  Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject,
+  Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject, signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { KlDrawerComponent } from '../../../../shared/kl-drawer/kl-drawer.component';
 import { StoreService } from '@services/store.service';
+import { TenantService } from '@services/tenant.service';
 import { StoreDto } from '@models/store.model';
+import { TenantDropdownItem } from '@models/tenant.model';
 
 interface StoreForm {
   tenantId: string;
@@ -64,10 +66,14 @@ export class StoreAddComponent implements OnChanges {
   @Output() saved = new EventEmitter<void>();
 
   private readonly storeService = inject(StoreService);
+  private readonly tenantService = inject(TenantService);
 
   form: StoreForm = emptyForm();
   saving = false;
   saveError: string | null = null;
+
+  tenants = signal<TenantDropdownItem[]>([]);
+  tenantsLoading = signal(false);
 
   get isEdit(): boolean { return !!this.store?.id; }
 
@@ -81,11 +87,22 @@ export class StoreAddComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open'] && this.open && this.tenants().length === 0) {
+      this.loadTenants();
+    }
     if (changes['store'] || changes['open']) {
       this.saveError = null;
       this.saving = false;
       this.form = this.store ? storeToForm(this.store) : emptyForm();
     }
+  }
+
+  private loadTenants(): void {
+    this.tenantsLoading.set(true);
+    this.tenantService.getDropdown().subscribe({
+      next: (list) => { this.tenants.set(list); this.tenantsLoading.set(false); },
+      error: () => { this.tenantsLoading.set(false); },
+    });
   }
 
   submit(): void {

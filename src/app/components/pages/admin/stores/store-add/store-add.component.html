@@ -20,8 +20,17 @@
       </div>
     }
     <div>
-      <label class="kl-form-label">Tenant ID <span style="color:#C0392B;">*</span></label>
-      <input class="kl-input" [(ngModel)]="form.tenantId" name="tenantId" placeholder="UUID of the owning tenant" />
+      <label class="kl-form-label">Tenant <span style="color:#C0392B;">*</span></label>
+      @if (tenantsLoading()) {
+        <div class="animate-pulse bg-bg-muted rounded h-9 w-full"></div>
+      } @else {
+        <select class="kl-select" [(ngModel)]="form.tenantId" name="tenantId">
+          <option value="" disabled>Select tenant…</option>
+          @for (t of tenants(); track t.id) {
+            <option [value]="t.id">{{ t.name }}</option>
+          }
+        </select>
+      }
     </div>
     <div>
       <label class="kl-form-label">GSTIN</label>
