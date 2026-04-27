@@ -45,6 +45,13 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.pageSubtitle.set(data['subtitle'] ?? '');
   }
 
+  toggleStore(e: Event): void {
+    e.stopPropagation();
+    this.storeMenuOpen.update(v => !v);
+    this.notifOpen.set(false);
+    this.profileOpen.set(false);
+  }
+
   selectStore(store: MyStoreDto | null): void {
     this.storePicker.select(store);
     this.storeMenuOpen.set(false);

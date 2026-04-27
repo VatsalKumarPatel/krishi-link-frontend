@@ -21,7 +21,7 @@
       <button
         class="kl-store-btn"
         [class.is-active]="storePicker.isFiltered()"
-        (click)="storeMenuOpen.set(!storeMenuOpen())"
+        (click)="toggleStore($event)"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
@@ -36,7 +36,7 @@
       </button>
 
       @if (storeMenuOpen()) {
-        <div class="kl-store-menu">
+        <div class="kl-store-menu" (click)="$event.stopPropagation()">
           <div class="kl-store-menu-head">Viewing data for</div>
 
           <!-- "All stores" option -->
