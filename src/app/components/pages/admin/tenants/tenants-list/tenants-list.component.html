@@ -16,15 +16,6 @@
   </div>
 </div>
 
-<!-- Status tabs -->
-<div class="kl-tabs">
-  @for (tab of tabs; track tab) {
-    <button class="kl-tab" [class.is-active]="activeTab() === tab" (click)="setTab(tab)">
-      {{ tab }}
-    </button>
-  }
-</div>
-
 <!-- Table card -->
 <kl-card>
   <div class="kl-toolbar">

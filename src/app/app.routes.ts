@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { userResolver } from './resolvers/user.resolver';
+import { storeResolver } from './resolvers/store.resolver';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    resolve: { user: userResolver },
+    resolve: { user: userResolver, stores: storeResolver },
     loadComponent: () =>
       import('./components/layout/layout.component').then(m => m.LayoutComponent),
     children: [
@@ -96,6 +97,12 @@ export const routes: Routes = [
         data: { title: 'Stores', subtitle: 'Manage warehouses and collection centres' },
         loadComponent: () =>
           import('./components/pages/admin/stores/stores-list/stores-list.component').then(m => m.StoresListComponent),
+      },
+      {
+        path: 'admin/stores/:id',
+        data: { title: 'Store detail', subtitle: 'Store profile and settings' },
+        loadComponent: () =>
+          import('./components/pages/admin/stores/store-detail/store-detail.component').then(m => m.StoreDetailComponent),
       },
     ],
   },

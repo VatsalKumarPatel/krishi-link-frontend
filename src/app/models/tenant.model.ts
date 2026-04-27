@@ -96,6 +96,11 @@ export interface AdminStorePagedResult {
   hasNextPage: boolean;
 }
 
+export interface TenantDropdownItem {
+  id: string;
+  name: string;
+}
+
 export interface TenantListFilters {
   search?: string;
   status?: string;    // 'Active' | 'Inactive' — omit for All

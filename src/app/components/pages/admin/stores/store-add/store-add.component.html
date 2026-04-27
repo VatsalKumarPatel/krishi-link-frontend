@@ -1,57 +1,106 @@
-<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="close.emit()">
+<kl-drawer
+  [open]="open"
+  [title]="title"
+  [subtitle]="subtitle"
+  (close)="close.emit()">
+
   <div class="kl-form">
-    <div class="kl-form-section">Store details</div>
+
+    <!-- Store -->
+    <div class="kl-form-section">Store</div>
     <div class="full">
-      <label class="kl-form-label">Store name</label>
-      <input class="kl-input" [value]="store?.name ?? ''" placeholder="e.g. Bharatpur Hub" />
+      <label class="kl-form-label">Store name <span style="color:#C0392B;">*</span></label>
+      <input class="kl-input" [(ngModel)]="form.name" name="name" placeholder="e.g. Bharatpur Hub" />
+    </div>
+    @if (!isEdit) {
+      <div>
+        <label class="kl-form-label">Store code</label>
+        <input class="kl-input" [(ngModel)]="form.code" name="code" placeholder="e.g. BHP-01" />
+        <span class="kl-form-hint">Short unique identifier for this store.</span>
+      </div>
+    }
+    <div>
+      <label class="kl-form-label">Tenant <span style="color:#C0392B;">*</span></label>
+      @if (tenantsLoading()) {
+        <div class="animate-pulse bg-bg-muted rounded h-9 w-full"></div>
+      } @else {
+        <select class="kl-select" [(ngModel)]="form.tenantId" name="tenantId">
+          <option value="" disabled>Select tenant…</option>
+          @for (t of tenants(); track t.id) {
+            <option [value]="t.id">{{ t.name }}</option>
+          }
+        </select>
+      }
     </div>
     <div>
-      <label class="kl-form-label">Location</label>
-      <select class="kl-select" [value]="store?.location ?? locations[0]">
-        @for (l of locations; track l) {
-          <option>{{ l }}</option>
-        }
-      </select>
-    </div>
-    <div>
-      <label class="kl-form-label">Tenant</label>
-      <select class="kl-select" [value]="store?.tenant ?? ''">
-        <option value="" disabled>Select tenant…</option>
-        @for (t of tenants; track t) {
-          <option>{{ t }}</option>
-        }
-      </select>
+      <label class="kl-form-label">GSTIN</label>
+      <input class="kl-input" [(ngModel)]="form.gstin" name="gstin" placeholder="22AAAAA0000A1Z5" />
     </div>
 
+    <!-- Contact -->
     <div class="kl-form-section">Contact</div>
     <div>
-      <label class="kl-form-label">Manager</label>
-      <input class="kl-input" [value]="store?.manager ?? ''" placeholder="Full name" />
+      <label class="kl-form-label">Manager name</label>
+      <input class="kl-input" [(ngModel)]="form.managerName" name="managerName" placeholder="Full name" />
     </div>
     <div>
       <label class="kl-form-label">Email</label>
-      <input class="kl-input" [value]="store?.email ?? ''" placeholder="store@org.np" />
+      <input class="kl-input" [(ngModel)]="form.email" name="email" type="email" placeholder="store@org.np" />
     </div>
-    <div class="full">
+    <div>
       <label class="kl-form-label">Phone</label>
-      <input class="kl-input" [value]="store?.phone ?? ''" placeholder="+977 …" />
+      <input class="kl-input" [(ngModel)]="form.phone" name="phone" placeholder="+977 …" />
     </div>
 
-    <div class="kl-form-section">Status</div>
+    <!-- Address -->
+    <div class="kl-form-section">Address</div>
     <div class="full">
-      <label class="kl-form-label">Store status</label>
-      <select class="kl-select" [value]="store?.status ?? 'setup'">
-        <option value="active">Active</option>
-        <option value="setup">Setup</option>
-        <option value="inactive">Inactive</option>
-      </select>
+      <label class="kl-form-label">Address line 1</label>
+      <input class="kl-input" [(ngModel)]="form.addressLine1" name="addressLine1" placeholder="Street / Ward" />
     </div>
+    <div class="full">
+      <label class="kl-form-label">Address line 2</label>
+      <input class="kl-input" [(ngModel)]="form.addressLine2" name="addressLine2" placeholder="Municipality / VDC" />
+    </div>
+    <div>
+      <label class="kl-form-label">City</label>
+      <input class="kl-input" [(ngModel)]="form.city" name="city" placeholder="Bharatpur" />
+    </div>
+    <div>
+      <label class="kl-form-label">State / Province</label>
+      <input class="kl-input" [(ngModel)]="form.state" name="state" placeholder="Bagmati" />
+    </div>
+    <div>
+      <label class="kl-form-label">Pincode</label>
+      <input class="kl-input" [(ngModel)]="form.pincode" name="pincode" placeholder="44600" />
+    </div>
+
+    @if (isEdit) {
+      <!-- Status — edit mode only -->
+      <div class="kl-form-section">Status</div>
+      <div class="full">
+        <label class="kl-form-label">Store status</label>
+        <select class="kl-select" [(ngModel)]="form.isActive" name="isActive">
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (saveError) {
+      <div class="full" style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; color:#991B1B; font-size:13px;">
+        {{ saveError }}
+      </div>
+    }
+
   </div>
 
   <ng-container drawer-actions>
-    <button class="kl-btn kl-btn-secondary" (click)="close.emit()">Cancel</button>
-    <button class="kl-btn kl-btn-primary" (click)="close.emit()">
-      {{ store ? 'Save changes' : 'Create store' }}
+    <button class="kl-btn kl-btn-secondary" (click)="close.emit()" [disabled]="saving">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="submit()" [disabled]="saving">
+      @if (saving) { Saving… } @else { {{ isEdit ? 'Save changes' : 'Create store' }} }
     </button>
   </ng-container>
+
 </kl-drawer>

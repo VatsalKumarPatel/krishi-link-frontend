@@ -48,8 +48,6 @@ export class TenantsListComponent implements OnInit {
   drawerOpen = signal(false);
   editTenant = signal<TenantDto | null>(null);
 
-  readonly tabs: TabStatus[] = ['All', 'Active', 'Inactive'];
-
   ngOnInit(): void {
     // Debounce search input — triggers a fresh load from page 1
     this.searchSubject.pipe(

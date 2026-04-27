@@ -10,6 +10,7 @@ import {
   ActivityLogDto,
   AdminStorePagedResult,
   TenantListFilters,
+  TenantDropdownItem,
 } from '@models/tenant.model';
 
 export interface ActivityPagedResult {
@@ -56,6 +57,10 @@ export class TenantService {
       .set('page', String(page))
       .set('pageSize', String(pageSize));
     return this.http.get<ActivityPagedResult>(`${this.base}/${id}/activity`, { params });
+  }
+
+  getDropdown(): Observable<TenantDropdownItem[]> {
+    return this.http.get<TenantDropdownItem[]>(`${this.base}/dropdown`);
   }
 
   getStores(tenantId: string, page = 1, pageSize = 50): Observable<AdminStorePagedResult> {
