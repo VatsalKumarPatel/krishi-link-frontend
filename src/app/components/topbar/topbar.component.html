@@ -20,7 +20,7 @@
     <div class="kl-store-picker">
       <button
         class="kl-store-btn"
-        [class.is-active]="selectedStore() !== 'All stores'"
+        [class.is-active]="storePicker.isFiltered()"
         (click)="storeMenuOpen.set(!storeMenuOpen())"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -29,7 +29,7 @@
           <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
           <path d="M2 7h20"/>
         </svg>
-        <span class="kl-store-label">{{ selectedStore() }}</span>
+        <span class="kl-store-label">{{ storePicker.selectedLabel() }}</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5">
           <path d="m6 9 6 6 6-6"/>
         </svg>
@@ -38,14 +38,29 @@
       @if (storeMenuOpen()) {
         <div class="kl-store-menu">
           <div class="kl-store-menu-head">Viewing data for</div>
-          @for (store of stores; track store) {
+
+          <!-- "All stores" option -->
+          <button
+            class="kl-store-opt"
+            [class.is-sel]="!storePicker.isFiltered()"
+            (click)="selectStore(null)"
+          >
+            <span>All stores</span>
+            @if (!storePicker.isFiltered()) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5"/>
+              </svg>
+            }
+          </button>
+
+          @for (store of storePicker.stores(); track store.id) {
             <button
               class="kl-store-opt"
-              [class.is-sel]="selectedStore() === store"
+              [class.is-sel]="storePicker.selectedStore()?.id === store.id"
               (click)="selectStore(store)"
             >
-              <span>{{ store }}</span>
-              @if (selectedStore() === store) {
+              <span>{{ store.name }}</span>
+              @if (storePicker.selectedStore()?.id === store.id) {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 6 9 17l-5-5"/>
                 </svg>

@@ -2,8 +2,7 @@ import { Component, signal, OnInit, OnDestroy, HostListener, inject } from '@ang
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { UserService } from '@services/user.service';
-
-const STORES = ['All stores', 'Bharatpur Hub', 'Pokhara Depot', 'Damak Collection', 'Besisahar Centre', 'Butwal Warehouse'];
+import { StorePickerService, MyStoreDto } from '@services/store-picker.service';
 
 @Component({
   selector: 'app-topbar',
@@ -13,9 +12,8 @@ const STORES = ['All stores', 'Bharatpur Hub', 'Pokhara Depot', 'Damak Collectio
 })
 export class TopbarComponent implements OnInit, OnDestroy {
   readonly userService = inject(UserService);
+  readonly storePicker = inject(StorePickerService);
 
-  readonly stores = STORES;
-  selectedStore = signal('All stores');
   storeMenuOpen = signal(false);
   notifOpen = signal(false);
   profileOpen = signal(false);
@@ -47,8 +45,8 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.pageSubtitle.set(data['subtitle'] ?? '');
   }
 
-  selectStore(store: string) {
-    this.selectedStore.set(store);
+  selectStore(store: MyStoreDto | null): void {
+    this.storePicker.select(store);
     this.storeMenuOpen.set(false);
   }
 

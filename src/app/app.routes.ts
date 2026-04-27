@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { userResolver } from './resolvers/user.resolver';
+import { storeResolver } from './resolvers/store.resolver';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    resolve: { user: userResolver },
+    resolve: { user: userResolver, stores: storeResolver },
     loadComponent: () =>
       import('./components/layout/layout.component').then(m => m.LayoutComponent),
     children: [
