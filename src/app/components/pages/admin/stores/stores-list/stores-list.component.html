@@ -1,23 +1,34 @@
-<!-- Header -->
-<div class="kl-page-header" style="align-items:center;">
-  <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage warehouses and collection centres across all tenants.</p>
-  <div style="display:flex; gap:8px;">
-    <button class="kl-btn kl-btn-secondary">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Export CSV
-    </button>
-    <button class="kl-btn kl-btn-primary" (click)="openAdd()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add store
-    </button>
+<!-- Page header — hidden when embedded inside another page -->
+@if (!embedded) {
+  <div class="kl-page-header" style="align-items:center;">
+    <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage warehouses and collection centres across all tenants.</p>
+    <div style="display:flex; gap:8px;">
+      <button class="kl-btn kl-btn-secondary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export CSV
+      </button>
+      <button class="kl-btn kl-btn-primary" (click)="openAdd()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add store
+      </button>
+    </div>
   </div>
-</div>
+}
 
 <!-- Table card -->
 <kl-card>
+
+  <!-- Add button in card header when embedded -->
+  @if (embedded) {
+    <button class="kl-btn kl-btn-primary" card-actions (click)="openAdd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add store
+    </button>
+  }
+
   <div class="kl-toolbar">
     <div class="kl-search" style="flex:1; min-width:220px;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -45,9 +56,12 @@
           <th class="sortable" [class.is-sorted]="sortCol()==='name'" (click)="toggleSort('name')">
             Store <span class="kl-sort-ind">{{ sortCol()==='name' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
           </th>
-          <th class="sortable" [class.is-sorted]="sortCol()==='tenantName'" (click)="toggleSort('tenantName')">
-            Tenant <span class="kl-sort-ind">{{ sortCol()==='tenantName' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
-          </th>
+          <!-- Tenant column hidden when embedded (already in tenant context) -->
+          @if (!embedded) {
+            <th class="sortable" [class.is-sorted]="sortCol()==='tenantName'" (click)="toggleSort('tenantName')">
+              Tenant <span class="kl-sort-ind">{{ sortCol()==='tenantName' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
+            </th>
+          }
           <th class="sortable" [class.is-sorted]="sortCol()==='city'" (click)="toggleSort('city')">
             Location <span class="kl-sort-ind">{{ sortCol()==='city' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
           </th>
@@ -62,7 +76,7 @@
       <tbody>
         <!-- Loading skeleton rows -->
         @if (loading()) {
-          @for (i of [1,2,3,4,5,6]; track i) {
+          @for (i of [1,2,3,4,5]; track i) {
             <tr>
               <td>
                 <div class="kl-user">
@@ -70,7 +84,9 @@
                   <div class="animate-pulse bg-bg-muted rounded h-4" style="width:120px;"></div>
                 </div>
               </td>
-              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
+              @if (!embedded) {
+                <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
+              }
               <td><div class="animate-pulse bg-bg-muted rounded h-4 w-24"></div></td>
               <td><div class="animate-pulse bg-bg-muted rounded h-4 w-32"></div></td>
               <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
@@ -93,7 +109,9 @@
                   </div>
                 </div>
               </td>
-              <td class="kl-fg-3 kl-small">{{ s.tenantName ?? '—' }}</td>
+              @if (!embedded) {
+                <td class="kl-fg-3 kl-small">{{ s.tenantName ?? '—' }}</td>
+              }
               <td class="kl-fg-3 kl-small">{{ cityState(s) }}</td>
               <td class="kl-fg-3 kl-small">{{ s.gstin ?? '—' }}</td>
               <td class="kl-fg-3 kl-small">{{ s.phone ?? '—' }}</td>
@@ -108,11 +126,11 @@
             </tr>
           }
 
-          @if (!loading() && stores().length === 0) {
+          @if (stores().length === 0) {
             <tr>
-              <td colspan="7" style="text-align:center; padding:48px 20px; color:#6B7A6E;">
+              <td [attr.colspan]="embedded ? 6 : 7" style="text-align:center; padding:48px 20px; color:#6B7A6E;">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#9AA69C;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                No stores match the current filters.
+                No stores found.
               </td>
             </tr>
           }
@@ -146,5 +164,6 @@
 <app-store-add
   [open]="drawerOpen()"
   [store]="editStore()"
+  [defaultTenantId]="tenantId"
   (close)="closeDrawer()"
   (saved)="closeDrawer(true)" />
