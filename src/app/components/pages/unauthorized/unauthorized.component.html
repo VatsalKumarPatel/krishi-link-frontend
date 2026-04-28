@@ -1,0 +1,35 @@
+<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:40px 20px;">
+
+  <!-- Lock icon -->
+  <div style="width:72px; height:72px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center; margin-bottom:24px;">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+
+  <!-- Status code -->
+  <div style="font-size:13px; font-weight:600; letter-spacing:.08em; color:#C0392B; text-transform:uppercase; margin-bottom:8px;">
+    403 — Unauthorized
+  </div>
+
+  <!-- Heading -->
+  <h1 style="font-family:'Fraunces', serif; font-size:26px; font-weight:700; color:#1A2B1C; margin:0 0 10px;">
+    Access denied
+  </h1>
+
+  <!-- Sub-text -->
+  <p style="font-size:14px; color:#6B7A6E; max-width:380px; line-height:1.6; margin:0 0 32px;">
+    You don't have permission to view this page.
+    If you believe this is a mistake, please contact your administrator.
+  </p>
+
+  <!-- Action -->
+  <a [routerLink]="homePath" class="kl-btn kl-btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m15 18-6-6 6-6"/>
+    </svg>
+    Go to home
+  </a>
+
+</div>

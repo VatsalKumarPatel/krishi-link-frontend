@@ -29,6 +29,9 @@ export class UserService {
       .join('')
   );
 
+  /** True when the current user is a platform-level SuperAdmin. */
+  readonly isSuperAdmin = computed(() => this._profile()?.userType === 'SuperAdmin');
+
   /** Human-readable role: staffRole takes priority, else formatted userType */
   readonly roleLabel = computed(() => {
     const p = this._profile();
