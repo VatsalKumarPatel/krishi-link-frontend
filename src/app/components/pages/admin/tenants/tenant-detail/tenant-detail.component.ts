@@ -6,13 +6,14 @@ import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
 import { BadgeComponent, BadgeVariant } from '../../../../shared/badge/badge.component';
 import { TenantAddComponent } from '../tenant-add/tenant-add.component';
 import { KlActivityFeedComponent, FeedGroup, FeedItem } from '../../../../shared/kl-activity-feed/kl-activity-feed.component';
+import { StoresListComponent } from '../../admin/stores/stores-list/stores-list.component';
 import { TenantService } from '@services/tenant.service';
-import { TenantDto, ActivityLogDto, AdminStoreDtoForTenant } from '@models/tenant.model';
+import { TenantDto, ActivityLogDto } from '@models/tenant.model';
 
 @Component({
   selector: 'app-tenant-detail',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, BadgeComponent, TenantAddComponent, KlActivityFeedComponent],
+  imports: [RouterLink, KlCardComponent, BadgeComponent, TenantAddComponent, KlActivityFeedComponent, StoresListComponent],
   templateUrl: './tenant-detail.component.html',
   styleUrl: './tenant-detail.component.scss',
 })
@@ -26,9 +27,6 @@ export class TenantDetailComponent implements OnInit {
   error = signal<string | null>(null);
   tenant = signal<TenantDto | null>(null);
   feed = signal<FeedGroup[]>([]);
-  stores = signal<AdminStoreDtoForTenant[]>([]);
-  storesLoading = signal(false);
-  storesLoaded = signal(false);
 
   activeTab = signal<'details' | 'stores' | 'activity' | 'files'>('details');
   drawerOpen = signal(false);
@@ -63,28 +61,6 @@ export class TenantDetailComponent implements OnInit {
       });
   }
 
-  loadStores(): void {
-    if (this.storesLoaded()) return;
-    this.storesLoading.set(true);
-    this.tenantService.getStores(this.id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (result) => {
-          this.stores.set(result.items);
-          this.storesLoading.set(false);
-          this.storesLoaded.set(true);
-        },
-        error: () => {
-          this.storesLoading.set(false);
-        },
-      });
-  }
-
-  setTab(tab: 'details' | 'stores' | 'activity' | 'files'): void {
-    this.activeTab.set(tab);
-    if (tab === 'stores') this.loadStores();
-  }
-
   reloadAfterSave(): void {
     this.drawerOpen.set(false);
     this.loadTenant();
@@ -93,7 +69,6 @@ export class TenantDetailComponent implements OnInit {
   // ── Display helpers ─────────────────────────────────────────────────────────
 
   shortId(id: string): string {
-    // Show first 8 chars of a UUID — full value stays in [title] tooltip
     return id.slice(0, 8) + '…';
   }
 
@@ -110,10 +85,6 @@ export class TenantDetailComponent implements OnInit {
     return isActive ? 'Active' : 'Inactive';
   }
 
-  storeStatusVariant(isActive: boolean): BadgeVariant {
-    return isActive ? 'success' : 'neutral';
-  }
-
   formatDate(iso: string | null): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -128,11 +99,6 @@ export class TenantDetailComponent implements OnInit {
     return [t.addressLine1, t.addressLine2, t.city, t.state, t.pincode]
       .filter((v): v is string => !!v)
       .join(', ');
-  }
-
-  storeCityState(s: { city: string | null; state: string | null }): string {
-    const parts = [s.city, s.state].filter((v): v is string => !!v);
-    return parts.length ? parts.join(', ') : '—';
   }
 
   // ── Activity log → FeedGroup[] ─────────────────────────────────────────────

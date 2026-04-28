@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, DestroyRef } from '@angular/core';
+import { Component, Input, signal, OnInit, OnChanges, SimpleChanges, inject, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -19,7 +19,13 @@ type SortCol = 'name' | 'city' | 'tenantName' | 'isActive';
   templateUrl: './stores-list.component.html',
   styleUrl: './stores-list.component.scss',
 })
-export class StoresListComponent implements OnInit {
+export class StoresListComponent implements OnInit, OnChanges {
+  /** When set, filters stores by this tenant and hides the Tenant column. */
+  @Input() tenantId: string | null = null;
+
+  /** When true, hides the page-level header and renders as an embedded card. */
+  @Input() embedded = false;
+
   private readonly storeService = inject(StoreService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly searchSubject = new Subject<string>();
@@ -58,12 +64,21 @@ export class StoresListComponent implements OnInit {
     this.load();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    // If tenantId changes after init, reset and reload
+    if (changes['tenantId'] && !changes['tenantId'].firstChange) {
+      this.currentPage.set(1);
+      this.load();
+    }
+  }
+
   load(): void {
     this.loading.set(true);
     this.error.set(null);
 
     const filters: StoreListFilters = {
       search: this.searchValue() || undefined,
+      tenantId: this.tenantId ?? undefined,
       sortBy: this.sortCol(),
       sortDir: this.sortDir(),
     };

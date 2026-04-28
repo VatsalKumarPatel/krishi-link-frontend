@@ -62,6 +62,8 @@ function storeToForm(s: StoreDto): StoreForm {
 export class StoreAddComponent implements OnChanges {
   @Input() open = false;
   @Input() store: StoreDto | null = null;
+  /** Pre-selects the tenant when adding a new store from within a tenant's detail page. */
+  @Input() defaultTenantId: string | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() saved = new EventEmitter<void>();
 
@@ -94,6 +96,10 @@ export class StoreAddComponent implements OnChanges {
       this.saveError = null;
       this.saving = false;
       this.form = this.store ? storeToForm(this.store) : emptyForm();
+      // Pre-fill tenant when adding from within a tenant's detail page
+      if (!this.store && this.defaultTenantId) {
+        this.form.tenantId = this.defaultTenantId;
+      }
     }
   }
 
