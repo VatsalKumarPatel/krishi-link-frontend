@@ -6,9 +6,9 @@ import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
 import { BadgeComponent, BadgeVariant } from '../../../../shared/badge/badge.component';
 import { TenantAddComponent } from '../tenant-add/tenant-add.component';
 import { KlActivityFeedComponent, FeedGroup, FeedItem } from '../../../../shared/kl-activity-feed/kl-activity-feed.component';
-import { StoresListComponent } from '../../admin/stores/stores-list/stores-list.component';
 import { TenantService } from '@services/tenant.service';
 import { TenantDto, ActivityLogDto } from '@models/tenant.model';
+import { StoresListComponent } from '../../stores/stores-list/stores-list.component';
 
 @Component({
   selector: 'app-tenant-detail',
