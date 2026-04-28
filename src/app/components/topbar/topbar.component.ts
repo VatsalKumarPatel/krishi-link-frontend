@@ -2,6 +2,8 @@ import { Component, signal, OnInit, OnDestroy, HostListener, inject } from '@ang
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { UserService } from '@services/user.service';
+import { AuthService } from '@services/auth.service';
+import { TokenService } from '@services/token.service';
 import { StorePickerService, MyStoreDto } from '@services/store-picker.service';
 
 @Component({
@@ -13,6 +15,8 @@ import { StorePickerService, MyStoreDto } from '@services/store-picker.service';
 export class TopbarComponent implements OnInit, OnDestroy {
   readonly userService = inject(UserService);
   readonly storePicker = inject(StorePickerService);
+  private readonly authService = inject(AuthService);
+  private readonly tokenService = inject(TokenService);
 
   storeMenuOpen = signal(false);
   notifOpen = signal(false);
@@ -69,6 +73,21 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.profileOpen.update(v => !v);
     this.notifOpen.set(false);
     this.storeMenuOpen.set(false);
+  }
+
+  signOut(): void {
+    // Always clear local state and redirect, even if the API call fails
+    const clearAndRedirect = () => {
+      this.tokenService.clearTokens();
+      this.userService.clear();
+      this.storePicker.clear();
+      this.router.navigate(['/login']);
+    };
+
+    this.authService.logout().subscribe({
+      next: () => clearAndRedirect(),
+      error: () => clearAndRedirect(),
+    });
   }
 
   @HostListener('document:click')
