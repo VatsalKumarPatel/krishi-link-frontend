@@ -124,12 +124,12 @@
 
       <!-- Tabs -->
       <div class="kl-tabs" style="margin-top:0;">
-        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="setTab('details')">Details</button>
-        <button class="kl-tab" [class.is-active]="activeTab()==='stores'" (click)="setTab('stores')">
+        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="activeTab.set('details')">Details</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='stores'" (click)="activeTab.set('stores')">
           Stores<span class="kl-count">{{ t.storeCount }}</span>
         </button>
-        <button class="kl-tab" [class.is-active]="activeTab()==='activity'" (click)="setTab('activity')">Activity</button>
-        <button class="kl-tab" [class.is-active]="activeTab()==='files'" (click)="setTab('files')">Files</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='activity'" (click)="activeTab.set('activity')">Activity</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='files'" (click)="activeTab.set('files')">Files</button>
       </div>
 
       <!-- Details tab -->
@@ -169,46 +169,7 @@
 
       <!-- Stores tab -->
       @if (activeTab() === 'stores') {
-        <kl-card title="Stores">
-          @if (storesLoading()) {
-            @for (i of [1,2,3]; track i) {
-              <div style="padding:12px 0; border-bottom:1px solid var(--border-1);">
-                <div class="animate-pulse bg-bg-muted rounded h-4 w-full"></div>
-              </div>
-            }
-          } @else {
-            <div class="kl-table-wrap">
-              <table class="kl-table">
-                <thead>
-                  <tr>
-                    <th>Store</th>
-                    <th>Location</th>
-                    <th>GSTIN</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (s of stores(); track s.id) {
-                    <tr>
-                      <td>
-                        <div style="font-weight:600;">{{ s.name }}</div>
-                        <code class="kl-mono" style="font-size:11px;">{{ s.code }}</code>
-                      </td>
-                      <td class="kl-fg-3">{{ storeCityState(s) }}</td>
-                      <td class="kl-fg-3 kl-small">{{ s.gstin ?? '—' }}</td>
-                      <td><kl-badge [variant]="storeStatusVariant(s.isActive)">{{ s.isActive ? 'Active' : 'Inactive' }}</kl-badge></td>
-                      <td><a [routerLink]="['/admin/stores', s.id]" class="kl-link">View</a></td>
-                    </tr>
-                  }
-                  @if (stores().length === 0) {
-                    <tr><td colspan="5" style="text-align:center; padding:32px; color:#9AA69C;">No stores yet.</td></tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </kl-card>
+        <app-stores-list [tenantId]="t.id" [embedded]="true" />
       }
 
       <!-- Activity tab -->
