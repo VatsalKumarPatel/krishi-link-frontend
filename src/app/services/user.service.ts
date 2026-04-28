@@ -1,4 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { TokenService } from './token.service';
@@ -44,8 +45,15 @@ export class UserService {
     private readonly tokenService: TokenService,
   ) {}
 
-  /** Called by the resolver — fetches /auth/me and stores the result. */
+  /**
+   * Fetches /auth/me and caches the result.
+   * If the profile is already loaded (e.g. loaded by roleGuard before the
+   * resolver ran) it returns the cached value without an extra HTTP call.
+   */
   load() {
+    if (this._profile()) {
+      return of(this._profile()!);
+    }
     return this.authService.getCurrentUser().pipe(
       tap((me: UserProfile) => this._profile.set(me)),
     );
