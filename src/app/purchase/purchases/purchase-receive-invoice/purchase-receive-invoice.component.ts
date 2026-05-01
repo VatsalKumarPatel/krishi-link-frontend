@@ -3,7 +3,6 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
 import { PurchaseService } from '@services/purchase.service';
 import { PurchaseDetailDto, ReceiveAndInvoiceCommand } from '@models/purchase.model';
 
@@ -20,7 +19,7 @@ const PLACE_OF_SUPPLY_OPTIONS = [
 @Component({
   selector: 'app-purchase-receive-invoice',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, KlCardComponent],
   templateUrl: './purchase-receive-invoice.component.html',
 })
 export class PurchaseReceiveInvoiceComponent implements OnInit {

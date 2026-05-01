@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
@@ -10,7 +11,7 @@ import { PurchaseReturnDetailDto, PurchaseReturnStatus, RETURN_STATUS_LABELS } f
 @Component({
   selector: 'app-return-detail',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './return-detail.component.html',
 })
 export class ReturnDetailComponent implements OnInit {

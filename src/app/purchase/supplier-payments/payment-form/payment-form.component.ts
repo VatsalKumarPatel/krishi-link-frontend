@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
@@ -14,7 +15,7 @@ type PayMode = 'Cash' | 'UPI' | 'Cheque' | 'NEFT';
 @Component({
   selector: 'app-payment-form',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent],
   templateUrl: './payment-form.component.html',
 })
 export class PaymentFormComponent implements OnInit {
@@ -26,6 +27,7 @@ export class PaymentFormComponent implements OnInit {
   readonly storePicker = inject(StorePickerService);
 
   // Mode tabs
+  readonly modes: PayMode[] = ['Cash', 'UPI', 'Cheque', 'NEFT'];
   mode = signal<PayMode>('Cash');
 
   // Common
@@ -56,13 +58,13 @@ export class PaymentFormComponent implements OnInit {
   // Inline allocation
   showAllocation = signal(false);
   outstandingInvoices = signal<OutstandingInvoiceDto[]>([]);
-  allocationAmounts = signal<Record<string, number>>({});
+  allocationAmounts = signal<Record<string, number | undefined>>({});
 
   saving = signal(false);
   error = signal<string | null>(null);
 
   readonly totalAllocated = computed(() =>
-    Object.values(this.allocationAmounts()).reduce((s, v) => s + (v || 0), 0)
+    Object.values(this.allocationAmounts()).reduce((s, v) => s + (v ?? 0), 0)
   );
 
   readonly advanceWarning = computed(() => {
@@ -152,8 +154,8 @@ export class PaymentFormComponent implements OnInit {
     req$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (payment) => {
         const allocLines: PaymentAllocationLineCommand[] = Object.entries(this.allocationAmounts())
-          .filter(([, v]) => v > 0)
-          .map(([purchaseId, amount]) => ({ purchaseId, amount }));
+          .filter(([, v]) => (v ?? 0) > 0)
+          .map(([purchaseId, amount]) => ({ purchaseId, amount: amount! }));
 
         if (allocLines.length > 0) {
           this.paymentService.allocate(payment.id, { allocations: allocLines })

@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
@@ -27,7 +28,7 @@ interface BatchPagedResult {
 @Component({
   selector: 'app-batch-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './batch-list.component.html',
 })
 export class BatchListComponent implements OnInit {

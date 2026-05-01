@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
@@ -11,7 +12,7 @@ type StatusBadge = 'neutral' | 'warning' | 'success';
 @Component({
   selector: 'app-return-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './return-list.component.html',
 })
 export class ReturnListComponent implements OnInit {

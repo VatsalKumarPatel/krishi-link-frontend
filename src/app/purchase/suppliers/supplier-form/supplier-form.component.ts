@@ -86,24 +86,27 @@ export class SupplierFormComponent implements OnInit {
     };
 
     this.saving.set(true);
-    const req = this.isEdit()
-      ? this.supplierService.update(this.supplierId()!, cmd)
-      : this.supplierService.create(cmd);
+    const onError = (err: { status: number; error?: { errors?: Record<string, string>; detail?: string } }) => {
+      this.saving.set(false);
+      if (err.status === 400 && err.error?.errors) {
+        this.fieldErrors.set(err.error.errors);
+      } else {
+        this.error.set(err.error?.detail ?? 'Failed to save supplier. Please try again.');
+      }
+    };
 
-    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.saving.set(false);
-        const id = this.isEdit() ? this.supplierId()! : (result as SupplierDto).id;
-        this.router.navigate(['/purchase/suppliers', id]);
-      },
-      error: (err) => {
-        this.saving.set(false);
-        if (err.status === 400 && err.error?.errors) {
-          this.fieldErrors.set(err.error.errors);
-        } else {
-          this.error.set(err.error?.detail ?? 'Failed to save supplier. Please try again.');
-        }
-      },
-    });
+    if (this.isEdit()) {
+      this.supplierService.update(this.supplierId()!, cmd)
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: () => { this.saving.set(false); this.router.navigate(['/purchase/suppliers', this.supplierId()!]); },
+          error: onError,
+        });
+    } else {
+      this.supplierService.create(cmd)
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: (result: SupplierDto) => { this.saving.set(false); this.router.navigate(['/purchase/suppliers', result.id]); },
+          error: onError,
+        });
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
@@ -13,7 +14,7 @@ import {
 @Component({
   selector: 'app-payment-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './payment-list.component.html',
 })
 export class PaymentListComponent implements OnInit {

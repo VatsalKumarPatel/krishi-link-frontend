@@ -62,7 +62,7 @@
               </td>
               <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">
                 <span [style.color]="row.runningBalance > 0 ? '#92400E' : '#166534'">
-                  ₹{{ fmt(Math.abs(row.runningBalance)) }}
+                  ₹{{ fmt(abs(row.runningBalance)) }}
                   {{ row.runningBalance > 0 ? 'Dr' : row.runningBalance < 0 ? 'Cr' : '' }}
                 </span>
               </td>

@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { SupplierService } from '@services/supplier.service';
@@ -13,7 +14,7 @@ interface LedgerRowWithBalance extends SupplierLedgerEntryDto {
 @Component({
   selector: 'app-supplier-ledger',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent],
   templateUrl: './supplier-ledger.component.html',
 })
 export class SupplierLedgerComponent implements OnInit {
@@ -84,6 +85,8 @@ export class SupplierLedgerComponent implements OnInit {
     const year = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
     return `${year}-04-01`;
   }
+
+  abs(n: number): number { return Math.abs(n); }
 
   fmt(n: number): string {
     return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);

@@ -9,7 +9,7 @@
 <kl-card>
   <!-- Mode tabs -->
   <div class="kl-tabs" style="margin-bottom:20px;">
-    @for (m of ['Cash','UPI','Cheque','NEFT'] as const; track m) {
+    @for (m of modes; track m) {
       <button class="kl-tab" [class.is-active]="mode() === m" (click)="mode.set(m)">{{ m }}</button>
     }
   </div>

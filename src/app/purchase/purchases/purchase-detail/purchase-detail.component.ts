@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
@@ -16,7 +17,7 @@ import {
 @Component({
   selector: 'app-purchase-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './purchase-detail.component.html',
 })
 export class PurchaseDetailComponent implements OnInit {

@@ -25,6 +25,8 @@ export class PurchaseSummaryReportComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly groupOptions: GroupBy[] = ['Supplier', 'Product', 'Month'];
+
   rows = signal<PurchaseSummaryRow[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);

@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
@@ -8,7 +9,7 @@ import { SupplierPaymentDetailDto, OutstandingInvoiceDto, PaymentAllocationLineC
 @Component({
   selector: 'app-payment-allocate',
   standalone: true,
-  imports: [RouterLink, KlCardComponent],
+  imports: [RouterLink, SlicePipe, KlCardComponent],
   templateUrl: './payment-allocate.component.html',
 })
 export class PaymentAllocateComponent implements OnInit {
@@ -19,13 +20,13 @@ export class PaymentAllocateComponent implements OnInit {
 
   payment = signal<SupplierPaymentDetailDto | null>(null);
   invoices = signal<OutstandingInvoiceDto[]>([]);
-  allocationAmounts = signal<Record<string, number>>({});
+  allocationAmounts = signal<Record<string, number | undefined>>({});
   loading = signal(true);
   saving = signal(false);
   error = signal<string | null>(null);
 
   readonly totalAllocating = computed(() =>
-    Object.values(this.allocationAmounts()).reduce((s, v) => s + (v || 0), 0)
+    Object.values(this.allocationAmounts()).reduce((s, v) => s + (v ?? 0), 0)
   );
 
   readonly remaining = computed(() => {

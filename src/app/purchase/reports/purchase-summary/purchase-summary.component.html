@@ -7,7 +7,7 @@
     <input class="kl-input" type="date" style="width:160px;" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); load()" />
     <input class="kl-input" type="date" style="width:160px;" [value]="toDate()" (change)="toDate.set($any($event.target).value); load()" />
     <div style="display:flex; gap:4px;">
-      @for (g of ['Supplier','Product','Month'] as const; track g) {
+      @for (g of groupOptions; track g) {
         <button class="kl-btn kl-btn-secondary" [class.is-active]="groupBy() === g" (click)="groupBy.set(g); load()">{{ g }}</button>
       }
     </div>

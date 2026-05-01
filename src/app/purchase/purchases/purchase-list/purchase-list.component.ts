@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -20,7 +21,7 @@ type ListTab = 'all' | 'pending' | 'overdue';
 @Component({
   selector: 'app-purchase-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './purchase-list.component.html',
 })
 export class PurchaseListComponent implements OnInit {
