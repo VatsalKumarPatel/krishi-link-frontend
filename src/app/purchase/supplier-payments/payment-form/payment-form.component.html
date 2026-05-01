@@ -1,0 +1,178 @@
+<div class="kl-page-header" style="align-items:center;">
+  <a routerLink="/purchase/supplier-payments" class="kl-link" style="font-size:13px;">← Back to Payments</a>
+</div>
+
+@if (error()) {
+  <div style="padding:12px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px; margin-bottom:16px;">{{ error() }}</div>
+}
+
+<kl-card>
+  <!-- Mode tabs -->
+  <div class="kl-tabs" style="margin-bottom:20px;">
+    @for (m of ['Cash','UPI','Cheque','NEFT'] as const; track m) {
+      <button class="kl-tab" [class.is-active]="mode() === m" (click)="mode.set(m)">{{ m }}</button>
+    }
+  </div>
+
+  <div class="kl-form">
+    <!-- Common fields -->
+    <div class="kl-form-row">
+      <div class="kl-form-group" style="position:relative;">
+        <label class="kl-label">Supplier <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" [value]="supplierSearch()" (input)="searchSupplier($any($event.target).value)" placeholder="Search supplier…" />
+        @if (showSupplierDrop() && supplierResults().length > 0) {
+          <div style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #D1D5DB; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,.12); z-index:100;">
+            @for (s of supplierResults(); track s.id) {
+              <button style="width:100%; padding:10px 14px; text-align:left; border:none; background:none; cursor:pointer; font-size:13px;" (click)="selectSupplier(s)">{{ s.name }}</button>
+            }
+          </div>
+        }
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Store <span style="color:#DC2626;">*</span></label>
+        <select class="kl-select" [value]="storeId()" (change)="storeId.set($any($event.target).value)">
+          <option value="">Select store…</option>
+          @for (s of storePicker.stores(); track s.id) { <option [value]="s.id">{{ s.name }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Amount (₹) <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="number" min="0.01" step="0.01"
+          [value]="amount()" (input)="amount.set(+$any($event.target).value)" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Payment Date <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="date" [value]="paymentDate()" (change)="paymentDate.set($any($event.target).value)" />
+      </div>
+    </div>
+
+    <!-- UPI fields -->
+    @if (mode() === 'UPI') {
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label">UPI Transaction ID <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" [value]="upiTxnId()" (input)="upiTxnId.set($any($event.target).value)" placeholder="e.g. 314159265358979" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label">VPA / UPI ID</label>
+          <input class="kl-input" [value]="upiVpa()" (input)="upiVpa.set($any($event.target).value)" placeholder="supplier@ybl" />
+        </div>
+      </div>
+    }
+
+    <!-- Cheque fields -->
+    @if (mode() === 'Cheque') {
+      <div style="padding:10px 12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; font-size:12px; color:#92400E; margin-bottom:12px;">
+        Cheque payment will remain unverified until clearance is confirmed by a Store Manager.
+      </div>
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label">Cheque Number <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" [value]="chequeNumber()" (input)="chequeNumber.set($any($event.target).value)" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label">Bank Name <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" [value]="chequeBank()" (input)="chequeBank.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label">Branch</label>
+          <input class="kl-input" [value]="chequeBranch()" (input)="chequeBranch.set($any($event.target).value)" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label">Cheque Date <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" type="date" [value]="chequeDate()" (change)="chequeDate.set($any($event.target).value)" />
+        </div>
+      </div>
+    }
+
+    <!-- NEFT fields -->
+    @if (mode() === 'NEFT') {
+      <div style="padding:10px 12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; font-size:12px; color:#92400E; margin-bottom:12px;">
+        NEFT payment will remain unverified until confirmed from bank statement.
+      </div>
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label">Reference Number <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" [value]="neftRef()" (input)="neftRef.set($any($event.target).value)" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label">Bank Name <span style="color:#DC2626;">*</span></label>
+          <input class="kl-input" [value]="bankName()" (input)="bankName.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Value Date <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="date" style="max-width:200px;" [value]="valueDate()" (change)="valueDate.set($any($event.target).value)" />
+      </div>
+    }
+
+    <div class="kl-form-group">
+      <label class="kl-label">Notes</label>
+      <textarea class="kl-input" rows="2" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Optional"></textarea>
+    </div>
+
+    <!-- Inline allocation toggle -->
+    <div style="border-top:1px solid #E5E7EB; padding-top:16px; margin-top:8px;">
+      <label class="kl-toggle-label">
+        <input type="checkbox" [checked]="showAllocation()" (change)="toggleAllocation()" />
+        <span>Allocate to invoices now?</span>
+      </label>
+
+      @if (showAllocation()) {
+        <div style="margin-top:12px;">
+          @if (outstandingInvoices().length === 0) {
+            <div class="kl-fg-3" style="font-size:13px;">No outstanding invoices for this supplier.</div>
+          } @else {
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+              <button class="kl-btn kl-btn-secondary" style="font-size:12px;" (click)="applyOldestFirst()">Apply oldest first</button>
+            </div>
+            <table class="kl-table">
+              <thead>
+                <tr>
+                  <th>Purchase Ref</th><th>Invoice #</th><th>Date</th><th>Due Date</th>
+                  <th style="text-align:right;">Outstanding (₹)</th><th style="text-align:right;">Allocate (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (inv of outstandingInvoices(); track inv.purchaseId) {
+                  <tr>
+                    <td>{{ inv.purchaseRef }}</td>
+                    <td class="kl-fg-3">{{ inv.supplierInvoiceNumber ?? '—' }}</td>
+                    <td class="kl-fg-3">{{ inv.invoiceDate ? (inv.invoiceDate | slice:0:10) : '—' }}</td>
+                    <td class="kl-fg-3">{{ inv.dueDate ? (inv.dueDate | slice:0:10) : '—' }}</td>
+                    <td style="text-align:right;">₹{{ fmt(inv.outstandingAmount) }}</td>
+                    <td style="text-align:right;">
+                      <input class="kl-input kl-input-sm" type="number" min="0" style="width:100px; text-align:right;"
+                        [value]="allocationAmounts()[inv.purchaseId] ?? 0"
+                        (input)="setAllocation(inv.purchaseId, +$any($event.target).value)" />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <div style="text-align:right; margin-top:8px; font-size:13px;">
+              Total to allocate: <strong>₹{{ fmt(totalAllocated()) }}</strong>
+            </div>
+            @if (advanceWarning() > 0) {
+              <div style="padding:8px 12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; font-size:12px; color:#92400E; margin-top:8px;">
+                ₹{{ fmt(advanceWarning()) }} will remain as advance on account.
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:16px; border-top:1px solid #E5E7EB;">
+      <a routerLink="/purchase/supplier-payments" class="kl-btn kl-btn-secondary">Cancel</a>
+      <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'Recording…' : 'Record Payment' }}
+      </button>
+    </div>
+  </div>
+</kl-card>

@@ -1,0 +1,130 @@
+<div class="kl-page-header" style="align-items:center;">
+  @if (purchase()) {
+    <a [routerLink]="['/purchase/purchases', purchase()!.id]" class="kl-link" style="font-size:13px;">← {{ purchase()!.purchaseRef }}</a>
+  } @else {
+    <a routerLink="/purchase/purchases" class="kl-link" style="font-size:13px;">← Purchases</a>
+  }
+</div>
+
+@if (loading()) {
+  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+} @else if (error()) {
+  <div style="padding:16px; background:#FEF2F2; border-radius:8px; color:#991B1B; margin-bottom:16px;">{{ error() }}</div>
+}
+
+@if (purchase()) {
+  <div style="display:grid; grid-template-columns:1fr 380px; gap:16px; align-items:start;">
+
+    <!-- Main form -->
+    <kl-card>
+      <div style="font-weight:600; font-size:15px; margin-bottom:20px; color:#1A2B1C;">Receive & Invoice</div>
+
+      <div class="kl-form">
+        <div class="kl-form-row">
+          <div class="kl-form-group">
+            <label class="kl-label">Supplier Invoice Number <span style="color:#DC2626;">*</span></label>
+            <input class="kl-input" [class.is-error]="fieldErrors()['supplierInvoiceNumber']"
+              [value]="supplierInvoiceNumber()" (input)="supplierInvoiceNumber.set($any($event.target).value)" placeholder="e.g. INV/2024/0041" />
+            @if (fieldErrors()['supplierInvoiceNumber']) { <div class="kl-field-error">Required</div> }
+          </div>
+          <div class="kl-form-group">
+            <label class="kl-label">Invoice Date <span style="color:#DC2626;">*</span></label>
+            <input class="kl-input" type="date" [class.is-error]="fieldErrors()['invoiceDate']"
+              [value]="invoiceDate()" (change)="onInvoiceDateChange($any($event.target).value)" />
+          </div>
+        </div>
+
+        <div class="kl-form-row">
+          <div class="kl-form-group">
+            <label class="kl-label">Due Date</label>
+            <input class="kl-input" type="date" [value]="dueDate()" (change)="dueDate.set($any($event.target).value)" />
+          </div>
+          <div class="kl-form-group">
+            <label class="kl-label">Place of Supply <span style="color:#DC2626;">*</span></label>
+            <select class="kl-select" [class.is-error]="fieldErrors()['placeOfSupply']"
+              [value]="placeOfSupply()" (change)="placeOfSupply.set($any($event.target).value)">
+              <option value="">Select state…</option>
+              @for (opt of placeOptions; track opt) { <option [value]="opt">{{ opt }}</option> }
+            </select>
+          </div>
+        </div>
+
+        <div class="kl-form-row">
+          <div class="kl-form-group">
+            <label class="kl-label">Seller GSTIN</label>
+            <input class="kl-input" maxlength="15" [value]="sellerGstin()" (input)="sellerGstin.set($any($event.target).value)" placeholder="Supplier GSTIN" />
+          </div>
+          <div class="kl-form-group">
+            <label class="kl-label">Our GSTIN</label>
+            <input class="kl-input" maxlength="15" [value]="buyerGstin()" (input)="buyerGstin.set($any($event.target).value)" placeholder="Buyer GSTIN" />
+          </div>
+        </div>
+
+        <div class="kl-form-group">
+          <label class="kl-toggle-label">
+            <input type="checkbox" [checked]="isInterState()" (change)="isInterState.set($any($event.target).checked)" />
+            <span>Inter-State Transaction (IGST instead of CGST + SGST)</span>
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex; gap:8px; justify-content:flex-end; padding-top:8px; border-top:1px solid #E5E7EB;">
+          <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="confirm()">
+            {{ saving() ? 'Recording…' : 'Receive & Invoice' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-step expander -->
+      <div style="margin-top:20px; border-top:1px solid #E5E7EB; padding-top:16px;">
+        <button class="kl-link" style="font-size:13px; color:#6B7A6E;" (click)="showTwoStep.set(!showTwoStep())">
+          {{ showTwoStep() ? '▾' : '▸' }} I want to receive stock now and invoice later
+        </button>
+        @if (showTwoStep()) {
+          <div style="margin-top:12px; padding:12px; background:#F9FAFB; border-radius:6px; border:1px solid #E5E7EB;">
+            <p style="font-size:13px; color:#374151; margin:0 0 12px;">
+              Stock will be added to inventory now. You can fill invoice details later from the purchase detail page.
+            </p>
+            <button class="kl-btn kl-btn-secondary" [disabled]="receivingOnly()" (click)="receiveOnly()">
+              {{ receivingOnly() ? 'Receiving…' : 'Receive Stock Only' }}
+            </button>
+          </div>
+        }
+      </div>
+    </kl-card>
+
+    <!-- Summary panel -->
+    <kl-card>
+      <div style="font-weight:600; margin-bottom:12px;">Order Summary</div>
+      <dl class="kl-dl">
+        <dt>Supplier</dt><dd>{{ purchase()!.supplierName }}</dd>
+        <dt>Store</dt><dd>{{ purchase()!.storeName }}</dd>
+        <dt>Items</dt><dd>{{ purchase()!.items.length }}</dd>
+      </dl>
+
+      <div style="border-top:1px solid #E5E7EB; margin-top:12px; padding-top:12px;">
+        <div class="kl-total-row"><span class="kl-fg-3">Sub Total</span><span>₹{{ fmt(purchase()!.subTotal) }}</span></div>
+        <div class="kl-total-row"><span class="kl-fg-3">Discount</span><span>−₹{{ fmt(purchase()!.totalDiscount) }}</span></div>
+        @if (!isInterState()) {
+          <div class="kl-total-row"><span class="kl-fg-3">CGST</span><span>₹{{ fmt(purchase()!.totalCgst) }}</span></div>
+          <div class="kl-total-row"><span class="kl-fg-3">SGST</span><span>₹{{ fmt(purchase()!.totalSgst) }}</span></div>
+        } @else {
+          <div class="kl-total-row"><span class="kl-fg-3">IGST</span><span>₹{{ fmt(purchase()!.totalIgst) }}</span></div>
+        }
+        <div class="kl-total-row" style="font-weight:700; font-size:15px; border-top:1px solid #E5E7EB; padding-top:10px; margin-top:6px;">
+          <span>Total</span><span>₹{{ fmt(purchase()!.totalAmount) }}</span>
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div style="margin-top:16px; border-top:1px solid #E5E7EB; padding-top:12px;">
+        @for (item of purchase()!.items; track item.id) {
+          <div style="display:flex; justify-content:space-between; font-size:12px; padding:4px 0; color:#374151;">
+            <span>{{ item.productName }} × {{ item.quantity }}</span>
+            <span style="font-variant-numeric:tabular-nums;">₹{{ fmt(item.lineTotal) }}</span>
+          </div>
+        }
+      </div>
+    </kl-card>
+  </div>
+}

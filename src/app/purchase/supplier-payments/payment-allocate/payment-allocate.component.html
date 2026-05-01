@@ -1,0 +1,90 @@
+<div class="kl-page-header" style="align-items:center;">
+  @if (payment()) {
+    <a [routerLink]="['/purchase/supplier-payments', payment()!.id]" class="kl-link" style="font-size:13px;">← {{ payment()!.paymentRef }}</a>
+  }
+</div>
+
+@if (loading()) {
+  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+} @else if (payment()) {
+
+  @if (error()) {
+    <div style="padding:12px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px; margin-bottom:16px;">{{ error() }}</div>
+  }
+
+  <!-- Summary card -->
+  <kl-card>
+    <div style="display:flex; gap:32px; flex-wrap:wrap; margin-bottom:20px;">
+      <div>
+        <div class="kl-fg-3" style="font-size:12px;">Total Paid</div>
+        <div style="font-size:20px; font-weight:700;">₹{{ fmt(payment()!.amountPaid) }}</div>
+      </div>
+      <div>
+        <div class="kl-fg-3" style="font-size:12px;">Already Allocated</div>
+        <div style="font-size:20px; font-weight:700;">₹{{ fmt(payment()!.amountAllocated) }}</div>
+      </div>
+      <div>
+        <div class="kl-fg-3" style="font-size:12px;">Unallocated Balance</div>
+        <div style="font-size:20px; font-weight:700; color:#92400E;">₹{{ fmt(payment()!.unallocatedAmount) }}</div>
+      </div>
+      <div>
+        <div class="kl-fg-3" style="font-size:12px;">Now Allocating</div>
+        <div style="font-size:20px; font-weight:700; color:#166534;">₹{{ fmt(totalAllocating()) }}</div>
+      </div>
+    </div>
+
+    <!-- Warnings -->
+    @if (totalAllocating() > payment()!.unallocatedAmount) {
+      <div style="padding:8px 12px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; font-size:12px; color:#991B1B; margin-bottom:12px;">
+        Entered total exceeds unallocated balance.
+      </div>
+    }
+    @if (remaining() > 0 && totalAllocating() > 0) {
+      <div style="padding:8px 12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; font-size:12px; color:#92400E; margin-bottom:12px;">
+        ₹{{ fmt(remaining()) }} will remain as advance on account.
+      </div>
+    }
+
+    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+      <button class="kl-btn kl-btn-secondary" style="font-size:12px;" (click)="applyOldestFirst()">Apply oldest first</button>
+    </div>
+
+    <div class="kl-table-wrap">
+      <table class="kl-table">
+        <thead>
+          <tr>
+            <th>Purchase Ref</th><th>Invoice #</th><th>Date</th><th>Due Date</th>
+            <th style="text-align:right;">Outstanding (₹)</th><th style="text-align:right; width:140px;">Allocate (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (invoices().length === 0) {
+            <tr><td colspan="6" style="text-align:center; padding:32px; color:#6B7A6E;">No outstanding invoices for this supplier.</td></tr>
+          } @else {
+            @for (inv of invoices(); track inv.purchaseId) {
+              <tr>
+                <td>{{ inv.purchaseRef }}</td>
+                <td class="kl-fg-3">{{ inv.supplierInvoiceNumber ?? '—' }}</td>
+                <td class="kl-fg-3">{{ inv.invoiceDate ? (inv.invoiceDate | slice:0:10) : '—' }}</td>
+                <td class="kl-fg-3">{{ inv.dueDate ? (inv.dueDate | slice:0:10) : '—' }}</td>
+                <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(inv.outstandingAmount) }}</td>
+                <td>
+                  <input class="kl-input kl-input-sm" type="number" min="0" style="width:120px; text-align:right;"
+                    [value]="allocationAmounts()[inv.purchaseId] ?? 0"
+                    (input)="setAmount(inv.purchaseId, +$any($event.target).value)" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid #E5E7EB;">
+      <a [routerLink]="['/purchase/supplier-payments', payment()!.id]" class="kl-btn kl-btn-secondary">Cancel</a>
+      <button class="kl-btn kl-btn-primary" [disabled]="saving() || totalAllocating() === 0" (click)="confirm()">
+        {{ saving() ? 'Allocating…' : 'Confirm Allocation' }}
+      </button>
+    </div>
+  </kl-card>
+}

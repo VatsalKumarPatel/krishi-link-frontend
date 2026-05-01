@@ -1,0 +1,61 @@
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">Aggregated purchase analytics.</p>
+</div>
+
+<kl-card>
+  <div class="kl-toolbar" style="flex-wrap:wrap; gap:10px; margin-bottom:4px;">
+    <input class="kl-input" type="date" style="width:160px;" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); load()" />
+    <input class="kl-input" type="date" style="width:160px;" [value]="toDate()" (change)="toDate.set($any($event.target).value); load()" />
+    <div style="display:flex; gap:4px;">
+      @for (g of ['Supplier','Product','Month'] as const; track g) {
+        <button class="kl-btn kl-btn-secondary" [class.is-active]="groupBy() === g" (click)="groupBy.set(g); load()">{{ g }}</button>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <div style="padding:12px 20px; background:#FEF2F2; color:#991B1B; font-size:13px;">{{ error() }}</div>
+  }
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>{{ groupLabel() }}</th>
+          <th style="text-align:right;">Total Purchases (₹)</th>
+          <th style="text-align:right;">Total GST (₹)</th>
+          <th style="text-align:right;">Total Discount (₹)</th>
+          <th style="text-align:right;">Net Amount (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="kl-skeleton-row">
+              @for (j of [1,2,3,4,5]; track j) { <td><div class="kl-skeleton" style="width:80px;"></div></td> }
+            </tr>
+          }
+        } @else if (rows().length === 0) {
+          <tr><td colspan="5" style="text-align:center; padding:40px; color:#6B7A6E;">No data for selected period.</td></tr>
+        } @else {
+          @for (r of rows(); track r.groupKey) {
+            <tr>
+              <td>{{ r.groupKey }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.totalPurchases) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.totalGst) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; color:#166534;">₹{{ fmt(r.totalDiscount) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">₹{{ fmt(r.netAmount) }}</td>
+            </tr>
+          }
+          <tr style="background:#F9FAFB; font-weight:700; border-top:2px solid #E5E7EB;">
+            <td>Total</td>
+            <td style="text-align:right;">₹{{ fmt(rows().reduce((s,r)=>s+r.totalPurchases,0)) }}</td>
+            <td style="text-align:right;">₹{{ fmt(rows().reduce((s,r)=>s+r.totalGst,0)) }}</td>
+            <td style="text-align:right;">₹{{ fmt(rows().reduce((s,r)=>s+r.totalDiscount,0)) }}</td>
+            <td style="text-align:right;">₹{{ fmt(grandTotal) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</kl-card>

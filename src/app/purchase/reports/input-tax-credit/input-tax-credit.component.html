@@ -1,0 +1,76 @@
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">GST Input Tax Credit claimable from purchases.</p>
+  <button class="kl-btn kl-btn-secondary" (click)="exportCsv()">Export CSV</button>
+</div>
+
+<!-- Summary cards -->
+@if (!loading() && rows().length > 0) {
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:16px;">
+    @for (card of [
+      {label:'Total ITC', value: totalItc(), color:'#1A2B1C'},
+      {label:'CGST', value: totalCgst(), color:'#1D4ED8'},
+      {label:'SGST', value: totalSgst(), color:'#0F766E'},
+      {label:'IGST', value: totalIgst(), color:'#6D28D9'}
+    ]; track card.label) {
+      <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; padding:16px;">
+        <div class="kl-fg-3" style="font-size:12px;">{{ card.label }}</div>
+        <div style="font-size:22px; font-weight:700;" [style.color]="card.color">₹{{ fmt(card.value) }}</div>
+      </div>
+    }
+  </div>
+}
+
+<kl-card>
+  <div class="kl-toolbar" style="flex-wrap:wrap; gap:10px; margin-bottom:4px;">
+    <input class="kl-input" type="date" style="width:160px;" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); load()" />
+    <input class="kl-input" type="date" style="width:160px;" [value]="toDate()" (change)="toDate.set($any($event.target).value); load()" />
+  </div>
+
+  @if (error()) {
+    <div style="padding:12px 20px; background:#FEF2F2; color:#991B1B; font-size:13px;">{{ error() }}</div>
+  }
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>HSN Code</th><th>Description</th>
+          <th style="text-align:right;">Taxable (₹)</th><th style="text-align:right;">CGST (₹)</th>
+          <th style="text-align:right;">SGST (₹)</th><th style="text-align:right;">IGST (₹)</th>
+          <th style="text-align:right;">Total ITC (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (i of [1,2,3,4]; track i) {
+            <tr class="kl-skeleton-row">
+              @for (j of [1,2,3,4,5,6,7]; track j) { <td><div class="kl-skeleton" style="width:70px;"></div></td> }
+            </tr>
+          }
+        } @else if (rows().length === 0) {
+          <tr><td colspan="7" style="text-align:center; padding:40px; color:#6B7A6E;">No ITC data for selected period.</td></tr>
+        } @else {
+          @for (r of rows(); track r.hsnCode) {
+            <tr>
+              <td style="font-weight:500;">{{ r.hsnCode }}</td>
+              <td>{{ r.description }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.taxableAmount) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.cgst) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.sgst) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.igst) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">₹{{ fmt(r.totalItc) }}</td>
+            </tr>
+          }
+          <tr style="background:#F9FAFB; font-weight:700; border-top:2px solid #E5E7EB;">
+            <td colspan="2">Total</td>
+            <td style="text-align:right;">₹{{ fmt(rows().reduce((s,r)=>s+r.taxableAmount,0)) }}</td>
+            <td style="text-align:right;">₹{{ fmt(totalCgst()) }}</td>
+            <td style="text-align:right;">₹{{ fmt(totalSgst()) }}</td>
+            <td style="text-align:right;">₹{{ fmt(totalIgst()) }}</td>
+            <td style="text-align:right;">₹{{ fmt(totalItc()) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</kl-card>

@@ -1,0 +1,85 @@
+<div class="kl-page-header" style="align-items:center;">
+  <div>
+    <a [routerLink]="['/purchase/suppliers', supplierId()]" class="kl-link" style="font-size:13px;">← {{ supplier()?.name ?? 'Supplier' }}</a>
+    <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 0;">Supplier Ledger</h2>
+    <div class="kl-fg-3" style="font-size:12px;">Statement of account</div>
+  </div>
+</div>
+
+<kl-card>
+  <!-- Date range filter -->
+  <div class="kl-toolbar" style="flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px; flex:1; flex-wrap:wrap;">
+      <label class="kl-label" style="margin:0;">From</label>
+      <input class="kl-input" type="date" style="width:160px;" [value]="fromDate()" (change)="fromDate.set($any($event.target).value)" />
+      <label class="kl-label" style="margin:0;">To</label>
+      <input class="kl-input" type="date" style="width:160px;" [value]="toDate()" (change)="toDate.set($any($event.target).value)" />
+      <button class="kl-btn kl-btn-secondary" (click)="applyFilter()">Apply</button>
+    </div>
+    <span class="kl-fg-3" style="font-size:12px; align-self:center;">{{ totalCount() }} entries</span>
+  </div>
+
+  @if (error()) {
+    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">
+      {{ error() }} <button class="kl-link" style="margin-left:8px;" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Narration</th>
+          <th style="text-align:right;">Debit (₹)</th>
+          <th style="text-align:right;">Credit (₹)</th>
+          <th style="text-align:right;">Balance (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="kl-skeleton-row">
+              <td><div class="kl-skeleton" style="width:80px;"></div></td>
+              <td><div class="kl-skeleton" style="width:200px;"></div></td>
+              <td><div class="kl-skeleton" style="width:80px;"></div></td>
+              <td><div class="kl-skeleton" style="width:80px;"></div></td>
+              <td><div class="kl-skeleton" style="width:90px;"></div></td>
+            </tr>
+          }
+        } @else if (rows().length === 0) {
+          <tr><td colspan="5" style="text-align:center; padding:40px; color:#6B7A6E;">No ledger entries for this period.</td></tr>
+        } @else {
+          @for (row of rows(); track row.id) {
+            <tr [class]="rowClass(row)">
+              <td class="kl-fg-3">{{ row.date | slice:0:10 }}</td>
+              <td>{{ row.narration }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; color:#991B1B;">
+                {{ row.debitAmount ? '₹' + fmt(row.debitAmount) : '—' }}
+              </td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; color:#166534;">
+                {{ row.creditAmount ? '₹' + fmt(row.creditAmount) : '—' }}
+              </td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">
+                <span [style.color]="row.runningBalance > 0 ? '#92400E' : '#166534'">
+                  ₹{{ fmt(Math.abs(row.runningBalance)) }}
+                  {{ row.runningBalance > 0 ? 'Dr' : row.runningBalance < 0 ? 'Cr' : '' }}
+                </span>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!loading() && totalCount() > pageSize) {
+    <div class="kl-pagination">
+      <span class="kl-fg-3" style="font-size:12px;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+      <div style="display:flex; gap:6px;">
+        <button class="kl-btn kl-btn-secondary" [disabled]="!hasPreviousPage()" (click)="prevPage()">← Prev</button>
+        <button class="kl-btn kl-btn-secondary" [disabled]="!hasNextPage()" (click)="nextPage()">Next →</button>
+      </div>
+    </div>
+  }
+</kl-card>

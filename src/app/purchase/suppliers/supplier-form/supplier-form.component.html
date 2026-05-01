@@ -1,0 +1,93 @@
+<div class="kl-page-header" style="align-items:center;">
+  <a routerLink="/purchase/suppliers" class="kl-link" style="font-size:13px;">← Back to Suppliers</a>
+</div>
+
+<kl-card>
+  @if (loading()) {
+    <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+  } @else {
+    @if (error()) {
+      <div style="padding:12px 20px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px; margin-bottom:16px;">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="kl-form">
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="name">Supplier Name <span style="color:#DC2626;">*</span></label>
+          <input id="name" class="kl-input" [class.is-error]="fieldErrors()['name']" maxlength="200"
+            [value]="name()" (input)="name.set($any($event.target).value)" placeholder="e.g. Agro Chemicals Pvt Ltd" />
+          @if (fieldErrors()['name']) { <div class="kl-field-error">{{ fieldErrors()['name'] }}</div> }
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="code">Supplier Code <span style="color:#DC2626;">*</span></label>
+          <input id="code" class="kl-input" [class.is-error]="fieldErrors()['code']" maxlength="20" style="text-transform:uppercase;"
+            [value]="code()" (input)="onCodeInput($any($event.target).value)" placeholder="e.g. AGCHEM" />
+          @if (fieldErrors()['code']) { <div class="kl-field-error">{{ fieldErrors()['code'] }}</div> }
+        </div>
+      </div>
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="contact">Contact Person</label>
+          <input id="contact" class="kl-input" maxlength="100"
+            [value]="contactPerson()" (input)="contactPerson.set($any($event.target).value)" placeholder="e.g. Ramesh Sharma" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="phone">Phone Number</label>
+          <input id="phone" class="kl-input" type="tel"
+            [value]="phoneNumber()" (input)="phoneNumber.set($any($event.target).value)" placeholder="+91 98765 43210" />
+        </div>
+      </div>
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="email">Email</label>
+          <input id="email" class="kl-input" type="email"
+            [value]="email()" (input)="email.set($any($event.target).value)" placeholder="supplier@example.com" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="gstin">GSTIN</label>
+          <input id="gstin" class="kl-input" maxlength="15"
+            [value]="gstin()" (input)="gstin.set($any($event.target).value)" placeholder="27AABCU9603R1ZX" />
+        </div>
+      </div>
+
+      <div class="kl-form-group">
+        <label class="kl-label" for="address">Address</label>
+        <textarea id="address" class="kl-input" rows="3"
+          [value]="address()" (input)="address.set($any($event.target).value)" placeholder="Registered address"></textarea>
+      </div>
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="credit">Credit Limit from Supplier (₹)</label>
+          <input id="credit" class="kl-input" type="number" min="0" step="0.01"
+            [value]="creditLimitFromSupplier()" (input)="creditLimitFromSupplier.set(+$any($event.target).value)" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="terms">Payment Terms (Days)</label>
+          <input id="terms" class="kl-input" type="number" min="0"
+            [value]="paymentTermsDays()" (input)="paymentTermsDays.set(+$any($event.target).value)" />
+          <div class="kl-field-hint">Used to pre-fill due date on purchases</div>
+        </div>
+      </div>
+
+      <div class="kl-form-group">
+        <label class="kl-label">Status</label>
+        <label class="kl-toggle-label">
+          <input type="checkbox" [checked]="isActive()" (change)="isActive.set($any($event.target).checked)" />
+          <span>Active</span>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end; padding-top:8px; border-top:1px solid #E5E7EB;">
+        <a routerLink="/purchase/suppliers" class="kl-btn kl-btn-secondary">Cancel</a>
+        <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="save()">
+          {{ saving() ? 'Saving…' : (isEdit() ? 'Update Supplier' : 'Create Supplier') }}
+        </button>
+      </div>
+    </div>
+  }
+</kl-card>

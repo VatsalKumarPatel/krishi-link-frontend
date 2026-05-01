@@ -1,0 +1,75 @@
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">Batch and expiry tracking for inventory.</p>
+</div>
+
+<kl-card>
+  <div class="kl-toolbar" style="flex-wrap:wrap; gap:10px;">
+    <label class="kl-toggle-label">
+      <input type="checkbox" [checked]="showExpired()" (change)="showExpired.set($any($event.target).checked); currentPage.set(1); load()" />
+      <span>Show Expired</span>
+    </label>
+    <label class="kl-toggle-label">
+      <input type="checkbox" [checked]="showDepleted()" (change)="showDepleted.set($any($event.target).checked); currentPage.set(1); load()" />
+      <span>Show Depleted</span>
+    </label>
+  </div>
+
+  @if (error()) {
+    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">{{ error() }}</div>
+  }
+
+  <!-- Legend -->
+  <div style="display:flex; gap:16px; padding:8px 20px; font-size:12px;">
+    <span style="color:#991B1B;">■ Expired</span>
+    <span style="color:#92400E;">■ Expiring within 30 days</span>
+  </div>
+
+  <div class="kl-table-wrap">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>Batch #</th><th>Product</th><th>Supplier</th><th>Expiry Date</th>
+          <th style="text-align:right;">Available Qty</th><th style="text-align:right;">Cost (₹)</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="kl-skeleton-row">
+              @for (j of [1,2,3,4,5,6,7]; track j) { <td><div class="kl-skeleton" style="width:80px;"></div></td> }
+            </tr>
+          }
+        } @else if (batches().length === 0) {
+          <tr><td colspan="7" style="text-align:center; padding:40px; color:#6B7A6E;">No batches found.</td></tr>
+        } @else {
+          @for (b of batches(); track b.id) {
+            <tr [attr.style]="rowStyle(b.expiryDate)" class="kl-row-link" [routerLink]="['/purchase/batches', b.id]">
+              <td style="font-weight:500;">{{ b.batchNumber }}</td>
+              <td>{{ b.productName }}</td>
+              <td class="kl-fg-3">{{ b.supplierName }}</td>
+              <td>{{ b.expiryDate | slice:0:10 }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ fmt(b.quantityAvailableInBase) }}</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(b.costPricePerUnit) }}</td>
+              <td>
+                @if (!b.isActive) { <kl-badge variant="neutral">Depleted</kl-badge> }
+                @else if (expiryStatus(b.expiryDate) === 'expired') { <kl-badge variant="danger">Expired</kl-badge> }
+                @else if (expiryStatus(b.expiryDate) === 'expiring-soon') { <kl-badge variant="warning">Expiring Soon</kl-badge> }
+                @else { <kl-badge variant="success">Active</kl-badge> }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!loading() && totalCount() > pageSize) {
+    <div class="kl-pagination">
+      <span class="kl-fg-3" style="font-size:12px;">{{ totalCount() }} batches</span>
+      <div style="display:flex; gap:6px;">
+        <button class="kl-btn kl-btn-secondary" [disabled]="!hasPreviousPage()" (click)="prevPage()">← Prev</button>
+        <button class="kl-btn kl-btn-secondary" [disabled]="!hasNextPage()" (click)="nextPage()">Next →</button>
+      </div>
+    </div>
+  }
+</kl-card>

@@ -1,0 +1,73 @@
+@if (loading()) {
+  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+} @else if (error()) {
+  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
+} @else if (ret()) {
+  <div class="kl-page-header" style="align-items:center;">
+    <div>
+      <a routerLink="/purchase/purchase-returns" class="kl-link" style="font-size:13px;">← Returns</a>
+      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px;">{{ ret()!.debitNoteNumber }}</h2>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <kl-badge [variant]="statusBadge()">{{ statusLabels[ret()!.status] }}</kl-badge>
+        <span class="kl-fg-3" style="font-size:12px;">{{ ret()!.supplierName }} · {{ ret()!.storeName }}</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      @if (canDispatch()) {
+        <button class="kl-btn kl-btn-primary" [disabled]="acting()" (click)="dispatch()">{{ acting() ? 'Dispatching…' : 'Dispatch' }}</button>
+      }
+      @if (canAcknowledge()) {
+        <button class="kl-btn kl-btn-primary" [disabled]="acting()" (click)="acknowledge()">{{ acting() ? 'Acknowledging…' : 'Acknowledge' }}</button>
+      }
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+    <kl-card>
+      <div style="font-weight:600; margin-bottom:12px;">Return Details</div>
+      <dl class="kl-dl">
+        <dt>Supplier</dt><dd>{{ ret()!.supplierName }}</dd>
+        <dt>Store</dt><dd>{{ ret()!.storeName }}</dd>
+        <dt>Original Purchase</dt><dd>
+          @if (ret()!.purchaseId) { <a [routerLink]="['/purchase/purchases', ret()!.purchaseId]" class="kl-link">{{ ret()!.purchaseRef }}</a> }
+          @else { — }
+        </dd>
+        <dt>Return Date</dt><dd>{{ ret()!.returnDate | slice:0:10 }}</dd>
+        <dt>Reason</dt><dd>{{ ret()!.reason }}</dd>
+        @if (ret()!.dispatchedAt) { <dt>Dispatched At</dt><dd>{{ ret()!.dispatchedAt! | slice:0:10 }}</dd> }
+        @if (ret()!.acknowledgedAt) { <dt>Acknowledged At</dt><dd>{{ ret()!.acknowledgedAt! | slice:0:10 }}</dd> }
+      </dl>
+    </kl-card>
+    <kl-card>
+      <div style="font-weight:600; margin-bottom:12px;">Value Summary</div>
+      <div style="font-size:28px; font-weight:700; color:#1A2B1C;">₹{{ fmt(ret()!.totalAmount) }}</div>
+      <div class="kl-fg-3" style="font-size:13px; margin-top:4px;">Total return value</div>
+    </kl-card>
+  </div>
+
+  <kl-card>
+    <div style="font-weight:600; margin-bottom:12px;">Return Items</div>
+    <div class="kl-table-wrap">
+      <table class="kl-table">
+        <thead>
+          <tr>
+            <th>Product</th><th>Unit</th><th style="text-align:right;">Qty</th>
+            <th style="text-align:right;">Rate (₹)</th><th style="text-align:right;">GST %</th><th style="text-align:right;">Line Total (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of ret()!.items; track item.id) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td class="kl-fg-3">{{ item.unitName }}</td>
+              <td style="text-align:right;">{{ item.quantity }}</td>
+              <td style="text-align:right;">₹{{ fmt(item.ratePerUnit) }}</td>
+              <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+              <td style="text-align:right; font-weight:500;">₹{{ fmt(item.lineTotal) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </kl-card>
+}

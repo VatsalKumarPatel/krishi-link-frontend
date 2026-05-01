@@ -1,0 +1,31 @@
+@if (loading()) {
+  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+} @else if (error()) {
+  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
+} @else if (batch()) {
+  <div class="kl-page-header" style="align-items:center;">
+    <div>
+      <a routerLink="/purchase/batches" class="kl-link" style="font-size:13px;">← Batches</a>
+      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px;">{{ batch()!.batchNumber }}</h2>
+      <div class="kl-fg-3" style="font-size:12px;">{{ batch()!.productName }}</div>
+    </div>
+  </div>
+  <kl-card>
+    <dl class="kl-dl">
+      <dt>Product</dt><dd>{{ batch()!.productName }}</dd>
+      <dt>Supplier</dt><dd>{{ batch()!.supplierName }}</dd>
+      <dt>Expiry Date</dt>
+      <dd [style.color]="isExpired() ? '#DC2626' : ''">{{ batch()!.expiryDate | slice:0:10 }}
+        @if (isExpired()) { <kl-badge variant="danger" style="margin-left:6px;">Expired</kl-badge> }
+      </dd>
+      @if (batch()!.manufactureDate) { <dt>Manufacture Date</dt><dd>{{ batch()!.manufactureDate! | slice:0:10 }}</dd> }
+      <dt>Received Qty</dt><dd>{{ fmt(batch()!.quantityReceivedInBase) }}</dd>
+      <dt>Available Qty</dt><dd>{{ fmt(batch()!.quantityAvailableInBase) }}</dd>
+      <dt>Cost Price / Unit</dt><dd>₹{{ fmt(batch()!.costPricePerUnit) }}</dd>
+      <dt>Status</dt><dd>
+        @if (!batch()!.isActive) { <kl-badge variant="neutral">Depleted</kl-badge> }
+        @else { <kl-badge variant="success">Active</kl-badge> }
+      </dd>
+    </dl>
+  </kl-card>
+}

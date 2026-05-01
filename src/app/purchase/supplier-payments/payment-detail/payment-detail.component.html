@@ -1,0 +1,146 @@
+@if (loading()) {
+  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+} @else if (error()) {
+  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
+} @else if (payment()) {
+  <div class="kl-page-header" style="align-items:flex-start; flex-wrap:wrap; gap:12px;">
+    <div>
+      <a routerLink="/purchase/supplier-payments" class="kl-link" style="font-size:13px;">← Payments</a>
+      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px;">{{ payment()!.paymentRef }}</h2>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <kl-badge variant="info">{{ statusLabels[payment()!.status] }}</kl-badge>
+        <kl-badge variant="neutral">{{ modeLabels[payment()!.mode] }}</kl-badge>
+        <span class="kl-fg-3" style="font-size:12px;">{{ payment()!.supplierName }}</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      @if (payment()!.unallocatedAmount > 0) {
+        <a [routerLink]="['/purchase/supplier-payments', payment()!.id, 'allocate']" class="kl-btn kl-btn-secondary">Allocate Now</a>
+      }
+      @if (canVerify()) { <button class="kl-btn kl-btn-primary" (click)="openDialog('verify')">Verify</button> }
+      @if (canBounce()) { <button class="kl-btn kl-btn-secondary" style="color:#DC2626; border-color:#DC2626;" (click)="openDialog('bounce')">Mark Cheque Bounced</button> }
+      @if (canReverse()) { <button class="kl-btn kl-btn-secondary" style="color:#DC2626;" (click)="openDialog('reverse')">Cancel Payment</button> }
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+    <kl-card>
+      <div style="font-weight:600; margin-bottom:12px;">Payment Details</div>
+      <dl class="kl-dl">
+        <dt>Supplier</dt><dd>{{ payment()!.supplierName }}</dd>
+        <dt>Store</dt><dd>{{ payment()!.storeName }}</dd>
+        <dt>Mode</dt><dd>{{ modeLabels[payment()!.mode] }}</dd>
+        <dt>Date</dt><dd>{{ payment()!.paymentDate | slice:0:10 }}</dd>
+        @if (payment()!.upiTransactionId) { <dt>UPI Txn ID</dt><dd>{{ payment()!.upiTransactionId }}</dd> }
+        @if (payment()!.upiVpa) { <dt>VPA</dt><dd>{{ payment()!.upiVpa }}</dd> }
+        @if (payment()!.chequeNumber) { <dt>Cheque #</dt><dd>{{ payment()!.chequeNumber }}</dd> }
+        @if (payment()!.chequeBank) { <dt>Bank</dt><dd>{{ payment()!.chequeBank }}{{ payment()!.chequeBranch ? ' · ' + payment()!.chequeBranch : '' }}</dd> }
+        @if (payment()!.chequeDate) { <dt>Cheque Date</dt><dd>{{ payment()!.chequeDate! | slice:0:10 }}</dd> }
+        @if (payment()!.neftImpsRef) { <dt>Ref #</dt><dd>{{ payment()!.neftImpsRef }}</dd> }
+        @if (payment()!.bankName) { <dt>Bank</dt><dd>{{ payment()!.bankName }}</dd> }
+        @if (payment()!.valueDate) { <dt>Value Date</dt><dd>{{ payment()!.valueDate! | slice:0:10 }}</dd> }
+        @if (payment()!.notes) { <dt>Notes</dt><dd>{{ payment()!.notes }}</dd> }
+        @if (payment()!.verifiedAt) { <dt>Verified At</dt><dd>{{ payment()!.verifiedAt! | slice:0:10 }}</dd> }
+        @if (payment()!.reversedAt) { <dt>Reversed At</dt><dd style="color:#DC2626;">{{ payment()!.reversedAt! | slice:0:10 }} — {{ payment()!.reversalReason }}</dd> }
+      </dl>
+    </kl-card>
+
+    <kl-card>
+      <div style="font-weight:600; margin-bottom:16px;">Amount Summary</div>
+      <div class="kl-total-row" style="font-size:15px;"><span class="kl-fg-3">Total Paid</span><span style="font-weight:700;">₹{{ fmt(payment()!.amountPaid) }}</span></div>
+      <div class="kl-total-row"><span class="kl-fg-3">Allocated</span><span>₹{{ fmt(payment()!.amountAllocated) }}</span></div>
+      <div class="kl-total-row" style="border-top:1px solid #E5E7EB; padding-top:10px; margin-top:6px;">
+        <span style="font-weight:600;">Unallocated</span>
+        <span style="font-weight:700; color:{{ payment()!.unallocatedAmount > 0 ? '#92400E' : '#166534' }};">
+          ₹{{ fmt(payment()!.unallocatedAmount) }}
+        </span>
+      </div>
+    </kl-card>
+  </div>
+
+  <!-- Allocations -->
+  <kl-card>
+    <div style="font-weight:600; margin-bottom:12px;">Invoice Allocations</div>
+    <div class="kl-table-wrap">
+      <table class="kl-table">
+        <thead>
+          <tr>
+            <th>Purchase Ref</th><th>Invoice #</th><th style="text-align:right;">Allocated (₹)</th><th>Date</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (payment()!.allocations.length === 0) {
+            <tr><td colspan="5" style="text-align:center; padding:24px; color:#6B7A6E;">No allocations yet.</td></tr>
+          } @else {
+            @for (a of payment()!.allocations; track a.id) {
+              <tr class="kl-row-link" [routerLink]="['/purchase/purchases', a.purchaseId]">
+                <td>{{ a.purchaseRef }}</td>
+                <td class="kl-fg-3">{{ a.supplierInvoiceNumber ?? '—' }}</td>
+                <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(a.allocatedAmount) }}</td>
+                <td class="kl-fg-3">{{ a.allocatedAt | slice:0:10 }}</td>
+                <td>
+                  @if (a.isReversed) { <kl-badge variant="neutral">Reversed</kl-badge> }
+                  @else { <kl-badge variant="success">Applied</kl-badge> }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </kl-card>
+}
+
+<!-- Verify dialog -->
+@if (showVerifyDialog()) {
+  <div class="kl-overlay" (click)="closeDialogs()">
+    <div class="kl-dialog" (click)="$event.stopPropagation()">
+      <div class="kl-dialog-head">Verify Payment</div>
+      @if (actionError()) { <div style="color:#DC2626; font-size:13px; margin-bottom:10px;">{{ actionError() }}</div> }
+      <div class="kl-form-group">
+        <label class="kl-label">Clearance Date (optional)</label>
+        <input class="kl-input" type="date" [value]="clearanceDate()" (change)="clearanceDate.set($any($event.target).value)" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+        <button class="kl-btn kl-btn-secondary" (click)="closeDialogs()">Cancel</button>
+        <button class="kl-btn kl-btn-primary" [disabled]="acting()" (click)="verify()">{{ acting() ? 'Verifying…' : 'Verify' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Bounce dialog -->
+@if (showBounceDialog()) {
+  <div class="kl-overlay" (click)="closeDialogs()">
+    <div class="kl-dialog" (click)="$event.stopPropagation()">
+      <div class="kl-dialog-head">Mark Cheque Bounced</div>
+      @if (actionError()) { <div style="color:#DC2626; font-size:13px; margin-bottom:10px;">{{ actionError() }}</div> }
+      <div class="kl-form-group">
+        <label class="kl-label">Reason <span style="color:#DC2626;">*</span></label>
+        <textarea class="kl-input" rows="3" [value]="dialogReason()" (input)="dialogReason.set($any($event.target).value)" placeholder="Why did the cheque bounce?"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+        <button class="kl-btn kl-btn-secondary" (click)="closeDialogs()">Cancel</button>
+        <button class="kl-btn kl-btn-danger" [disabled]="acting()" (click)="bounce()">{{ acting() ? 'Marking…' : 'Mark Bounced' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reverse dialog -->
+@if (showReverseDialog()) {
+  <div class="kl-overlay" (click)="closeDialogs()">
+    <div class="kl-dialog" (click)="$event.stopPropagation()">
+      <div class="kl-dialog-head">Cancel Payment</div>
+      @if (actionError()) { <div style="color:#DC2626; font-size:13px; margin-bottom:10px;">{{ actionError() }}</div> }
+      <div class="kl-form-group">
+        <label class="kl-label">Reason <span style="color:#DC2626;">*</span></label>
+        <textarea class="kl-input" rows="3" [value]="dialogReason()" (input)="dialogReason.set($any($event.target).value)" placeholder="Reason for reversal…"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+        <button class="kl-btn kl-btn-secondary" (click)="closeDialogs()">Keep</button>
+        <button class="kl-btn kl-btn-danger" [disabled]="acting()" (click)="reverse()">{{ acting() ? 'Reversing…' : 'Cancel Payment' }}</button>
+      </div>
+    </div>
+  </div>
+}

@@ -42,6 +42,13 @@ export const routes: Routes = [
           import('./components/pages/settings/settings.component').then(m => m.SettingsComponent),
       },
 
+      // ── Purchase module (lazy, store users only) ──────────────────────────
+      {
+        path: 'purchase',
+        loadChildren: () =>
+          import('./purchase/purchase.routes').then(m => m.purchaseRoutes),
+      },
+
       // ── Tenant / store users only (SuperAdmin is excluded) ─────────────────
       {
         path: 'dashboard',
