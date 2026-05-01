@@ -64,7 +64,7 @@ export class PaymentFormComponent implements OnInit {
   error = signal<string | null>(null);
 
   readonly totalAllocated = computed(() =>
-    Object.values(this.allocationAmounts()).reduce((s, v) => s + (v ?? 0), 0)
+    Object.values(this.allocationAmounts()).reduce((s: number, v) => s + (v ?? 0), 0)
   );
 
   readonly advanceWarning = computed(() => {
