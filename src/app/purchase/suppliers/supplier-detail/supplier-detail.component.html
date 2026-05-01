@@ -1,16 +1,16 @@
 @if (loading()) {
-  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
+  <div class="sd-loading">Loading…</div>
 } @else if (error()) {
-  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
+  <div class="kl-alert kl-alert-danger">{{ error() }}</div>
 } @else if (supplier()) {
   <!-- Page header -->
-  <div class="kl-page-header" style="align-items:center;">
+  <div class="kl-page-header">
     <div>
-      <a routerLink="/purchase/suppliers" class="kl-link" style="font-size:13px;">← Suppliers</a>
-      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 0; color:#1A2B1C;">{{ supplier()!.name }}</h2>
-      <div class="kl-fg-3" style="font-size:12px;">{{ supplier()!.code }}</div>
+      <a routerLink="/purchase/suppliers" class="kl-link">← Suppliers</a>
+      <h2 class="sd-name">{{ supplier()!.name }}</h2>
+      <div class="kl-fg-3 sd-code">{{ supplier()!.code }}</div>
     </div>
-    <div style="display:flex; gap:8px;">
+    <div class="sd-actions">
       <a [routerLink]="['/purchase/purchases/new']" [queryParams]="{supplierId: supplierId()}" class="kl-btn kl-btn-secondary">New Purchase</a>
       <a [routerLink]="['/purchase/supplier-payments/new']" [queryParams]="{supplierId: supplierId()}" class="kl-btn kl-btn-secondary">Record Payment</a>
       @if (isStoreManager()) {
@@ -24,7 +24,7 @@
   </div>
 
   <!-- Tabs -->
-  <div class="kl-tabs" style="margin-bottom:16px;">
+  <div class="kl-tabs sd-tabs-wrap">
     <button class="kl-tab" [class.is-active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
     <button class="kl-tab" [class.is-active]="activeTab() === 'purchases'" (click)="activeTab.set('purchases')">Purchases</button>
     <button class="kl-tab" [class.is-active]="activeTab() === 'payments'" (click)="activeTab.set('payments')">Payments</button>
@@ -32,10 +32,10 @@
 
   <!-- Overview tab -->
   @if (activeTab() === 'overview') {
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+    <div class="sd-overview-grid">
       <!-- Supplier info -->
       <kl-card>
-        <div style="font-weight:600; margin-bottom:12px; color:#1A2B1C;">Supplier Information</div>
+        <div class="sd-section-head">Supplier Information</div>
         <dl class="kl-dl">
           <dt>Contact Person</dt><dd>{{ supplier()!.contactPerson ?? '—' }}</dd>
           <dt>Phone</dt><dd>{{ supplier()!.phoneNumber ?? '—' }}</dd>
@@ -52,19 +52,20 @@
       <!-- Balance summary -->
       @if (balance()) {
         <kl-card>
-          <div style="font-weight:600; margin-bottom:12px; color:#1A2B1C;">Account Balance</div>
-          <div style="display:grid; gap:12px;">
-            <div class="kl-stat-row">
-              <span class="kl-fg-3" style="font-size:13px;">Outstanding</span>
-              <span style="font-size:18px; font-weight:700; color:#92400E;">₹{{ fmt(balance()!.outstandingAmount) }}</span>
+          <div class="sd-section-head">Account Balance</div>
+          <div class="sd-balance-grid">
+            <div class="sd-balance-row">
+              <span class="kl-fg-3 sd-amount-label">Outstanding</span>
+              <span class="sd-amount-value sd-amount-value--amber">₹{{ fmt(balance()!.outstandingAmount) }}</span>
             </div>
-            <div class="kl-stat-row">
-              <span class="kl-fg-3" style="font-size:13px;">Advance Balance</span>
-              <span style="font-size:18px; font-weight:700; color:#166534;">₹{{ fmt(balance()!.advanceBalance) }}</span>
+            <div class="sd-balance-row">
+              <span class="kl-fg-3 sd-amount-label">Advance Balance</span>
+              <span class="sd-amount-value sd-amount-value--green">₹{{ fmt(balance()!.advanceBalance) }}</span>
             </div>
-            <div class="kl-stat-row" style="border-top:1px solid #E5E7EB; padding-top:12px;">
-              <span style="font-size:13px; font-weight:600;">Net Outstanding</span>
-              <span style="font-size:20px; font-weight:700; color:{{ balance()!.netOutstanding > 0 ? '#92400E' : '#166534' }};">
+            <div class="sd-balance-row sd-balance-row--divided">
+              <span class="sd-amount-label sd-amount-label--bold">Net Outstanding</span>
+              <span class="sd-amount-value sd-amount-value--lg"
+                    [style.color]="balance()!.netOutstanding > 0 ? '#92400E' : '#166534'">
                 ₹{{ fmt(balance()!.netOutstanding) }}
               </span>
             </div>
@@ -85,30 +86,30 @@
               <th>Store</th>
               <th>Date</th>
               <th>Due Date</th>
-              <th style="text-align:right;">Total (₹)</th>
-              <th style="text-align:right;">Outstanding (₹)</th>
+              <th class="sd-align-right">Total (₹)</th>
+              <th class="sd-align-right">Outstanding (₹)</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             @if (purchases().length === 0) {
-              <tr><td colspan="7" style="text-align:center; padding:32px; color:#6B7A6E;">No purchases yet.</td></tr>
+              <tr><td colspan="7" class="sd-empty">No purchases yet.</td></tr>
             } @else {
               @for (p of purchases(); track p.id) {
                 <tr class="kl-row-link" [routerLink]="['/purchase/purchases', p.id]">
-                  <td style="font-weight:500;">{{ p.purchaseRef }}</td>
+                  <td class="sd-ref">{{ p.purchaseRef }}</td>
                   <td class="kl-fg-3">{{ p.storeName }}</td>
                   <td class="kl-fg-3">{{ p.purchaseDate | slice:0:10 }}</td>
                   <td class="kl-fg-3">{{ p.dueDate ? (p.dueDate | slice:0:10) : '—' }}</td>
-                  <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(p.totalAmount) }}</td>
-                  <td style="text-align:right; font-variant-numeric:tabular-nums;">
+                  <td class="sd-num">₹{{ fmt(p.totalAmount) }}</td>
+                  <td class="sd-num">
                     @if (p.outstandingAmount > 0) {
                       <span [style.color]="isOverdue(p) ? '#DC2626' : '#92400E'">₹{{ fmt(p.outstandingAmount) }}</span>
                     } @else { <span class="kl-fg-3">—</span> }
                   </td>
                   <td>
                     <kl-badge [variant]="statusBadge[p.status]">{{ statusLabels[p.status] }}</kl-badge>
-                    @if (isOverdue(p)) { <kl-badge variant="danger" style="margin-left:4px;">Overdue</kl-badge> }
+                    @if (isOverdue(p)) { <kl-badge variant="danger" class="sd-badge-ml">Overdue</kl-badge> }
                   </td>
                 </tr>
               }
@@ -116,8 +117,8 @@
           </tbody>
         </table>
       </div>
-      <div style="padding:12px 20px;">
-        <a [routerLink]="['/purchase/purchases']" [queryParams]="{supplierId: supplierId()}" class="kl-link" style="font-size:12px;">View all purchases →</a>
+      <div class="sd-card-footer">
+        <a [routerLink]="['/purchase/purchases']" [queryParams]="{supplierId: supplierId()}" class="kl-link sd-footer-link">View all purchases →</a>
       </div>
     </kl-card>
   }
@@ -132,24 +133,24 @@
               <th>Payment Ref</th>
               <th>Mode</th>
               <th>Date</th>
-              <th style="text-align:right;">Amount (₹)</th>
-              <th style="text-align:right;">Unallocated (₹)</th>
+              <th class="sd-align-right">Amount (₹)</th>
+              <th class="sd-align-right">Unallocated (₹)</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             @if (payments().length === 0) {
-              <tr><td colspan="6" style="text-align:center; padding:32px; color:#6B7A6E;">No payments yet.</td></tr>
+              <tr><td colspan="6" class="sd-empty">No payments yet.</td></tr>
             } @else {
               @for (p of payments(); track p.id) {
                 <tr class="kl-row-link" [routerLink]="['/purchase/supplier-payments', p.id]">
-                  <td style="font-weight:500;">{{ p.paymentRef }}</td>
+                  <td class="sd-ref">{{ p.paymentRef }}</td>
                   <td class="kl-fg-3">{{ modeLabels[p.mode] }}</td>
                   <td class="kl-fg-3">{{ p.paymentDate | slice:0:10 }}</td>
-                  <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(p.amountPaid) }}</td>
-                  <td style="text-align:right; font-variant-numeric:tabular-nums;">
+                  <td class="sd-num">₹{{ fmt(p.amountPaid) }}</td>
+                  <td class="sd-num">
                     @if (p.unallocatedAmount > 0) {
-                      <span style="color:#92400E;">₹{{ fmt(p.unallocatedAmount) }}</span>
+                      <span class="sd-unallocated">₹{{ fmt(p.unallocatedAmount) }}</span>
                     } @else { <span class="kl-fg-3">—</span> }
                   </td>
                   <td><kl-badge variant="info">{{ payStatusLabels[p.status] }}</kl-badge></td>
@@ -159,8 +160,8 @@
           </tbody>
         </table>
       </div>
-      <div style="padding:12px 20px;">
-        <a [routerLink]="['/purchase/supplier-payments']" [queryParams]="{supplierId: supplierId()}" class="kl-link" style="font-size:12px;">View all payments →</a>
+      <div class="sd-card-footer">
+        <a [routerLink]="['/purchase/supplier-payments']" [queryParams]="{supplierId: supplierId()}" class="kl-link sd-footer-link">View all payments →</a>
       </div>
     </kl-card>
   }

@@ -21,6 +21,7 @@ import { PAYMENT_MODE_LABELS, SUPPLIER_PAYMENT_STATUS_LABELS } from '@models/sup
   standalone: true,
   imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './supplier-detail.component.html',
+  styleUrl: './supplier-detail.component.scss',
 })
 export class SupplierDetailComponent implements OnInit {
   private readonly supplierService = inject(SupplierService);

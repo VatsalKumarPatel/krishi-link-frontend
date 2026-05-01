@@ -1,0 +1,93 @@
+.sd-loading {
+  padding: 40px;
+  text-align: center;
+  color: #6B7A6E;
+}
+
+.sd-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sd-name {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  margin: 4px 0 0;
+}
+
+.sd-code {
+  font-size: 12px;
+}
+
+.sd-tabs-wrap {
+  margin-bottom: 16px;
+}
+
+.sd-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sd-section-head {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.sd-balance-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.sd-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &--divided {
+    border-top: 1px solid #E5E7EB;
+    padding-top: 12px;
+  }
+}
+
+.sd-amount-label {
+  font-size: 13px;
+
+  &--bold {
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+.sd-amount-value {
+  font-size: 18px;
+  font-weight: 700;
+
+  &--lg { font-size: 20px; }
+  &--amber { color: #92400E; }
+  &--green { color: #166534; }
+}
+
+.sd-align-right { text-align: right; }
+
+.sd-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-ref { font-weight: 500; }
+
+.sd-empty {
+  text-align: center;
+  padding: 32px;
+  color: #6B7A6E;
+}
+
+.sd-badge-ml { margin-left: 4px; }
+
+.sd-unallocated { color: #92400E; }
+
+.sd-card-footer { padding: 12px 20px; }
+
+.sd-footer-link { font-size: 12px; }
