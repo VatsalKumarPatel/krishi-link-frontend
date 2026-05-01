@@ -65,8 +65,8 @@ export class PaymentAllocateComponent implements OnInit {
 
   confirm(): void {
     const lines: PaymentAllocationLineCommand[] = Object.entries(this.allocationAmounts())
-      .filter(([, v]) => v > 0)
-      .map(([purchaseId, amount]) => ({ purchaseId, amount }));
+      .filter(([, v]) => (v ?? 0) > 0)
+      .map(([purchaseId, amount]) => ({ purchaseId, amount: amount! }));
 
     if (lines.length === 0) { this.error.set('No amounts entered.'); return; }
     if (this.totalAllocating() > (this.payment()?.unallocatedAmount ?? 0)) {
