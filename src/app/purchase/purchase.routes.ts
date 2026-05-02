@@ -13,25 +13,11 @@ export const purchaseRoutes: Routes = [
       import('./suppliers/supplier-list/supplier-list.component').then(m => m.SupplierListComponent),
   },
   {
-    path: 'suppliers/new',
-    canActivate: [authGuard],
-    data: { title: 'Add Supplier', subtitle: 'Create a new supplier record', excludeSuperAdmin: true },
-    loadComponent: () =>
-      import('./suppliers/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent),
-  },
-  {
     path: 'suppliers/:id',
     canActivate: [authGuard],
     data: { title: 'Supplier Detail', subtitle: '', excludeSuperAdmin: true },
     loadComponent: () =>
       import('./suppliers/supplier-detail/supplier-detail.component').then(m => m.SupplierDetailComponent),
-  },
-  {
-    path: 'suppliers/:id/edit',
-    canActivate: [authGuard],
-    data: { title: 'Edit Supplier', subtitle: '', excludeSuperAdmin: true },
-    loadComponent: () =>
-      import('./suppliers/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent),
   },
   {
     path: 'suppliers/:id/ledger',

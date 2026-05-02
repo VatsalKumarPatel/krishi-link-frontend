@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
 import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { SupplierAddComponent } from '../supplier-add/supplier-add.component';
 import { SupplierService } from '@services/supplier.service';
 import { UserService } from '@services/user.service';
 import { SupplierSummaryDto } from '@models/supplier.model';
@@ -21,7 +22,7 @@ const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigit
 @Component({
   selector: 'app-supplier-list',
   standalone: true,
-  imports: [KlCardComponent, KlGridComponent],
+  imports: [KlCardComponent, KlGridComponent, SupplierAddComponent],
   templateUrl: './supplier-list.component.html',
   styleUrls: ['./supplier-list.component.scss'],
 })
@@ -34,6 +35,9 @@ export class SupplierListComponent {
   pageIndex = signal(0);
   pageSize = signal(20);
   isActiveFilter = signal<boolean | undefined>(undefined);
+
+  drawerOpen = signal(false);
+  editSupplierId = signal<string | null>(null);
 
   confirmDeactivateId = signal<string | null>(null);
   deactivating = signal(false);
@@ -123,10 +127,17 @@ export class SupplierListComponent {
   }
 
   openAdd(): void {
-    this.router.navigate(['/purchase/suppliers/new']);
+    this.editSupplierId.set(null);
+    this.drawerOpen.set(true);
   }
 
   openEdit(row: SupplierRow): void {
-    this.router.navigate(['/purchase/suppliers', row.id, 'edit']);
+    this.editSupplierId.set(row.id);
+    this.drawerOpen.set(true);
+  }
+
+  onDrawerSaved(): void {
+    this.drawerOpen.set(false);
+    this.suppliersResource.reload();
   }
 }

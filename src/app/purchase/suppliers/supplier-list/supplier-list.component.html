@@ -41,6 +41,13 @@
   </kl-grid>
 </kl-card>
 
+<!-- Add / Edit drawer -->
+<app-supplier-add
+  [open]="drawerOpen()"
+  [supplierId]="editSupplierId()"
+  (close)="drawerOpen.set(false)"
+  (saved)="onDrawerSaved()" />
+
 <!-- Deactivate confirm dialog -->
 @if (confirmDeactivateId()) {
   <div class="kl-overlay" (click)="cancelDeactivate()">
