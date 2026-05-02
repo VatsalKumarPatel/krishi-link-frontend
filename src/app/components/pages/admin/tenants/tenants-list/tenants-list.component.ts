@@ -1,14 +1,15 @@
-import { Component, signal, OnInit, inject, DestroyRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
-import { BadgeComponent, BadgeVariant } from '../../../../shared/badge/badge.component';
+import { BadgeVariant } from '../../../../shared/badge/badge.component';
 import { TenantAddComponent } from '../tenant-add/tenant-add.component';
 import { TenantService } from '@services/tenant.service';
 import { TenantDto, TenantListFilters } from '@models/tenant.model';
+import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { createEmptyPaginatedResponse, PaginatedResponse } from '@app/models/pagination.model';
 
 type SortCol = 'name' | 'city' | 'storeCount' | 'subscriptionExpiresAt';
 type TabStatus = 'All' | 'Active' | 'Inactive';
@@ -16,29 +17,16 @@ type TabStatus = 'All' | 'Active' | 'Inactive';
 @Component({
   selector: 'app-tenants-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, KlCardComponent, BadgeComponent, TenantAddComponent],
+  imports: [FormsModule, KlCardComponent, TenantAddComponent, KlGridComponent],
   templateUrl: './tenants-list.component.html',
   styleUrl: './tenants-list.component.scss',
 })
 export class TenantsListComponent implements OnInit {
   private readonly tenantService = inject(TenantService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly searchSubject = new Subject<string>();
-
-  readonly pageSize = 20;
-
-  // ── Data ────────────────────────────────────────────────────────────────────
-  tenants = signal<TenantDto[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  totalCount = signal(0);
-  totalPages = signal(1);
-  hasPreviousPage = signal(false);
-  hasNextPage = signal(false);
-  currentPage = signal(1);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
   // ── Filters ─────────────────────────────────────────────────────────────────
-  searchValue = signal('');
   activeTab = signal<TabStatus>('All');
   sortCol = signal<SortCol>('name');
   sortDir = signal<'asc' | 'desc'>('asc');
@@ -48,61 +36,59 @@ export class TenantsListComponent implements OnInit {
   drawerOpen = signal(false);
   editTenant = signal<TenantDto | null>(null);
 
-  ngOnInit(): void {
-    // Debounce search input — triggers a fresh load from page 1
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => {
-      this.currentPage.set(1);
-      this.load();
-    });
+  columns: GridColumn[] = [
+    { field: 'name', header: 'Name' },
+    { field: 'email', header: 'Email' },
+    { field: 'phone', header: 'Phone' },
+    { field: 'addressLine1', header: 'Address' },
+    { field: 'storeCount', header: 'Stores', type: 'badge', sortable: false,
+      badgeVariant: (v: number) => v > 0 ? 'info' : 'neutral' },
+    { field: 'city', header: 'City' },
+    { field: 'subscriptionExpiresAt', header: 'Expires', type: 'date', dateFormat: 'd MMM yyyy' },
+  ];
 
-    this.load();
-  }
+  query = signal('');
+  pageIndex = signal(0);
+  pageSize = signal(10);
+  sorting = signal('name');
 
-  load(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  private tenantQueryParams = computed(() => ({
+    query: this.query(),
+    pageIndex: this.pageIndex(),
+    pageSize: this.pageSize(),
+    sort: this.sorting(),
+    activeTab: this.activeTab(),
+    sortCol: this.sortCol(),
+    sortDir: this.sortDir(),
+  }));
 
-    const tab = this.activeTab();
-    const filters: TenantListFilters = {
-      search: this.searchValue() || undefined,
-      status: tab !== 'All' ? tab : undefined,
-      sortBy: this.sortCol(),
-      sortDir: this.sortDir(),
-    };
+  tenantsResource = rxResource<PaginatedResponse<TenantDto>, ReturnType<TenantsListComponent['tenantQueryParams']>>({
+    params: () => this.tenantQueryParams(),
+    stream: ({ params }) => {
+      const filters: TenantListFilters = {
+        search: params.query || undefined,
+        status: params.activeTab !== 'All' ? params.activeTab : undefined,
+        sortBy: params.sortCol,
+        sortDir: params.sortDir,
+      };
+      return this.tenantService.getAll(params.pageIndex + 1, params.pageSize, filters);
+    }
+  });
 
-    this.tenantService.getAll(this.currentPage(), this.pageSize, filters)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (result) => {
-          this.tenants.set(result.items);
-          this.totalCount.set(result.totalCount);
-          this.totalPages.set(result.totalPages);
-          this.hasPreviousPage.set(result.hasPreviousPage);
-          this.hasNextPage.set(result.hasNextPage);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.error.set('Failed to load tenants. Please try again.');
-          this.loading.set(false);
-        },
-      });
-  }
+  tenants = computed(() => this.tenantsResource.value() ?? createEmptyPaginatedResponse<TenantDto>());
+
+  ngOnInit(): void {}
 
   // ── Filter / sort handlers ──────────────────────────────────────────────────
 
   onSearch(value: string): void {
-    this.searchValue.set(value);
-    this.searchSubject.next(value);
+    this.query.set(value);
+    this.pageIndex.set(0);
   }
 
   setTab(tab: TabStatus): void {
     this.activeTab.set(tab);
-    this.currentPage.set(1);
-    this.load();
+    this.pageIndex.set(0);
   }
 
   toggleSort(col: SortCol): void {
@@ -112,8 +98,7 @@ export class TenantsListComponent implements OnInit {
       this.sortCol.set(col);
       this.sortDir.set('asc');
     }
-    this.currentPage.set(1);
-    this.load();
+    this.pageIndex.set(0);
   }
 
   toggleFilter(name: string): void {
@@ -123,16 +108,14 @@ export class TenantsListComponent implements OnInit {
   // ── Pagination ──────────────────────────────────────────────────────────────
 
   prevPage(): void {
-    if (this.hasPreviousPage()) {
-      this.currentPage.update(p => p - 1);
-      this.load();
+    if (this.tenants().hasPreviousPage) {
+      this.pageIndex.update(p => p - 1);
     }
   }
 
   nextPage(): void {
-    if (this.hasNextPage()) {
-      this.currentPage.update(p => p + 1);
-      this.load();
+    if (this.tenants().hasNextPage) {
+      this.pageIndex.update(p => p + 1);
     }
   }
 
@@ -143,15 +126,14 @@ export class TenantsListComponent implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  openEdit(t: TenantDto, e: Event): void {
-    e.stopPropagation();
+  openEdit(t: TenantDto): void {
     this.editTenant.set(t);
     this.drawerOpen.set(true);
   }
 
   closeDrawer(reload = false): void {
     this.drawerOpen.set(false);
-    if (reload) this.load();
+    if (reload) this.tenantsResource.reload();
   }
 
   // ── Display helpers ─────────────────────────────────────────────────────────
@@ -179,10 +161,26 @@ export class TenantsListComponent implements OnInit {
     return new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  /** Human-readable page range, e.g. "1–20 of 48" */
   pageRange(): string {
-    const start = (this.currentPage() - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage() * this.pageSize, this.totalCount());
-    return `${start}–${end} of ${this.totalCount()}`;
+    const data = this.tenants();
+    if (!data.totalCount) return '0 results';
+    const start = this.pageIndex() * this.pageSize() + 1;
+    const end = Math.min((this.pageIndex() + 1) * this.pageSize(), data.totalCount);
+    return `${start}–${end} of ${data.totalCount}`;
+  }
+
+  toggleDetails(_productId: string): void {}
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+  }
+
+  onSortChange(sort: string): void {
+    this.sorting.set(sort);
+  }
+
+  onRowClick(tenant: TenantDto): void {
+    this.router.navigate(['./', tenant.id], { relativeTo: this.activatedRoute });
   }
 }

@@ -20,6 +20,7 @@ interface ItcRow {
   standalone: true,
   imports: [FormsModule, KlCardComponent],
   templateUrl: './input-tax-credit.component.html',
+  styleUrls: ['./input-tax-credit.component.scss'],
 })
 export class InputTaxCreditComponent implements OnInit {
   private readonly http = inject(HttpClient);

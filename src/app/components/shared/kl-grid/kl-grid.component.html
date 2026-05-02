@@ -1,0 +1,118 @@
+@if (showSearch) {
+  <div class="kl-grid-header">
+    <div class="kl-search kl-search-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input
+        [value]="searchValue"
+        (input)="onSearchInput($any($event.target).value)"
+        [placeholder]="searchPlaceholder" />
+    </div>
+  </div>
+}
+
+<div class="kl-table-wrap">
+  <table class="kl-table">
+    <thead>
+      <tr>
+        @for (col of columns; track col.field) {
+          <th
+            [class.sortable]="col.sortable !== false"
+            [class.is-sorted]="sortField === col.field"
+            (click)="col.sortable !== false && onHeaderClick(col.field)">
+            {{ col.header }}
+            @if (col.sortable !== false) {
+              <span class="kl-sort-ind">
+                {{ sortField === col.field ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}
+              </span>
+            }
+          </th>
+        }
+        @if (showActions) {
+          <th class="kl-col-actions"></th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading) {
+        @for (i of skeletonRows; track i) {
+          <tr>
+            @for (col of columns; track col.field) {
+              <td>
+                <div class="animate-pulse bg-bg-muted rounded h-4" style="width: 75%;"></div>
+              </td>
+            }
+          </tr>
+        }
+      } @else if (inputdata.items.length === 0) {
+        <tr>
+          <td [attr.colspan]="columns.length" style="text-align:center; padding:48px 20px; color:#6B7A6E;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#9AA69C;">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            {{ emptyMessage }}
+          </td>
+        </tr>
+      } @else {
+        @for (row of inputdata.items; track $index) {
+          <tr class="kl-row-link" (click)="onRowClick(row)">
+            @for (col of columns; track col.field) {
+              <td>
+                @switch (col.type) {
+                  @case ('badge') {
+                    @if (row[col.field]) {
+                      <kl-badge [variant]="getBadgeVariant(col, row[col.field], row)">{{ row[col.field] }}</kl-badge>
+                    }
+                  }
+                  @case ('date') {
+                    {{ row[col.field] | date: (col.dateFormat ?? 'd MMM yyyy') }}
+                  }
+                  @default {
+                    {{ row[col.field] }}
+                  }
+                }
+              </td>
+            }
+            @if (showActions) {
+              <td class="kl-col-actions">
+                <button class="kl-action-btn" (click)="onEditClick(row, $event)" title="Edit">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (showPagination) {
+  <div class="kl-pagination">
+    <span>{{ pageRange() }}</span>
+    <div class="kl-pager">
+      <button [disabled]="!inputdata.hasPreviousPage" (click)="onPrevPage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      @for (p of pageNumbers(); track p) {
+        <button [class.is-active]="pageIndex + 1 === p" (click)="onGoToPage(p)">{{ p }}</button>
+      }
+      <button [disabled]="!inputdata.hasNextPage" (click)="onNextPage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+}

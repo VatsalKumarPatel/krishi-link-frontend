@@ -20,6 +20,7 @@ import {
   standalone: true,
   imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './payment-detail.component.html',
+  styleUrls: ['./payment-detail.component.scss'],
 })
 export class PaymentDetailComponent implements OnInit {
   private readonly paymentService = inject(SupplierPaymentService);

@@ -1,17 +1,17 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { environment } from '@app/environment';
 import {
   TenantDto,
-  TenantPagedResult,
   CreateTenantCommand,
   UpdateTenantCommand,
   ActivityLogDto,
-  AdminStorePagedResult,
   TenantListFilters,
   TenantDropdownItem,
+  AdminStoreDtoForTenant,
 } from '@models/tenant.model';
+import { PaginatedResponse } from '@app/models/pagination.model';
 
 export interface ActivityPagedResult {
   items: ActivityLogDto[];
@@ -26,47 +26,59 @@ export interface ActivityPagedResult {
 @Injectable({ providedIn: 'root' })
 export class TenantService {
   private readonly base = `${environment.apiBaseUrl}/${environment.version}/admin/tenants`;
+  private _httpClient = inject(HttpClient);
+  private abort$ = new Subject<void>();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor() {}
 
-  getAll(page = 1, pageSize = 20, filters?: TenantListFilters): Observable<TenantPagedResult> {
+  // -----------------------------------------------------------------------------------------------------
+  // @ Public API
+  // -----------------------------------------------------------------------------------------------------
+  cancelPendingRequests() {
+      this.abort$.next();
+  }
+
+  getAll(page = 1, pageSize = 20, filters?: TenantListFilters): Observable<PaginatedResponse<TenantDto>> {
     let params = new HttpParams()
       .set('page', String(page))
-      .set('pageSize', String(pageSize));
+      .set('pageSize', String(pageSize))
+      // .set('sort', sort);
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.status) params = params.set('status', filters.status);
-    if (filters?.sortBy) params = params.set('sortBy', filters.sortBy);
+    // if (filters?.sortBy) params = params.set('sortBy', filters.sortBy);
     if (filters?.sortDir) params = params.set('sortDir', filters.sortDir);
-    return this.http.get<TenantPagedResult>(this.base, { params });
+    return this._httpClient.get<PaginatedResponse<TenantDto>>(this.base, { params }).pipe(
+          takeUntil(this.abort$),
+        );
   }
 
   getById(id: string): Observable<TenantDto> {
-    return this.http.get<TenantDto>(`${this.base}/${id}`);
+    return this._httpClient.get<TenantDto>(`${this.base}/${id}`);
   }
 
   create(cmd: CreateTenantCommand): Observable<TenantDto> {
-    return this.http.post<TenantDto>(this.base, cmd);
+    return this._httpClient.post<TenantDto>(this.base, cmd);
   }
 
   update(id: string, cmd: UpdateTenantCommand): Observable<void> {
-    return this.http.put<void>(`${this.base}/${id}`, cmd);
+    return this._httpClient.put<void>(`${this.base}/${id}`, cmd);
   }
 
   getActivity(id: string, page = 1, pageSize = 50): Observable<ActivityPagedResult> {
     const params = new HttpParams()
       .set('page', String(page))
       .set('pageSize', String(pageSize));
-    return this.http.get<ActivityPagedResult>(`${this.base}/${id}/activity`, { params });
+    return this._httpClient.get<ActivityPagedResult>(`${this.base}/${id}/activity`, { params });
   }
 
   getDropdown(): Observable<TenantDropdownItem[]> {
-    return this.http.get<TenantDropdownItem[]>(`${this.base}/dropdown`);
+    return this._httpClient.get<TenantDropdownItem[]>(`${this.base}/dropdown`);
   }
 
-  getStores(tenantId: string, page = 1, pageSize = 50): Observable<AdminStorePagedResult> {
+  getStores(tenantId: string, page = 1, pageSize = 50): Observable<PaginatedResponse<AdminStoreDtoForTenant>> {
     const params = new HttpParams()
       .set('page', String(page))
       .set('pageSize', String(pageSize));
-    return this.http.get<AdminStorePagedResult>(`${this.base}/${tenantId}/stores`, { params });
+    return this._httpClient.get<PaginatedResponse<AdminStoreDtoForTenant>>(`${this.base}/${tenantId}/stores`, { params });
   }
 }

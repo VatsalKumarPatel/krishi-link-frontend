@@ -3,6 +3,8 @@ import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { UserService } from '@services/user.service';
 import { StorePickerService, MyStoreDto } from '@services/store-picker.service';
+import { AuthService } from '@services/auth.service';
+import { TokenService } from '@services/token.service';
 
 @Component({
   selector: 'app-topbar',
@@ -13,6 +15,8 @@ import { StorePickerService, MyStoreDto } from '@services/store-picker.service';
 export class TopbarComponent implements OnInit, OnDestroy {
   readonly userService = inject(UserService);
   readonly storePicker = inject(StorePickerService);
+  private readonly authService = inject(AuthService);
+  private readonly tokenService = inject(TokenService);
 
   storeMenuOpen = signal(false);
   notifOpen = signal(false);
@@ -69,6 +73,19 @@ export class TopbarComponent implements OnInit, OnDestroy {
     this.profileOpen.update(v => !v);
     this.notifOpen.set(false);
     this.storeMenuOpen.set(false);
+  }
+
+  signOut(): void {
+    this.authService.logout().subscribe({
+      complete: () => this.doLocalLogout(),
+      error: () => this.doLocalLogout(),
+    });
+  }
+
+  private doLocalLogout(): void {
+    this.tokenService.clearTokens();
+    this.userService.clear();
+    this.router.navigate(['/login']);
   }
 
   @HostListener('document:click')

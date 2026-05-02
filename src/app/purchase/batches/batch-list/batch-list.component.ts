@@ -1,85 +1,112 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { SlicePipe } from '@angular/common';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
-import { environment } from '@app/environment';
+import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { BadgeVariant } from '../../../components/shared/badge/badge.component';
+import { BatchService } from '@services/batch.service';
+import { BatchDto } from '@models/batch.model';
+import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
 
-interface BatchDto {
-  id: string;
-  batchNumber: string;
-  productName: string;
-  supplierName: string;
-  expiryDate: string;
-  quantityAvailableInBase: number;
-  costPricePerUnit: number;
-  isActive: boolean;
+type BatchRow = BatchDto & { statusLabel: string; quantityFmt: string; costFmt: string };
+
+const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+
+function batchStatusVariant(b: BatchDto): BadgeVariant {
+  if (!b.isActive) return 'neutral';
+  const exp = new Date(b.expiryDate);
+  const now = new Date();
+  if (exp < now) return 'danger';
+  const soon = new Date(); soon.setDate(soon.getDate() + 30);
+  if (exp <= soon) return 'warning';
+  return 'success';
 }
 
-interface BatchPagedResult {
-  items: BatchDto[];
-  totalCount: number; page: number; pageSize: number;
-  totalPages: number; hasPreviousPage: boolean; hasNextPage: boolean;
+function batchStatusLabel(b: BatchDto): string {
+  if (!b.isActive) return 'Depleted';
+  const exp = new Date(b.expiryDate);
+  const now = new Date();
+  if (exp < now) return 'Expired';
+  const soon = new Date(); soon.setDate(soon.getDate() + 30);
+  if (exp <= soon) return 'Expiring Soon';
+  return 'Active';
 }
 
 @Component({
   selector: 'app-batch-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [KlCardComponent, KlGridComponent],
   templateUrl: './batch-list.component.html',
+  styleUrls: ['./batch-list.component.scss'],
 })
-export class BatchListComponent implements OnInit {
-  private readonly http = inject(HttpClient);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly base = `${environment.apiBaseUrl}/${environment.version}/batches`;
-
-  readonly pageSize = 20;
-  batches = signal<BatchDto[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  totalCount = signal(0);
-  totalPages = signal(1);
-  currentPage = signal(1);
-  hasPreviousPage = signal(false);
-  hasNextPage = signal(false);
+export class BatchListComponent {
+  private readonly batchService = inject(BatchService);
+  private readonly router = inject(Router);
 
   showExpired = signal(false);
   showDepleted = signal(false);
+  pageIndex = signal(0);
+  pageSize = signal(20);
 
-  ngOnInit(): void { this.load(); }
+  readonly columns: GridColumn[] = [
+    { field: 'batchNumber', header: 'Batch #', sortable: false },
+    { field: 'productName', header: 'Product', sortable: false },
+    { field: 'supplierName', header: 'Supplier', sortable: false },
+    { field: 'expiryDate', header: 'Expiry Date', type: 'date', sortable: false },
+    { field: 'quantityFmt', header: 'Available Qty', sortable: false },
+    { field: 'costFmt', header: 'Cost (₹)', sortable: false },
+    { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
+      badgeVariant: (_v, row: BatchRow) => batchStatusVariant(row) },
+  ];
 
-  load(): void {
-    this.loading.set(true);
-    let params = new HttpParams()
-      .set('page', String(this.currentPage())).set('pageSize', String(this.pageSize))
-      .set('showExpired', String(this.showExpired())).set('showDepleted', String(this.showDepleted()));
-    this.http.get<BatchPagedResult>(this.base, { params }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => { this.batches.set(r.items); this.totalCount.set(r.totalCount); this.totalPages.set(r.totalPages); this.hasPreviousPage.set(r.hasPreviousPage); this.hasNextPage.set(r.hasNextPage); this.loading.set(false); },
-      error: () => { this.error.set('Failed to load batches.'); this.loading.set(false); },
-    });
+  private readonly queryParams = computed(() => ({
+    pageIndex: this.pageIndex(),
+    pageSize: this.pageSize(),
+    showExpired: this.showExpired(),
+    showDepleted: this.showDepleted(),
+  }));
+
+  batchesResource = rxResource<PaginatedResponse<BatchRow>, ReturnType<BatchListComponent['queryParams']>>({
+    params: () => this.queryParams(),
+    stream: ({ params }) =>
+      this.batchService.getAll(params.pageIndex + 1, params.pageSize, params.showExpired, params.showDepleted).pipe(
+        map(r => ({
+          items: r.items.map(b => ({
+            ...b,
+            statusLabel: batchStatusLabel(b),
+            quantityFmt: fmt(b.quantityAvailableInBase),
+            costFmt: `₹${fmt(b.costPricePerUnit)}`,
+          })),
+          totalCount: r.totalCount,
+          pageNumber: r.page,
+          pageSize: r.pageSize,
+          totalPages: r.totalPages,
+          hasPreviousPage: r.hasPreviousPage,
+          hasNextPage: r.hasNextPage,
+        }))
+      ),
+  });
+
+  batches = computed(() => this.batchesResource.value() ?? createEmptyPaginatedResponse<BatchRow>());
+
+  toggleExpired(checked: boolean): void {
+    this.showExpired.set(checked);
+    this.pageIndex.set(0);
   }
 
-  prevPage(): void { if (this.hasPreviousPage()) { this.currentPage.update(p => p - 1); this.load(); } }
-  nextPage(): void { if (this.hasNextPage()) { this.currentPage.update(p => p + 1); this.load(); } }
-
-  expiryStatus(expiryDate: string): 'expired' | 'expiring-soon' | 'ok' {
-    const exp = new Date(expiryDate);
-    const now = new Date();
-    if (exp < now) return 'expired';
-    const thirtyDays = new Date(); thirtyDays.setDate(thirtyDays.getDate() + 30);
-    if (exp <= thirtyDays) return 'expiring-soon';
-    return 'ok';
+  toggleDepleted(checked: boolean): void {
+    this.showDepleted.set(checked);
+    this.pageIndex.set(0);
   }
 
-  rowStyle(expiryDate: string): string {
-    const s = this.expiryStatus(expiryDate);
-    if (s === 'expired') return 'background:#FEF2F2;';
-    if (s === 'expiring-soon') return 'background:#FFFBEB;';
-    return '';
+  onPageChange(e: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex.set(e.pageIndex);
+    this.pageSize.set(e.pageSize);
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  onRowClick(row: BatchRow): void {
+    this.router.navigate(['/purchase/batches', row.id]);
+  }
 }

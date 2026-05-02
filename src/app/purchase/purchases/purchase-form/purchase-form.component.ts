@@ -42,6 +42,7 @@ interface LineItem {
   standalone: true,
   imports: [RouterLink, FormsModule, KlCardComponent],
   templateUrl: './purchase-form.component.html',
+  styleUrls: ['./purchase-form.component.scss'],
 })
 export class PurchaseFormComponent implements OnInit {
   private readonly purchaseService = inject(PurchaseService);

@@ -19,6 +19,7 @@ import {
   standalone: true,
   imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './purchase-detail.component.html',
+  styleUrls: ['./purchase-detail.component.scss'],
 })
 export class PurchaseDetailComponent implements OnInit {
   private readonly purchaseService = inject(PurchaseService);

@@ -20,6 +20,7 @@ interface StockValuationRow {
   standalone: true,
   imports: [FormsModule, KlCardComponent],
   templateUrl: './stock-valuation.component.html',
+  styleUrls: ['./stock-valuation.component.scss'],
 })
 export class StockValuationComponent implements OnInit {
   private readonly http = inject(HttpClient);

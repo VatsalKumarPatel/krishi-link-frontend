@@ -17,6 +17,7 @@ type PayMode = 'Cash' | 'UPI' | 'Cheque' | 'NEFT';
   standalone: true,
   imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent],
   templateUrl: './payment-form.component.html',
+  styleUrls: ['./payment-form.component.scss'],
 })
 export class PaymentFormComponent implements OnInit {
   private readonly paymentService = inject(SupplierPaymentService);

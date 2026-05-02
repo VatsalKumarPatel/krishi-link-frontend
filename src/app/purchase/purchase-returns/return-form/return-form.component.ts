@@ -28,6 +28,7 @@ const GST_RATES = [0, 5, 12, 18, 28];
   standalone: true,
   imports: [RouterLink, FormsModule, KlCardComponent],
   templateUrl: './return-form.component.html',
+  styleUrls: ['./return-form.component.scss'],
 })
 export class ReturnFormComponent implements OnInit {
   private readonly returnService = inject(PurchaseReturnService);

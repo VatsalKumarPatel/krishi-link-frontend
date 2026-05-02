@@ -1,108 +1,44 @@
+<!-- Header -->
 <div class="kl-page-header" style="align-items:center;">
   <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage the suppliers you purchase from.</p>
-  @if (isTenantAdmin()) {
-    <a routerLink="/purchase/suppliers/new" class="kl-btn kl-btn-primary">
+  <div style="display:flex; gap:8px;">
+    <button class="kl-btn kl-btn-secondary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export CSV
+    </button>
+    <button class="kl-btn kl-btn-primary" (click)="openAdd()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add Supplier
-    </a>
-  }
+      Add supplier
+    </button>
+  </div>
 </div>
 
 <kl-card>
-  <div class="kl-toolbar">
-    <div class="kl-search" style="flex:1; min-width:220px;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-      </svg>
-      <input [value]="searchValue()" (input)="onSearch($any($event.target).value)" placeholder="Search by name or code…" />
-    </div>
-    <div style="display:flex; gap:6px;">
-      <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === undefined" (click)="setFilter(undefined)">All</button>
-      <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === true" (click)="setFilter(true)">Active</button>
-      <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === false" (click)="setFilter(false)">Inactive</button>
-    </div>
+  <!-- Active/Inactive filter alongside kl-grid's built-in search -->
+  <div style="display:flex; gap:6px;" card-actions>
+    <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === undefined" (click)="setFilter(undefined)">All</button>
+    <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === true" (click)="setFilter(true)">Active</button>
+    <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === false" (click)="setFilter(false)">Inactive</button>
   </div>
 
-  @if (error()) {
-    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">
-      {{ error() }}
-      <button class="kl-link" style="margin-left:8px;" (click)="load()">Retry</button>
-    </div>
-  }
-
-  <div class="kl-table-wrap">
-    <table class="kl-table">
-      <thead>
-        <tr>
-          <th>Supplier</th>
-          <th>Code</th>
-          <th>Phone</th>
-          <th style="text-align:right;">Outstanding (₹)</th>
-          <th>Payment Terms</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          @for (i of [1,2,3,4,5,6]; track i) {
-            <tr class="kl-skeleton-row">
-              <td><div class="kl-skeleton" style="width:140px;"></div></td>
-              <td><div class="kl-skeleton" style="width:70px;"></div></td>
-              <td><div class="kl-skeleton" style="width:100px;"></div></td>
-              <td><div class="kl-skeleton" style="width:80px;"></div></td>
-              <td><div class="kl-skeleton" style="width:90px;"></div></td>
-              <td><div class="kl-skeleton" style="width:60px;"></div></td>
-              <td></td>
-            </tr>
-          }
-        } @else if (suppliers().length === 0) {
-          <tr><td colspan="7" style="text-align:center; padding:40px; color:#6B7A6E;">No suppliers found.</td></tr>
-        } @else {
-          @for (s of suppliers(); track s.id) {
-            <tr class="kl-row-link" [routerLink]="['/purchase/suppliers', s.id]">
-              <td style="font-weight:500;">{{ s.name }}</td>
-              <td class="kl-fg-3">{{ s.code }}</td>
-              <td class="kl-fg-3">{{ s.phoneNumber ?? '—' }}</td>
-              <td style="text-align:right; font-variant-numeric:tabular-nums;">
-                @if (s.netOutstanding > 0) {
-                  <span style="color:#92400E; font-weight:500;">₹{{ fmt(s.netOutstanding) }}</span>
-                } @else {
-                  <span class="kl-fg-3">₹0</span>
-                }
-              </td>
-              <td class="kl-fg-3">
-                @if (s.paymentTermsDays > 0) { {{ s.paymentTermsDays }} days } @else { —  }
-              </td>
-              <td>
-                <kl-badge [variant]="s.isActive ? 'success' : 'neutral'">
-                  {{ s.isActive ? 'Active' : 'Inactive' }}
-                </kl-badge>
-              </td>
-              <td style="text-align:right; white-space:nowrap;">
-                @if (isTenantAdmin()) {
-                  <a [routerLink]="['/purchase/suppliers', s.id, 'edit']" class="kl-link" style="margin-right:12px;" (click)="$event.stopPropagation()">Edit</a>
-                  @if (s.isActive) {
-                    <button class="kl-link" style="color:#DC2626;" (click)="promptDeactivate(s.id, $event)">Deactivate</button>
-                  }
-                }
-              </td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
-
-  @if (!loading() && totalCount() > pageSize) {
-    <div class="kl-pagination">
-      <span class="kl-fg-3" style="font-size:12px;">{{ pageRange() }}</span>
-      <div style="display:flex; gap:6px;">
-        <button class="kl-btn kl-btn-secondary" [disabled]="!hasPreviousPage()" (click)="prevPage()">← Prev</button>
-        <button class="kl-btn kl-btn-secondary" [disabled]="!hasNextPage()" (click)="nextPage()">Next →</button>
-      </div>
-    </div>
-  }
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="suppliers()"
+    [loading]="suppliersResource.isLoading()"
+    [pageIndex]="pageIndex()"
+    [showActions]="true"
+    [searchValue]="query()"
+    searchPlaceholder="Search by name or code…"
+    emptyMessage="No suppliers match the current filters."
+    (searchChange)="onSearch($event)"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)"
+    (rowClick)="onRowClick($event)"
+    (editClick)="openEdit($event)">
+  </kl-grid>
 </kl-card>
 
 <!-- Deactivate confirm dialog -->

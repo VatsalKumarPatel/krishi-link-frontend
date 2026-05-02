@@ -1,5 +1,4 @@
-<!-- Page header — hidden when embedded inside another page -->
-@if (!embedded) {
+@if (!embedded()) {
   <div class="kl-page-header" style="align-items:center;">
     <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage warehouses and collection centres across all tenants.</p>
     <div style="display:flex; gap:8px;">
@@ -18,152 +17,33 @@
   </div>
 }
 
-<!-- Table card -->
 <kl-card>
-
-  <!-- Add button in card header when embedded -->
-  @if (embedded) {
+  @if (embedded()) {
     <button class="kl-btn kl-btn-primary" card-actions (click)="openAdd()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       Add store
     </button>
   }
 
-  <div class="kl-toolbar">
-    <div class="kl-search" style="flex:1; min-width:220px;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-      </svg>
-      <input
-        [value]="searchValue()"
-        (input)="onSearch($any($event.target).value)"
-        placeholder="Search by name, code, or location…" />
-    </div>
-  </div>
-
-  <!-- Error banner -->
-  @if (error()) {
-    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">
-      {{ error() }}
-      <button class="kl-link" style="margin-left:8px;" (click)="load()">Retry</button>
-    </div>
-  }
-
-  <div class="kl-table-wrap">
-    <table class="kl-table">
-      <thead>
-        <tr>
-          <th class="sortable" [class.is-sorted]="sortCol()==='name'" (click)="toggleSort('name')">
-            Store <span class="kl-sort-ind">{{ sortCol()==='name' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
-          </th>
-          <!-- Tenant column hidden when embedded (already in tenant context) -->
-          @if (!embedded) {
-            <th class="sortable" [class.is-sorted]="sortCol()==='tenantName'" (click)="toggleSort('tenantName')">
-              Tenant <span class="kl-sort-ind">{{ sortCol()==='tenantName' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
-            </th>
-          }
-          <th class="sortable" [class.is-sorted]="sortCol()==='city'" (click)="toggleSort('city')">
-            Location <span class="kl-sort-ind">{{ sortCol()==='city' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
-          </th>
-          <th>GSTIN</th>
-          <th>Phone</th>
-          <th class="sortable" [class.is-sorted]="sortCol()==='isActive'" (click)="toggleSort('isActive')">
-            Status <span class="kl-sort-ind">{{ sortCol()==='isActive' ? (sortDir()==='asc' ? '▲' : '▼') : '↕' }}</span>
-          </th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Loading skeleton rows -->
-        @if (loading()) {
-          @for (i of [1,2,3,4,5]; track i) {
-            <tr>
-              <td>
-                <div class="kl-user">
-                  <div class="animate-pulse bg-bg-muted rounded-full" style="width:28px;height:28px;flex-shrink:0;"></div>
-                  <div class="animate-pulse bg-bg-muted rounded h-4" style="width:120px;"></div>
-                </div>
-              </td>
-              @if (!embedded) {
-                <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
-              }
-              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-24"></div></td>
-              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-32"></div></td>
-              <td><div class="animate-pulse bg-bg-muted rounded h-4 w-28"></div></td>
-              <td><div class="animate-pulse bg-bg-muted rounded-full h-5 w-14"></div></td>
-              <td></td>
-            </tr>
-          }
-        }
-
-        <!-- Data rows -->
-        @if (!loading()) {
-          @for (s of stores(); track s.id) {
-            <tr class="kl-row-link" [routerLink]="['/admin/stores', s.id]">
-              <td>
-                <div class="kl-user">
-                  <div class="kl-avatar kl-avatar-sm">{{ initials(s.name) }}</div>
-                  <div>
-                    <div style="font-weight:500;">{{ s.name }}</div>
-                    @if (s.code) { <code class="kl-mono" style="font-size:11px;">{{ s.code }}</code> }
-                  </div>
-                </div>
-              </td>
-              @if (!embedded) {
-                <td class="kl-fg-3 kl-small">{{ s.tenantName ?? '—' }}</td>
-              }
-              <td class="kl-fg-3 kl-small">{{ cityState(s) }}</td>
-              <td class="kl-fg-3 kl-small">{{ s.gstin ?? '—' }}</td>
-              <td class="kl-fg-3 kl-small">{{ s.phone ?? '—' }}</td>
-              <td><kl-badge [variant]="statusVariant(s.isActive)">{{ statusLabel(s.isActive) }}</kl-badge></td>
-              <td>
-                <button class="kl-icon-btn" (click)="openEdit(s, $event)" title="Edit">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                  </svg>
-                </button>
-              </td>
-            </tr>
-          }
-
-          @if (stores().length === 0) {
-            <tr>
-              <td [attr.colspan]="embedded ? 6 : 7" style="text-align:center; padding:48px 20px; color:#6B7A6E;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#9AA69C;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                No stores found.
-              </td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  @if (!loading() && totalCount() > 0) {
-    <div class="kl-pagination">
-      <span>{{ pageRange() }}</span>
-      <div class="kl-pager">
-        <button [disabled]="!hasPreviousPage()" (click)="prevPage()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
-        @for (p of [].constructor(totalPages()); track $index) {
-          <button [class.is-active]="currentPage() === $index + 1" (click)="currentPage.set($index + 1); load()">
-            {{ $index + 1 }}
-          </button>
-        }
-        <button [disabled]="!hasNextPage()" (click)="nextPage()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
-        </button>
-      </div>
-    </div>
-  }
+  <kl-grid
+    [columns]="columns()"
+    [inputdata]="stores()"
+    [loading]="storesResource.isLoading()"
+    [pageIndex]="pageIndex()"
+    [showActions]="true"
+    [searchValue]="query()"
+    searchPlaceholder="Search by name, code, or location…"
+    (searchChange)="onSearch($event)"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)"
+    (rowClick)="onRowClick($event)"
+    (editClick)="openEdit($event)">
+  </kl-grid>
 </kl-card>
 
-<!-- Add / Edit drawer -->
 <app-store-add
   [open]="drawerOpen()"
   [store]="editStore()"
-  [defaultTenantId]="tenantId"
+  [defaultTenantId]="tenantId()"
   (close)="closeDrawer()"
   (saved)="closeDrawer(true)" />

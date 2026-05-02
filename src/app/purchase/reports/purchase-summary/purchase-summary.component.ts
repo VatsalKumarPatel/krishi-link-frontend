@@ -20,6 +20,7 @@ type GroupBy = 'Supplier' | 'Product' | 'Month';
   standalone: true,
   imports: [FormsModule, KlCardComponent],
   templateUrl: './purchase-summary.component.html',
+  styleUrls: ['./purchase-summary.component.scss'],
 })
 export class PurchaseSummaryReportComponent implements OnInit {
   private readonly http = inject(HttpClient);

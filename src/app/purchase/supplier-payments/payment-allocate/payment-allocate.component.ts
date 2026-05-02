@@ -11,6 +11,7 @@ import { SupplierPaymentDetailDto, OutstandingInvoiceDto, PaymentAllocationLineC
   standalone: true,
   imports: [RouterLink, SlicePipe, KlCardComponent],
   templateUrl: './payment-allocate.component.html',
+  styleUrls: ['./payment-allocate.component.scss'],
 })
 export class PaymentAllocateComponent implements OnInit {
   private readonly paymentService = inject(SupplierPaymentService);
@@ -59,14 +60,14 @@ export class PaymentAllocateComponent implements OnInit {
       const apply = Math.min(remaining, inv.outstandingAmount);
       updated[inv.purchaseId] = apply;
       remaining -= apply;
-    }
+    } 
     this.allocationAmounts.set(updated);
   }
 
   confirm(): void {
     const lines: PaymentAllocationLineCommand[] = Object.entries(this.allocationAmounts())
       .filter(([, v]) => (v ?? 0) > 0)
-      .map(([purchaseId, amount]) => ({ purchaseId, amount: amount! }));
+      .map(([purchaseId, v]) => ({ purchaseId, amount: v as number }));
 
     if (lines.length === 0) { this.error.set('No amounts entered.'); return; }
     if (this.totalAllocating() > (this.payment()?.unallocatedAmount ?? 0)) {

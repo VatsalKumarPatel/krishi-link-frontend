@@ -1,73 +1,92 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { SlicePipe } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
 import {
   SupplierPaymentSummaryDto,
   PAYMENT_MODE_LABELS,
   SUPPLIER_PAYMENT_STATUS_LABELS,
 } from '@models/supplier-payment.model';
+import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
+
+type PaymentRow = SupplierPaymentSummaryDto & {
+  modeLabel: string;
+  statusLabel: string;
+  amountFmt: string;
+  unallocatedFmt: string;
+};
+
+const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
 
 @Component({
   selector: 'app-payment-list',
   standalone: true,
-  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent],
   templateUrl: './payment-list.component.html',
+  styleUrls: ['./payment-list.component.scss'],
 })
-export class PaymentListComponent implements OnInit {
+export class PaymentListComponent {
   private readonly paymentService = inject(SupplierPaymentService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
-  readonly pageSize = 20;
-  readonly modeLabels = PAYMENT_MODE_LABELS;
-  readonly statusLabels = SUPPLIER_PAYMENT_STATUS_LABELS;
+  supplierIdFilter = signal<string | undefined>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('supplierId') ?? undefined
+  );
+  pageIndex = signal(0);
+  pageSize = signal(20);
 
-  payments = signal<SupplierPaymentSummaryDto[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  totalCount = signal(0);
-  totalPages = signal(1);
-  currentPage = signal(1);
-  hasPreviousPage = signal(false);
-  hasNextPage = signal(false);
+  readonly columns: GridColumn[] = [
+    { field: 'paymentRef', header: 'Payment Ref', sortable: false },
+    { field: 'supplierName', header: 'Supplier', sortable: false },
+    { field: 'storeName', header: 'Store', sortable: false },
+    { field: 'modeLabel', header: 'Mode', sortable: false },
+    { field: 'paymentDate', header: 'Date', type: 'date', sortable: false },
+    { field: 'amountFmt', header: 'Amount (₹)', sortable: false },
+    { field: 'unallocatedFmt', header: 'Unallocated (₹)', sortable: false },
+    { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
+      badgeVariant: () => 'info' },
+  ];
 
-  supplierIdFilter = signal<string | undefined>(undefined);
+  private readonly queryParams = computed(() => ({
+    pageIndex: this.pageIndex(),
+    pageSize: this.pageSize(),
+    supplierId: this.supplierIdFilter(),
+  }));
 
-  ngOnInit(): void {
-    const qp = this.route.snapshot.queryParamMap;
-    if (qp.get('supplierId')) this.supplierIdFilter.set(qp.get('supplierId')!);
-    this.load();
+  paymentsResource = rxResource<PaginatedResponse<PaymentRow>, ReturnType<PaymentListComponent['queryParams']>>({
+    params: () => this.queryParams(),
+    stream: ({ params }) =>
+      this.paymentService.getAll(params.pageIndex + 1, params.pageSize, params.supplierId).pipe(
+        map(r => ({
+          items: r.items.map(x => ({
+            ...x,
+            modeLabel: PAYMENT_MODE_LABELS[x.mode],
+            statusLabel: SUPPLIER_PAYMENT_STATUS_LABELS[x.status],
+            amountFmt: `₹${fmt(x.amountPaid)}`,
+            unallocatedFmt: x.unallocatedAmount > 0 ? `₹${fmt(x.unallocatedAmount)}` : '—',
+          })),
+          totalCount: r.totalCount,
+          pageNumber: r.page,
+          pageSize: r.pageSize,
+          totalPages: r.totalPages,
+          hasPreviousPage: r.hasPreviousPage,
+          hasNextPage: r.hasNextPage,
+        }))
+      ),
+  });
+
+  payments = computed(() => this.paymentsResource.value() ?? createEmptyPaginatedResponse<PaymentRow>());
+
+  onPageChange(e: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex.set(e.pageIndex);
+    this.pageSize.set(e.pageSize);
   }
 
-  load(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.paymentService.getAll(this.currentPage(), this.pageSize, this.supplierIdFilter())
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (r) => {
-          this.payments.set(r.items);
-          this.totalCount.set(r.totalCount);
-          this.totalPages.set(r.totalPages);
-          this.hasPreviousPage.set(r.hasPreviousPage);
-          this.hasNextPage.set(r.hasNextPage);
-          this.loading.set(false);
-        },
-        error: () => { this.error.set('Failed to load payments.'); this.loading.set(false); },
-      });
+  onRowClick(row: PaymentRow): void {
+    this.router.navigate(['/purchase/supplier-payments', row.id]);
   }
-
-  prevPage(): void { if (this.hasPreviousPage()) { this.currentPage.update(p => p - 1); this.load(); } }
-  nextPage(): void { if (this.hasNextPage()) { this.currentPage.update(p => p + 1); this.load(); } }
-
-  pageRange(): string {
-    const start = (this.currentPage() - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage() * this.pageSize, this.totalCount());
-    return `${start}–${end} of ${this.totalCount()}`;
-  }
-
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
 }

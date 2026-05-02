@@ -1,71 +1,86 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { SlicePipe } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
 import { PurchaseReturnService } from '@services/purchase-return.service';
-import { PurchaseReturnSummaryDto, RETURN_STATUS_LABELS, PurchaseReturnStatus } from '@models/purchase-return.model';
+import {
+  PurchaseReturnSummaryDto,
+  PurchaseReturnStatus,
+  RETURN_STATUS_LABELS,
+} from '@models/purchase-return.model';
+import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
 
-type StatusBadge = 'neutral' | 'warning' | 'success';
+type ReturnRow = PurchaseReturnSummaryDto & { statusLabel: string; totalAmountFmt: string };
+
+function returnStatusVariant(s: PurchaseReturnStatus): 'neutral' | 'warning' | 'success' {
+  if (s === PurchaseReturnStatus.Draft) return 'neutral';
+  if (s === PurchaseReturnStatus.Dispatched) return 'warning';
+  return 'success';
+}
+
+const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
 
 @Component({
   selector: 'app-return-list',
   standalone: true,
-  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent],
   templateUrl: './return-list.component.html',
+  styleUrls: ['./return-list.component.scss'],
 })
-export class ReturnListComponent implements OnInit {
+export class ReturnListComponent {
   private readonly returnService = inject(PurchaseReturnService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
-  readonly pageSize = 20;
-  readonly statusLabels = RETURN_STATUS_LABELS;
+  pageIndex = signal(0);
+  pageSize = signal(20);
 
-  returns = signal<PurchaseReturnSummaryDto[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  totalCount = signal(0);
-  totalPages = signal(1);
-  currentPage = signal(1);
-  hasPreviousPage = signal(false);
-  hasNextPage = signal(false);
+  readonly columns: GridColumn[] = [
+    { field: 'debitNoteNumber', header: 'Debit Note #', sortable: false },
+    { field: 'supplierName', header: 'Supplier', sortable: false },
+    { field: 'storeName', header: 'Store', sortable: false },
+    { field: 'purchaseRef', header: 'Original Purchase', sortable: false },
+    { field: 'returnDate', header: 'Return Date', type: 'date', sortable: false },
+    { field: 'totalAmountFmt', header: 'Total (₹)', sortable: false },
+    { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
+      badgeVariant: (_v, row: ReturnRow) => returnStatusVariant(row.status) },
+  ];
 
-  ngOnInit(): void { this.load(); }
+  private readonly queryParams = computed(() => ({
+    pageIndex: this.pageIndex(),
+    pageSize: this.pageSize(),
+  }));
 
-  load(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.returnService.getAll(this.currentPage(), this.pageSize)
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (r) => {
-          this.returns.set(r.items);
-          this.totalCount.set(r.totalCount);
-          this.totalPages.set(r.totalPages);
-          this.hasPreviousPage.set(r.hasPreviousPage);
-          this.hasNextPage.set(r.hasNextPage);
-          this.loading.set(false);
-        },
-        error: () => { this.error.set('Failed to load returns.'); this.loading.set(false); },
-      });
+  returnsResource = rxResource<PaginatedResponse<ReturnRow>, ReturnType<ReturnListComponent['queryParams']>>({
+    params: () => this.queryParams(),
+    stream: ({ params }) =>
+      this.returnService.getAll(params.pageIndex + 1, params.pageSize).pipe(
+        map(r => ({
+          items: r.items.map(x => ({
+            ...x,
+            statusLabel: RETURN_STATUS_LABELS[x.status],
+            totalAmountFmt: `₹${fmt(x.totalAmount)}`,
+          })),
+          totalCount: r.totalCount,
+          pageNumber: r.page,
+          pageSize: r.pageSize,
+          totalPages: r.totalPages,
+          hasPreviousPage: r.hasPreviousPage,
+          hasNextPage: r.hasNextPage,
+        }))
+      ),
+  });
+
+  returns = computed(() => this.returnsResource.value() ?? createEmptyPaginatedResponse<ReturnRow>());
+
+  onPageChange(e: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex.set(e.pageIndex);
+    this.pageSize.set(e.pageSize);
   }
 
-  prevPage(): void { if (this.hasPreviousPage()) { this.currentPage.update(p => p - 1); this.load(); } }
-  nextPage(): void { if (this.hasNextPage()) { this.currentPage.update(p => p + 1); this.load(); } }
-
-  statusBadge(s: PurchaseReturnStatus): StatusBadge {
-    if (s === PurchaseReturnStatus.Draft) return 'neutral';
-    if (s === PurchaseReturnStatus.Dispatched) return 'warning';
-    return 'success';
-  }
-
-  pageRange(): string {
-    const start = (this.currentPage() - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage() * this.pageSize, this.totalCount());
-    return `${start}–${end} of ${this.totalCount()}`;
-  }
-
-  fmt(n: number): string {
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+  onRowClick(row: ReturnRow): void {
+    this.router.navigate(['/purchase/purchase-returns', row.id]);
   }
 }

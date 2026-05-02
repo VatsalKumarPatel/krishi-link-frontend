@@ -19,6 +19,7 @@ interface PayablesAgingRow {
   standalone: true,
   imports: [FormsModule, KlCardComponent],
   templateUrl: './payables-aging.component.html',
+  styleUrls: ['./payables-aging.component.scss'],
 })
 export class PayablesAgingComponent implements OnInit {
   private readonly http = inject(HttpClient);

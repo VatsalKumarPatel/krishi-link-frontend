@@ -1,12 +1,10 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { SlicePipe } from '@angular/common';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
 import { PurchaseService } from '@services/purchase.service';
 import { UserService } from '@services/user.service';
 import {
@@ -15,43 +13,39 @@ import {
   PURCHASE_STATUS_LABELS,
   PURCHASE_STATUS_BADGE,
 } from '@models/purchase.model';
+import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
 
 type ListTab = 'all' | 'pending' | 'overdue';
+type PurchaseRow = PurchaseSummaryDto & {
+  statusLabel: string;
+  overdueLabel: string;
+  totalAmountFmt: string;
+  outstandingFmt: string;
+};
+
+const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
 
 @Component({
   selector: 'app-purchase-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent],
   templateUrl: './purchase-list.component.html',
+  styleUrls: ['./purchase-list.component.scss'],
 })
-export class PurchaseListComponent implements OnInit {
+export class PurchaseListComponent {
   private readonly purchaseService = inject(PurchaseService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
   readonly userService = inject(UserService);
+  private readonly router = inject(Router);
 
-  readonly pageSize = 20;
-  readonly statusLabels = PURCHASE_STATUS_LABELS;
-  readonly statusBadge = PURCHASE_STATUS_BADGE;
-  readonly PurchaseStatus = PurchaseStatus;
-
-  // State
-  purchases = signal<PurchaseSummaryDto[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  totalCount = signal(0);
-  totalPages = signal(1);
-  currentPage = signal(1);
-  hasPreviousPage = signal(false);
-  hasNextPage = signal(false);
-
-  // Tabs & filters
   activeTab = signal<ListTab>('all');
   statusFilter = signal<number | undefined>(undefined);
-  supplierIdFilter = signal<string | undefined>(undefined);
-  storeIdFilter = signal<string | undefined>(undefined);
+  supplierIdFilter = signal<string | undefined>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('supplierId') ?? undefined
+  );
   fromDate = signal('');
   toDate = signal('');
+  pageIndex = signal(0);
+  pageSize = signal(20);
 
   readonly statusOptions = [
     { value: undefined, label: 'All Statuses' },
@@ -63,76 +57,94 @@ export class PurchaseListComponent implements OnInit {
     { value: PurchaseStatus.Cancelled, label: 'Cancelled' },
   ];
 
-  ngOnInit(): void {
-    // Pre-fill supplierId from query param (when navigated from supplier detail)
-    const qp = this.route.snapshot.queryParamMap;
-    if (qp.get('supplierId')) this.supplierIdFilter.set(qp.get('supplierId')!);
-    this.load();
+  readonly columns: GridColumn[] = [
+    { field: 'purchaseRef', header: 'Purchase Ref', sortable: false },
+    { field: 'supplierName', header: 'Supplier', sortable: false },
+    { field: 'storeName', header: 'Store', sortable: false },
+    { field: 'purchaseDate', header: 'Date', type: 'date', sortable: false },
+    { field: 'dueDate', header: 'Due Date', type: 'date', sortable: false },
+    { field: 'totalAmountFmt', header: 'Total (₹)', sortable: false },
+    { field: 'outstandingFmt', header: 'Outstanding (₹)', sortable: false },
+    { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
+      badgeVariant: (_v, row: PurchaseRow) => PURCHASE_STATUS_BADGE[row.status] },
+    { field: 'overdueLabel', header: '', type: 'badge', sortable: false,
+      badgeVariant: () => 'danger' },
+  ];
+
+  private readonly queryParams = computed(() => ({
+    tab: this.activeTab(),
+    status: this.statusFilter(),
+    supplierId: this.supplierIdFilter(),
+    fromDate: this.fromDate(),
+    toDate: this.toDate(),
+    pageIndex: this.pageIndex(),
+    pageSize: this.pageSize(),
+  }));
+
+  purchasesResource = rxResource<PaginatedResponse<PurchaseRow>, ReturnType<PurchaseListComponent['queryParams']>>({
+    params: () => this.queryParams(),
+    stream: ({ params }) => {
+      const req = params.tab === 'pending'
+        ? this.purchaseService.getPendingPayment(params.pageIndex + 1, params.pageSize)
+        : params.tab === 'overdue'
+          ? this.purchaseService.getOverdue(params.pageIndex + 1, params.pageSize)
+          : this.purchaseService.getAll({
+              supplierId: params.supplierId,
+              status: params.status,
+              fromDate: params.fromDate || undefined,
+              toDate: params.toDate || undefined,
+              page: params.pageIndex + 1,
+              pageSize: params.pageSize,
+            });
+
+      return req.pipe(
+        map(r => ({
+          items: r.items.map(p => ({
+            ...p,
+            statusLabel: PURCHASE_STATUS_LABELS[p.status],
+            overdueLabel: this.isOverdue(p) ? 'Overdue' : '',
+            totalAmountFmt: `₹${fmt(p.totalAmount)}`,
+            outstandingFmt: p.outstandingAmount > 0 ? `₹${fmt(p.outstandingAmount)}` : '—',
+          })),
+          totalCount: r.totalCount,
+          pageNumber: r.page,
+          pageSize: r.pageSize,
+          totalPages: r.totalPages,
+          hasPreviousPage: r.hasPreviousPage,
+          hasNextPage: r.hasNextPage,
+        }))
+      );
+    },
+  });
+
+  purchases = computed(() => this.purchasesResource.value() ?? createEmptyPaginatedResponse<PurchaseRow>());
+
+  setTab(tab: ListTab): void {
+    this.activeTab.set(tab);
+    this.pageIndex.set(0);
   }
 
-  load(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    const tab = this.activeTab();
-
-    const req = tab === 'pending'
-      ? this.purchaseService.getPendingPayment(this.currentPage(), this.pageSize)
-      : tab === 'overdue'
-        ? this.purchaseService.getOverdue(this.currentPage(), this.pageSize)
-        : this.purchaseService.getAll({
-            supplierId: this.supplierIdFilter(),
-            storeId: this.storeIdFilter(),
-            status: this.statusFilter(),
-            fromDate: this.fromDate() || undefined,
-            toDate: this.toDate() || undefined,
-            page: this.currentPage(),
-            pageSize: this.pageSize,
-          });
-
-    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => {
-        this.purchases.set(r.items);
-        this.totalCount.set(r.totalCount);
-        this.totalPages.set(r.totalPages);
-        this.hasPreviousPage.set(r.hasPreviousPage);
-        this.hasNextPage.set(r.hasNextPage);
-        this.loading.set(false);
-      },
-      error: () => { this.error.set('Failed to load purchases.'); this.loading.set(false); },
-    });
+  setStatus(val: string): void {
+    this.statusFilter.set(val ? +val : undefined);
+    this.pageIndex.set(0);
   }
 
-  setTab(tab: ListTab): void { this.activeTab.set(tab); this.currentPage.set(1); this.load(); }
-  setStatus(val: string): void { this.statusFilter.set(val ? +val : undefined); this.currentPage.set(1); this.load(); }
+  setFromDate(val: string): void { this.fromDate.set(val); this.pageIndex.set(0); }
+  setToDate(val: string): void { this.toDate.set(val); this.pageIndex.set(0); }
 
-  prevPage(): void { if (this.hasPreviousPage()) { this.currentPage.update(p => p - 1); this.load(); } }
-  nextPage(): void { if (this.hasNextPage()) { this.currentPage.update(p => p + 1); this.load(); } }
-
-  pageRange(): string {
-    const start = (this.currentPage() - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage() * this.pageSize, this.totalCount());
-    return `${start}–${end} of ${this.totalCount()}`;
+  onPageChange(e: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex.set(e.pageIndex);
+    this.pageSize.set(e.pageSize);
   }
 
-  isOverdue(p: PurchaseSummaryDto): boolean {
+  onRowClick(row: PurchaseRow): void {
+    this.router.navigate(['/purchase/purchases', row.id]);
+  }
+
+  private isOverdue(p: PurchaseSummaryDto): boolean {
     if (!p.dueDate) return false;
     const s = p.status as number;
     return (s === PurchaseStatus.Invoiced || s === PurchaseStatus.PartiallyPaid)
       && new Date(p.dueDate) < new Date();
-  }
-
-  isStoreManager(): boolean {
-    const r = this.userService.profile()?.staffRole;
-    return r === 'StoreManager' || r === 'TenantAdmin';
-  }
-
-  canReceive(p: PurchaseSummaryDto): boolean {
-    const s = p.status as number;
-    return this.isStoreManager() && (s === PurchaseStatus.Draft || s === PurchaseStatus.Received);
-  }
-
-  fmt(n: number): string {
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
   }
 }

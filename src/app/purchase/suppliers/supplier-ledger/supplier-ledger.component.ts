@@ -16,6 +16,7 @@ interface LedgerRowWithBalance extends SupplierLedgerEntryDto {
   standalone: true,
   imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent],
   templateUrl: './supplier-ledger.component.html',
+  styleUrls: ['./supplier-ledger.component.scss'],
 })
 export class SupplierLedgerComponent implements OnInit {
   private readonly supplierService = inject(SupplierService);

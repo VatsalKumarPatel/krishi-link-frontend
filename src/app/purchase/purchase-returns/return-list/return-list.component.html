@@ -1,62 +1,21 @@
 <div class="kl-page-header" style="align-items:center;">
   <p class="kl-fg-3" style="font-size:13px; margin:0;">Debit notes sent back to suppliers.</p>
   <a routerLink="/purchase/purchase-returns/new" class="kl-btn kl-btn-primary">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+      stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     New Return
   </a>
 </div>
 
 <kl-card>
-  @if (error()) {
-    <div style="padding:12px 20px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#991B1B; font-size:13px;">
-      {{ error() }} <button class="kl-link" style="margin-left:8px;" (click)="load()">Retry</button>
-    </div>
-  }
-  <div class="kl-table-wrap">
-    <table class="kl-table">
-      <thead>
-        <tr>
-          <th>Debit Note #</th>
-          <th>Supplier</th>
-          <th>Store</th>
-          <th>Original Purchase</th>
-          <th>Return Date</th>
-          <th style="text-align:right;">Total (₹)</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          @for (i of [1,2,3,4,5]; track i) {
-            <tr class="kl-skeleton-row">
-              @for (j of [1,2,3,4,5,6,7]; track j) { <td><div class="kl-skeleton" style="width:80px;"></div></td> }
-            </tr>
-          }
-        } @else if (returns().length === 0) {
-          <tr><td colspan="7" style="text-align:center; padding:40px; color:#6B7A6E;">No returns found.</td></tr>
-        } @else {
-          @for (r of returns(); track r.id) {
-            <tr class="kl-row-link" [routerLink]="['/purchase/purchase-returns', r.id]">
-              <td style="font-weight:500;">{{ r.debitNoteNumber }}</td>
-              <td>{{ r.supplierName }}</td>
-              <td class="kl-fg-3">{{ r.storeName }}</td>
-              <td class="kl-fg-3">{{ r.purchaseRef ?? '—' }}</td>
-              <td class="kl-fg-3">{{ r.returnDate | slice:0:10 }}</td>
-              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.totalAmount) }}</td>
-              <td><kl-badge [variant]="statusBadge(r.status)">{{ statusLabels[r.status] }}</kl-badge></td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
-  @if (!loading() && totalCount() > pageSize) {
-    <div class="kl-pagination">
-      <span class="kl-fg-3" style="font-size:12px;">{{ pageRange() }}</span>
-      <div style="display:flex; gap:6px;">
-        <button class="kl-btn kl-btn-secondary" [disabled]="!hasPreviousPage()" (click)="prevPage()">← Prev</button>
-        <button class="kl-btn kl-btn-secondary" [disabled]="!hasNextPage()" (click)="nextPage()">Next →</button>
-      </div>
-    </div>
-  }
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="returns()"
+    [loading]="returnsResource.isLoading()"
+    [pageIndex]="pageIndex()"
+    [showSearch]="false"
+    emptyMessage="No returns found."
+    (pageChange)="onPageChange($event)"
+    (rowClick)="onRowClick($event)">
+  </kl-grid>
 </kl-card>

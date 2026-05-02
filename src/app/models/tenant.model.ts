@@ -16,16 +16,6 @@ export interface TenantDto {
   storeCount: number;
 }
 
-export interface TenantPagedResult {
-  items: TenantDto[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-}
-
 export interface CreateTenantCommand {
   name: string | null;
   slug: string | null;
@@ -85,16 +75,7 @@ export interface AdminStoreDtoForTenant {
   state: string | null;
   isActive: boolean;
 }
-
-export interface AdminStorePagedResult {
-  items: AdminStoreDtoForTenant[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-}
+ 
 
 export interface TenantDropdownItem {
   id: string;

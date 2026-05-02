@@ -4,6 +4,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { KlDrawerComponent } from '../../../../shared/kl-drawer/kl-drawer.component';
 import { TenantService } from '@services/tenant.service';
+import { ToastService } from '@services/toast.service';
 import { TenantDto } from '@models/tenant.model';
 
 interface TenantForm {
@@ -67,6 +68,7 @@ export class TenantAddComponent implements OnChanges {
   @Output() saved = new EventEmitter<void>();
 
   private readonly tenantService = inject(TenantService);
+  private readonly toast = inject(ToastService);
 
   form: TenantForm = emptyForm();
   saving = false;
@@ -120,10 +122,15 @@ export class TenantAddComponent implements OnChanges {
         subscriptionExpiresAt: expiresAt,
       };
       this.tenantService.update(this.tenant!.id, cmd).subscribe({
-        next: () => { this.saving = false; this.saved.emit(); },
+        next: () => {
+          this.saving = false;
+          this.toast.success('Tenant updated successfully.');
+          this.saved.emit();
+        },
         error: (err) => {
           this.saving = false;
           this.saveError = err?.error?.message ?? 'Failed to update tenant.';
+          this.toast.error(this.saveError!);
         },
       });
     } else {
@@ -142,10 +149,15 @@ export class TenantAddComponent implements OnChanges {
         subscriptionExpiresAt: expiresAt,
       };
       this.tenantService.create(cmd).subscribe({
-        next: () => { this.saving = false; this.saved.emit(); },
+        next: () => {
+          this.saving = false;
+          this.toast.success('Tenant created successfully.');
+          this.saved.emit();
+        },
         error: (err) => {
           this.saving = false;
           this.saveError = err?.error?.message ?? 'Failed to create tenant.';
+          this.toast.error(this.saveError!);
         },
       });
     }

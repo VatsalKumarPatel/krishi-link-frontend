@@ -11,6 +11,7 @@ import { CreateSupplierCommand, SupplierDto } from '@models/supplier.model';
   standalone: true,
   imports: [FormsModule, RouterLink, KlCardComponent],
   templateUrl: './supplier-form.component.html',
+  styleUrls: ['./supplier-form.component.scss'],
 })
 export class SupplierFormComponent implements OnInit {
   private readonly supplierService = inject(SupplierService);

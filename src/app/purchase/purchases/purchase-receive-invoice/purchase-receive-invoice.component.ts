@@ -21,6 +21,7 @@ const PLACE_OF_SUPPLY_OPTIONS = [
   standalone: true,
   imports: [RouterLink, FormsModule, KlCardComponent],
   templateUrl: './purchase-receive-invoice.component.html',
+  styleUrls: ['./purchase-receive-invoice.component.scss'],
 })
 export class PurchaseReceiveInvoiceComponent implements OnInit {
   private readonly purchaseService = inject(PurchaseService);

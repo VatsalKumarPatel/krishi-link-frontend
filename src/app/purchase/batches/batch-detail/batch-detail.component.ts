@@ -25,6 +25,7 @@ interface BatchDetailDto {
   standalone: true,
   imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './batch-detail.component.html',
+  styleUrls: ['./batch-detail.component.scss'],
 })
 export class BatchDetailComponent implements OnInit {
   private readonly http = inject(HttpClient);

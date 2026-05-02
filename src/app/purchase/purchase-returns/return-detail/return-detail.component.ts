@@ -13,6 +13,7 @@ import { PurchaseReturnDetailDto, PurchaseReturnStatus, RETURN_STATUS_LABELS } f
   standalone: true,
   imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
   templateUrl: './return-detail.component.html',
+  styleUrls: ['./return-detail.component.scss'],
 })
 export class ReturnDetailComponent implements OnInit {
   private readonly returnService = inject(PurchaseReturnService);
