@@ -1,44 +1,48 @@
-import { Injectable, inject } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Injectable, signal } from '@angular/core';
 
-const BASE_CONFIG = {
-  horizontalPosition: 'center' as const,
-  verticalPosition: 'bottom' as const,
-};
+export type ToastKind = 'success' | 'error' | 'warning' | 'info';
+
+export interface ToastItem {
+  id: number;
+  kind: ToastKind;
+  title?: string;
+  message?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly _toasts = signal<ToastItem[]>([]);
+  readonly toasts = this._toasts.asReadonly();
 
-  success(message: string): void {
-    this.snackBar.open(message, undefined, {
-      ...BASE_CONFIG,
-      duration: 3000,
-      panelClass: ['kl-toast', 'kl-toast-success'],
-    });
+  show({ kind = 'info' as ToastKind, title, message, duration = 4000 }: {
+    kind?: ToastKind;
+    title?: string;
+    message?: string;
+    duration?: number;
+  }): number {
+    const id = Date.now() + Math.random();
+    this._toasts.update(ts => [...ts, { id, kind, title, message }]);
+    if (duration > 0) setTimeout(() => this.dismiss(id), duration);
+    return id;
   }
 
-  error(message: string): void {
-    this.snackBar.open(message, 'Dismiss', {
-      ...BASE_CONFIG,
-      duration: 6000,
-      panelClass: ['kl-toast', 'kl-toast-error'],
-    });
+  success(message: string, title = 'Success'): void {
+    this.show({ kind: 'success', title, message });
   }
 
-  warning(message: string): void {
-    this.snackBar.open(message, undefined, {
-      ...BASE_CONFIG,
-      duration: 4000,
-      panelClass: ['kl-toast', 'kl-toast-warning'],
-    });
+  error(message: string, title = 'Something went wrong'): void {
+    this.show({ kind: 'error', title, message, duration: 6000 });
   }
 
-  info(message: string): void {
-    this.snackBar.open(message, undefined, {
-      ...BASE_CONFIG,
-      duration: 3000,
-      panelClass: ['kl-toast', 'kl-toast-info'],
-    });
+  warning(message: string, title = 'Heads up'): void {
+    this.show({ kind: 'warning', title, message });
+  }
+
+  info(message: string, title = 'Info'): void {
+    this.show({ kind: 'info', title, message });
+  }
+
+  dismiss(id: number): void {
+    this._toasts.update(ts => ts.filter(t => t.id !== id));
   }
 }

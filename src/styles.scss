@@ -1510,45 +1510,411 @@ th.sortable {
   opacity: 0.5;
 }
 
-// ── Toast (MatSnackBar overrides) ─────────────────────────────────────────────
-.kl-toast.mat-mdc-snack-bar-container {
-  --mat-snack-bar-container-shape: 10px;
-  min-width: 300px;
-  max-width: 440px;
-  box-shadow: 0 8px 24px rgba(20, 37, 27, 0.18);
+// ── Toast notification host ───────────────────────────────────────────────────
+@keyframes kl-toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
 
-  .mat-mdc-snack-bar-label {
-    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-    font-size: 13px;
-    font-weight: 500;
+.kl-toast-host {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.kl-toast {
+  display: grid;
+  grid-template-columns: 22px 1fr 18px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid theme('colors.border-1');
+  border-left: 3px solid theme('colors.border-1');
+  border-radius: theme('borderRadius.md');
+  box-shadow: theme('boxShadow.md');
+  pointer-events: auto;
+  animation: kl-toast-in 220ms cubic-bezier(0.3, 0, 0, 1.2);
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.kl-toast-ico {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg { width: 13px; height: 13px; }
+}
+
+.kl-toast-body { min-width: 0; }
+
+.kl-toast-title {
+  font-family: theme('fontFamily.display');
+  font-weight: 700;
+  font-size: 12px;
+  color: theme('colors.fg-1');
+  line-height: 1.3;
+}
+
+.kl-toast-msg {
+  font-size: 11px;
+  color: theme('colors.fg-2');
+  margin-top: 1px;
+  line-height: 1.35;
+}
+
+.kl-toast-close {
+  all: unset;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: theme('colors.fg-3');
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+
+  svg { width: 11px; height: 11px; }
+  &:hover { background: theme('colors.bg-muted'); color: theme('colors.fg-1'); }
+}
+
+.kl-toast-success {
+  border-left-color: theme('colors.success');
+  .kl-toast-ico { background: theme('colors.success-bg'); color: theme('colors.success'); }
+}
+.kl-toast-error {
+  border-left-color: theme('colors.danger');
+  .kl-toast-ico { background: theme('colors.danger-bg'); color: theme('colors.danger'); }
+}
+.kl-toast-warning {
+  border-left-color: theme('colors.warning');
+  .kl-toast-ico { background: theme('colors.warning-bg'); color: theme('colors.warning'); }
+}
+.kl-toast-info {
+  border-left-color: theme('colors.info');
+  .kl-toast-ico { background: theme('colors.info-bg'); color: theme('colors.info'); }
+}
+
+// ── Today's Todo Widget ───────────────────────────────────────────────────────
+.kl-todo-list { list-style: none; margin: 0; padding: 0 0 4px; }
+
+.kl-todo-empty {
+  padding: 18px;
+  font-size: 13px;
+  color: theme('colors.fg-3');
+  text-align: center;
+  font-style: italic;
+}
+
+.kl-todo-item {
+  display: grid;
+  grid-template-columns: 22px 4px 1fr 24px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 18px;
+  transition: background 180ms ease;
+
+  & + & { border-top: 1px dashed theme('colors.border-1'); }
+  &:hover { background: theme('colors.bg-muted'); }
+  &.is-done .kl-todo-text { color: theme('colors.fg-3'); text-decoration: line-through; }
+  &.is-done .kl-todo-prio { opacity: 0.35; }
+}
+
+.kl-todo-check {
+  all: unset;
+  width: 18px;
+  height: 18px;
+  border-radius: theme('borderRadius.sm');
+  border: 1.5px solid theme('colors.border-2');
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+
+  &:hover { border-color: theme('colors.brand.500'); }
+  .is-done & { background: theme('colors.brand.600'); border-color: theme('colors.brand.600'); }
+}
+
+.kl-todo-prio {
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.kl-todo-text { line-height: 1.4; font-size: 13px; }
+
+.kl-todo-del {
+  all: unset;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: theme('borderRadius.sm');
+  color: theme('colors.fg-3');
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+
+  .kl-todo-item:hover & { opacity: 1; }
+  &:hover { background: theme('colors.danger-bg'); color: theme('colors.danger'); }
+}
+
+.kl-todo-add {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 18px;
+  border-top: 1px solid theme('colors.border-1');
+  border-bottom: 1px solid theme('colors.border-1');
+  background: theme('colors.bg-app');
+}
+
+.kl-todo-input {
+  flex: 1;
+  min-width: 0;
+  font-family: theme('fontFamily.body');
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 1px solid theme('colors.border-2');
+  border-radius: theme('borderRadius.sm');
+  background: #fff;
+  color: theme('colors.fg-1');
+
+  &::placeholder { color: theme('colors.fg-4'); }
+  &:focus {
+    outline: none;
+    border-color: theme('colors.brand.500');
+    box-shadow: 0 0 0 3px rgba(47, 125, 59, 0.18);
   }
-  .mat-mdc-snack-bar-actions { padding-right: 10px; }
 }
 
-.kl-toast-success.mat-mdc-snack-bar-container {
-  --mat-snack-bar-container-color: #2F7D3B;
-  --mat-snack-bar-supporting-text-color: #ffffff;
-  .mat-mdc-snackbar-surface { background-color: #2F7D3B; color: #ffffff; }
-  .mat-mdc-button { color: #bbf7d0; }
+.kl-todo-prio-select {
+  background: #fff;
+  border: 1px solid theme('colors.border-2');
+  border-radius: theme('borderRadius.sm');
+  padding: 6px 8px;
+  font-family: theme('fontFamily.display');
+  font-size: 12px;
+  color: theme('colors.fg-1');
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: theme('colors.brand.500');
+    box-shadow: 0 0 0 3px rgba(47, 125, 59, 0.18);
+  }
 }
 
-.kl-toast-error.mat-mdc-snack-bar-container {
-  --mat-snack-bar-container-color: #B7362E;
-  --mat-snack-bar-supporting-text-color: #ffffff;
-  .mat-mdc-snackbar-surface { background-color: #B7362E; color: #ffffff; }
-  .mat-mdc-button { color: #fecaca; }
+.kl-todo-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 8px;
 }
 
-.kl-toast-warning.mat-mdc-snack-bar-container {
-  --mat-snack-bar-container-color: #C98A1A;
-  --mat-snack-bar-supporting-text-color: #ffffff;
-  .mat-mdc-snackbar-surface { background-color: #C98A1A; color: #ffffff; }
-  .mat-mdc-button { color: #fef08a; }
+.kl-todo-substats {
+  font-size: 11px;
+  color: theme('colors.fg-3');
+  padding: 0 18px 10px;
 }
 
-.kl-toast-info.mat-mdc-snack-bar-container {
-  --mat-snack-bar-container-color: #2D6EA8;
-  --mat-snack-bar-supporting-text-color: #ffffff;
-  .mat-mdc-snackbar-surface { background-color: #2D6EA8; color: #ffffff; }
-  .mat-mdc-button { color: #bfdbfe; }
+.kl-todo-datebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.kl-todo-nav {
+  all: unset;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: theme('borderRadius.sm');
+  border: 1px solid theme('colors.border-1');
+  background: #fff;
+  color: theme('colors.fg-2');
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+
+  &:hover { background: theme('colors.bg-muted'); border-color: theme('colors.border-2'); color: theme('colors.fg-1'); }
+}
+
+.kl-todo-datepick-wrap { position: relative; }
+
+.kl-todo-datepick {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: theme('borderRadius.sm');
+  border: 1px solid theme('colors.border-1');
+  background: #fff;
+  color: theme('colors.fg-2');
+  transition: background 120ms ease, border-color 120ms ease;
+
+  &:hover { background: theme('colors.bg-muted'); border-color: theme('colors.border-2'); }
+}
+
+.kl-todo-datemain {
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 12px;
+  color: theme('colors.fg-1');
+}
+
+.kl-todo-today {
+  all: unset;
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 11px;
+  color: theme('colors.brand.600');
+  background: theme('colors.brand.100');
+  padding: 5px 9px;
+  border-radius: theme('borderRadius.sm');
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 4px;
+
+  &:hover { background: theme('colors.brand.50'); }
+}
+
+// ── Mini calendar popover ─────────────────────────────────────────────────────
+.kl-cal {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  background: #fff;
+  border: 1px solid theme('colors.border-1');
+  border-radius: theme('borderRadius.lg');
+  box-shadow: theme('boxShadow.lg');
+  padding: 12px;
+  width: 248px;
+  animation: kl-toast-in 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.kl-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.kl-cal-month {
+  font-family: theme('fontFamily.display');
+  font-weight: 700;
+  font-size: 13px;
+  color: theme('colors.fg-1');
+}
+
+.kl-cal-nav {
+  all: unset;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: theme('borderRadius.sm');
+  color: theme('colors.fg-2');
+  cursor: pointer;
+
+  &:hover { background: theme('colors.bg-muted'); color: theme('colors.fg-1'); }
+}
+
+.kl-cal-dows {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 10px;
+  color: theme('colors.fg-4');
+  text-align: center;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+
+  span { padding: 4px 0; }
+}
+
+.kl-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.kl-cal-day {
+  all: unset;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: theme('fontFamily.body');
+  font-size: 12px;
+  color: theme('colors.fg-1');
+  border-radius: theme('borderRadius.sm');
+  cursor: pointer;
+  position: relative;
+  transition: background 120ms ease, color 120ms ease;
+
+  &:hover { background: theme('colors.bg-muted'); }
+  &.is-today { color: theme('colors.brand.600'); font-weight: 700; }
+  &.is-selected { background: theme('colors.brand.600'); color: #fff; font-weight: 600; }
+  &.is-selected:hover { background: theme('colors.brand.500'); }
+
+  &.has-tasks::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: theme('colors.brand.500');
+  }
+
+  &.is-selected.has-tasks::after { background: #fff; }
+}
+
+.kl-cal-foot {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: center;
+  margin-top: 8px;
+  padding: 6px 0;
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 11px;
+  color: theme('colors.brand.600');
+  border-top: 1px solid theme('colors.border-1');
+  cursor: pointer;
+
+  &:hover { background: theme('colors.bg-muted'); }
 }

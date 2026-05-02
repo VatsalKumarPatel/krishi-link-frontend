@@ -2,11 +2,7 @@ import { Component } from '@angular/core';
 import { KlCardComponent } from '../../shared/kl-card/kl-card.component';
 import { StatCardComponent } from '../../shared/stat-card/stat-card.component';
 import { BadgeComponent } from '../../shared/badge/badge.component';
-
-export interface FarmerRow {
-  id: string; name: string; region: string; crop: string; area: string;
-  status: 'Active' | 'Needs review' | 'Overdue' | 'Draft'; updated: string;
-}
+import { KlTodoComponent } from '../../shared/kl-todo/kl-todo.component';
 
 export interface ActivityItem {
   who: string; what: string; plot: string; ago: string;
@@ -15,21 +11,12 @@ export interface ActivityItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [KlCardComponent, StatCardComponent, BadgeComponent],
+  imports: [KlCardComponent, StatCardComponent, BadgeComponent, KlTodoComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
   readonly sparkPoints = [180, 210, 250, 220, 280, 320, 360, 340, 410, 460, 520, 610];
-
-  readonly farmers: FarmerRow[] = [
-    { id: 'KL-0442', name: 'Bishal Tamang',  region: 'Chitwan',   crop: 'Rice',   area: '2.4 ha', status: 'Active',       updated: '2m ago' },
-    { id: 'KL-0441', name: 'Sunita Poudel',  region: 'Kaski',     crop: 'Maize',  area: '1.1 ha', status: 'Active',       updated: '14m ago' },
-    { id: 'KL-0440', name: 'Arjun Rai',      region: 'Jhapa',     crop: 'Tea',    area: '5.2 ha', status: 'Needs review', updated: '1h ago' },
-    { id: 'KL-0439', name: 'Maya Gurung',    region: 'Lamjung',   crop: 'Millet', area: '0.8 ha', status: 'Active',       updated: '3h ago' },
-    { id: 'KL-0438', name: 'Dipak Shrestha', region: 'Bardiya',   crop: 'Wheat',  area: '3.7 ha', status: 'Overdue',      updated: 'Yesterday' },
-    { id: 'KL-0437', name: 'Kamala Thapa',   region: 'Rupandehi', crop: 'Lentil', area: '1.9 ha', status: 'Active',       updated: 'Yesterday' },
-  ];
 
   readonly activity: ActivityItem[] = [
     { who: 'Sunita Poudel', what: 'logged irrigation cycle',    plot: 'KL-0441 · Kaski',   ago: '12m',  tone: 'brand' },
@@ -50,17 +37,6 @@ export class DashboardComponent {
     { day: 'Thu', temp: 27, rain: 65 },
     { day: 'Fri', temp: 29, rain: 20 },
   ];
-
-  readonly statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'neutral'> = {
-    'Active':       'success',
-    'Needs review': 'warning',
-    'Overdue':      'danger',
-    'Draft':        'neutral',
-  };
-
-  initials(name: string): string {
-    return name.split(' ').map(p => p[0]).slice(0, 2).join('');
-  }
 
   get sparkPath(): string {
     const w = 600, h = 80;

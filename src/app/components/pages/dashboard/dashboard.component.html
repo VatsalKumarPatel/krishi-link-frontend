@@ -46,51 +46,8 @@
 <!-- Two-column: table + sidebar cards -->
 <div class="kl-two-col">
 
-  <!-- Recent registrations table -->
-  <kl-card title="Recent farmer registrations" subtitle="6 of 12,480 · sorted by most recent">
-    <div card-actions>
-      <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:6px 12px;">Export</button>
-      <button class="kl-btn kl-btn-primary" style="font-size:12px; padding:6px 12px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        Add farmer
-      </button>
-    </div>
-    <div class="kl-table-wrap">
-      <table class="kl-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Region</th>
-            <th>Primary crop</th>
-            <th>Area</th>
-            <th>Status</th>
-            <th>Last update</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (f of farmers; track f.id) {
-            <tr>
-              <td><code class="kl-mono">{{ f.id }}</code></td>
-              <td>
-                <div class="kl-user">
-                  <div class="kl-avatar kl-avatar-sm">{{ initials(f.name) }}</div>
-                  <span>{{ f.name }}</span>
-                </div>
-              </td>
-              <td>{{ f.region }}</td>
-              <td>{{ f.crop }}</td>
-              <td>{{ f.area }}</td>
-              <td>
-                <kl-badge [variant]="statusVariant[f.status]">{{ f.status }}</kl-badge>
-              </td>
-              <td class="kl-fg-3">{{ f.updated }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </kl-card>
+  <!-- Today's todos -->
+  <kl-todo-card />
 
   <!-- Activity + Weather column -->
   <div style="display:flex; flex-direction:column; gap:16px;">

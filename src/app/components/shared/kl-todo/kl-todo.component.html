@@ -1,0 +1,156 @@
+<div class="kl-card kl-todo">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="kl-todo-head">
+    <div>
+      <div class="kl-card-title">Today's todos</div>
+      <div class="kl-card-sub">Plan your day, one task at a time</div>
+    </div>
+
+    <div class="kl-todo-datebar">
+
+      <button class="kl-todo-nav" type="button" (click)="prevDay()" aria-label="Previous day">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </button>
+
+      <div class="kl-todo-datepick-wrap">
+        <button class="kl-todo-datepick" type="button" (click)="toggleCal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          <span class="kl-todo-datemain">{{ dateLabel() }}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+
+        @if (calOpen()) {
+          <div class="kl-cal">
+
+            <div class="kl-cal-head">
+              <button class="kl-cal-nav" type="button" (click)="calPrevMonth()" aria-label="Previous month">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+              </button>
+              <div class="kl-cal-month">{{ calMonthLabel() }}</div>
+              <button class="kl-cal-nav" type="button" (click)="calNextMonth()" aria-label="Next month">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="kl-cal-dows">
+              @for (d of calDows; track $index) { <span>{{ d }}</span> }
+            </div>
+
+            <div class="kl-cal-grid">
+              @for (cell of calCells(); track $index) {
+                @if (cell.iso === null) {
+                  <span></span>
+                } @else {
+                  <button
+                    class="kl-cal-day"
+                    type="button"
+                    [class.is-today]="cell.iso === today"
+                    [class.is-selected]="cell.iso === selectedDate()"
+                    [class.has-tasks]="taskDates().has(cell.iso)"
+                    (click)="selectDate(cell.iso)"
+                  >{{ cell.day }}</button>
+                }
+              }
+            </div>
+
+            <button class="kl-cal-foot" type="button" (click)="jumpToTodayFromCal()">Jump to today</button>
+
+          </div>
+        }
+      </div>
+
+      <button class="kl-todo-nav" type="button" (click)="nextDay()" aria-label="Next day">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
+
+      @if (!isToday()) {
+        <button class="kl-todo-today" type="button" (click)="jumpToToday()">Today</button>
+      }
+
+    </div>
+  </div>
+
+  <!-- ── Substats ────────────────────────────────────────────────────────── -->
+  <div class="kl-todo-substats">
+    {{ fullDate() }}
+    <span style="margin:0 8px; color:#9AA69C;">·</span>
+    {{ done() }}/{{ total() }} complete
+  </div>
+
+  <!-- ── Progress bar ───────────────────────────────────────────────────── -->
+  <div style="height:3px; background:#E4E8E1; margin:0 18px 10px; border-radius:2px; overflow:hidden;">
+    <div [style.width.%]="pct()" style="height:100%; background:#3C9A4A; transition:width 220ms ease;"></div>
+  </div>
+
+  <!-- ── Add form ───────────────────────────────────────────────────────── -->
+  <form class="kl-todo-add" (ngSubmit)="addTask()">
+    <select class="kl-todo-prio-select" [(ngModel)]="priority" name="priority" aria-label="Priority">
+      <option value="high">High</option>
+      <option value="med">Med</option>
+      <option value="low">Low</option>
+    </select>
+    <input
+      class="kl-todo-input"
+      type="text"
+      name="draft"
+      [(ngModel)]="draft"
+      [placeholder]="'Add a task for ' + dateLabel().toLowerCase() + '…'"
+    />
+    <button type="submit" class="kl-btn kl-btn-primary" style="padding:7px 12px; white-space:nowrap;" [disabled]="!draft.trim()">
+      Add
+    </button>
+  </form>
+
+  <!-- ── Task list ──────────────────────────────────────────────────────── -->
+  <ul class="kl-todo-list">
+
+    @if (visible().length === 0) {
+      <li class="kl-todo-empty">No tasks for {{ dateLabel().toLowerCase() }}.</li>
+    }
+
+    @for (t of visible(); track t.id) {
+      <li class="kl-todo-item" [class.is-done]="t.done">
+
+        <button
+          class="kl-todo-check"
+          type="button"
+          (click)="toggleTask(t.id)"
+          [attr.aria-pressed]="t.done"
+          [attr.aria-label]="t.done ? 'Mark incomplete' : 'Mark complete'"
+        >
+          @if (t.done) {
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          }
+        </button>
+
+        <span class="kl-todo-prio" [style.background]="priorityColors[t.priority]"></span>
+
+        <span class="kl-todo-text">{{ t.text }}</span>
+
+        <button class="kl-todo-del" type="button" (click)="removeTask(t.id)" aria-label="Remove">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+      </li>
+    }
+
+  </ul>
+
+</div>
