@@ -15,22 +15,21 @@
     "target": "ES2022",
     "module": "preserve",
     "ignoreDeprecations": "5.0",
-    "baseUrl": "./",
     "paths": {
       "@app/*": [
-        "src/app/*"
+        "./src/app/*"
       ],
       "@services/*": [
-        "src/app/services/*"
+        "./src/app/services/*"
       ],
       "@models/*": [
-        "src/app/models/*"
+        "./src/app/models/*"
       ],
       "@components/*": [
-        "src/app/components/*"
+        "./src/app/components/*"
       ],
       "@shared/*": [
-        "src/app/components/shared/*"
+        "./src/app/components/shared/*"
       ],
     }
   },
