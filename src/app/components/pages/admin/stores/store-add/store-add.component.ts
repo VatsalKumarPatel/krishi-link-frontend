@@ -1,8 +1,7 @@
-import {
-  Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject, signal,
-} from '@angular/core';
+import { Component, Input, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { KlDrawerComponent } from '../../../../shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '../../../../shared/kl-drawer/kl-drawer-form-host';
 import { StoreService } from '@services/store.service';
 import { TenantService } from '@services/tenant.service';
 import { StoreDto } from '@models/store.model';
@@ -26,11 +25,19 @@ interface StoreForm {
 
 function emptyForm(): StoreForm {
   return {
-    tenantId: '', name: '', code: '', gstin: '',
-    phone: '', email: '',
-    addressLine1: '', addressLine2: '',
-    city: '', state: '', pincode: '',
-    isActive: true, managerName: '',
+    tenantId: '',
+    name: '',
+    code: '',
+    gstin: '',
+    phone: '',
+    email: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    isActive: true,
+    managerName: '',
   };
 }
 
@@ -59,13 +66,9 @@ function storeToForm(s: StoreDto): StoreForm {
   templateUrl: './store-add.component.html',
   styles: [':host { display: contents; }'],
 })
-export class StoreAddComponent implements OnChanges {
-  @Input() open = false;
+export class StoreAddComponent extends KlDrawerFormHost {
   @Input() store: StoreDto | null = null;
-  /** Pre-selects the tenant when adding a new store from within a tenant's detail page. */
   @Input() defaultTenantId: string | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
 
   private readonly storeService = inject(StoreService);
   private readonly tenantService = inject(TenantService);
@@ -77,29 +80,27 @@ export class StoreAddComponent implements OnChanges {
   tenants = signal<TenantDropdownItem[]>([]);
   tenantsLoading = signal(false);
 
-  get isEdit(): boolean { return !!this.store?.id; }
-
   get title(): string {
-    return this.isEdit ? `Edit · ${this.store!.name}` : 'Add store';
+    return this.isEdit ? `Edit - ${this.store!.name}` : 'Add store';
   }
 
   get subtitle(): string {
-    if (!this.isEdit) return 'Register a new store location.';
-    return `ID ${this.store!.id.slice(0, 8)}…`;
+    return this.isEdit ? `ID ${this.shortId()}` : 'Register a new store location.';
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  protected get entityId(): string | null { return this.store?.id ?? null; }
+  protected get entityIdInputName(): string { return 'store'; }
+
+  protected override onDrawerStateChange(changes: SimpleChanges): void {
     if (changes['open'] && this.open && this.tenants().length === 0) {
       this.loadTenants();
     }
-    if (changes['store'] || changes['open']) {
-      this.saveError = null;
-      this.saving = false;
-      this.form = this.store ? storeToForm(this.store) : emptyForm();
-      // Pre-fill tenant when adding from within a tenant's detail page
-      if (!this.store && this.defaultTenantId) {
-        this.form.tenantId = this.defaultTenantId;
-      }
+
+    this.saveError = null;
+    this.saving = false;
+    this.form = this.store ? storeToForm(this.store) : emptyForm();
+    if (!this.store && this.defaultTenantId) {
+      this.form.tenantId = this.defaultTenantId;
     }
   }
 
@@ -134,7 +135,7 @@ export class StoreAddComponent implements OnChanges {
         managerName: this.form.managerName || null,
       };
       this.storeService.update(this.store!.id, cmd).subscribe({
-        next: () => { this.saving = false; this.saved.emit(); },
+        next: () => { this.saving = false; this.notifySaved(); },
         error: (err) => {
           this.saving = false;
           this.saveError = err?.error?.message ?? 'Failed to update store.';
@@ -156,7 +157,7 @@ export class StoreAddComponent implements OnChanges {
         managerName: this.form.managerName || null,
       };
       this.storeService.create(cmd).subscribe({
-        next: () => { this.saving = false; this.saved.emit(); },
+        next: () => { this.saving = false; this.notifySaved(); },
         error: (err) => {
           this.saving = false;
           this.saveError = err?.error?.message ?? 'Failed to create store.';

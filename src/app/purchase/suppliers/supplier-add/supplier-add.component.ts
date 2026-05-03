@@ -1,9 +1,8 @@
-import {
-  Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject, signal, DestroyRef,
-} from '@angular/core';
+import { Component, DestroyRef, Input, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '../../../components/shared/kl-drawer/kl-drawer-form-host';
 import { SupplierService } from '@services/supplier.service';
 import { ToastService } from '@services/toast.service';
 import { SupplierDto, CreateSupplierCommand, UpdateSupplierCommand } from '@models/supplier.model';
@@ -28,10 +27,21 @@ interface SupplierForm {
 
 function emptyForm(): SupplierForm {
   return {
-    name: '', code: '', contactPerson: '', phone: '',
-    email: '', gstin: '', pan: '',
-    addressLine1: '', addressLine2: '', city: '', state: '', pincode: '',
-    creditLimitAmount: 0, creditDays: 0, isActive: true,
+    name: '',
+    code: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    gstin: '',
+    pan: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    creditLimitAmount: 0,
+    creditDays: 0,
+    isActive: true,
   };
 }
 
@@ -62,11 +72,8 @@ function supplierToForm(s: SupplierDto): SupplierForm {
   templateUrl: './supplier-add.component.html',
   styles: [':host { display: contents; }'],
 })
-export class SupplierAddComponent implements OnChanges {
-  @Input() open = false;
+export class SupplierAddComponent extends KlDrawerFormHost {
   @Input() supplierId: string | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
 
   private readonly supplierService = inject(SupplierService);
   private readonly toast = inject(ToastService);
@@ -78,27 +85,25 @@ export class SupplierAddComponent implements OnChanges {
   saveError: string | null = null;
   private loadedName = '';
 
-  get isEdit(): boolean { return !!this.supplierId; }
-
   get title(): string {
-    return this.isEdit ? `Edit · ${this.loadedName || '…'}` : 'Add Supplier';
+    return this.isEdit ? `Edit - ${this.loadedName || '...'}` : 'Add Supplier';
   }
 
   get subtitle(): string {
-    if (!this.isEdit) return 'Register a new supplier.';
-    return `ID ${(this.supplierId ?? '').slice(0, 8)}…`;
+    return this.isEdit ? `ID ${this.shortId()}` : 'Register a new supplier.';
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['open'] || changes['supplierId']) {
-      this.saveError = null;
-      this.saving = false;
-      if (this.open && this.supplierId) {
-        this.loadSupplier(this.supplierId);
-      } else if (this.open && !this.supplierId) {
-        this.loadedName = '';
-        this.form = emptyForm();
-      }
+  protected get entityId(): string | null { return this.supplierId; }
+  protected get entityIdInputName(): string { return 'supplierId'; }
+
+  protected override onDrawerStateChange(_changes: SimpleChanges): void {
+    this.saveError = null;
+    this.saving = false;
+    if (this.open && this.supplierId) {
+      this.loadSupplier(this.supplierId);
+    } else if (this.open && !this.supplierId) {
+      this.loadedName = '';
+      this.form = emptyForm();
     }
   }
 
@@ -144,7 +149,7 @@ export class SupplierAddComponent implements OnChanges {
     const onError = (err: { error?: { detail?: string; message?: string } }) => {
       this.saving = false;
       this.saveError = err?.error?.detail ?? err?.error?.message ?? 'Failed to save supplier.';
-      this.toast.error(this.saveError!);
+      this.toast.error(this.saveError);
     };
 
     if (this.isEdit) {
@@ -154,7 +159,7 @@ export class SupplierAddComponent implements OnChanges {
           next: () => {
             this.saving = false;
             this.toast.success('Supplier updated successfully.');
-            this.saved.emit();
+            this.notifySaved();
           },
           error: onError,
         });
@@ -165,7 +170,7 @@ export class SupplierAddComponent implements OnChanges {
           next: () => {
             this.saving = false;
             this.toast.success('Supplier created successfully.');
-            this.saved.emit();
+            this.notifySaved();
           },
           error: onError,
         });

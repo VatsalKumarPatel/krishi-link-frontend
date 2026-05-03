@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '../../../components/shared/kl-drawer/kl-drawer-form-host';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
 
 @Component({
@@ -9,22 +10,14 @@ import { PaymentFormComponent } from '../payment-form/payment-form.component';
   templateUrl: './payment-add.component.html',
   styles: [':host { display: contents; }'],
 })
-export class PaymentAddComponent implements OnChanges {
-  @Input() open = false;
+export class PaymentAddComponent extends KlDrawerFormHost {
   @Input() paymentId: string | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
-
-  isEdit = false;
 
   get title(): string { return this.isEdit ? 'Edit Payment' : 'Record Payment'; }
   get subtitle(): string {
-    return this.isEdit ? `ID ${(this.paymentId ?? '').slice(0, 8)}…` : 'Record a new supplier payment.';
+    return this.isEdit ? `ID ${this.shortId()}` : 'Record a new supplier payment.';
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['open'] || changes['paymentId']) {
-      this.isEdit = !!(this.open && this.paymentId);
-    }
-  }
+  protected get entityId(): string | null { return this.paymentId; }
+  protected get entityIdInputName(): string { return 'paymentId'; }
 }

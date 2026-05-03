@@ -1,8 +1,7 @@
-import {
-  Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject,
-} from '@angular/core';
+import { Component, Input, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { KlDrawerComponent } from '../../../../shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '../../../../shared/kl-drawer/kl-drawer-form-host';
 import { TenantService } from '@services/tenant.service';
 import { ToastService } from '@services/toast.service';
 import { TenantDto } from '@models/tenant.model';
@@ -20,15 +19,22 @@ interface TenantForm {
   state: string;
   pincode: string;
   isActive: boolean;
-  subscriptionExpiresAt: string; // ISO date string 'YYYY-MM-DD' for date input
+  subscriptionExpiresAt: string;
 }
 
 function emptyForm(): TenantForm {
   return {
-    name: '', slug: '', gstin: '', pan: '',
-    phone: '', email: '',
-    addressLine1: '', addressLine2: '',
-    city: '', state: '', pincode: '',
+    name: '',
+    slug: '',
+    gstin: '',
+    pan: '',
+    phone: '',
+    email: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
     isActive: true,
     subscriptionExpiresAt: '',
   };
@@ -61,11 +67,8 @@ function tenantToForm(t: TenantDto): TenantForm {
   templateUrl: './tenant-add.component.html',
   styles: [':host { display: contents; }'],
 })
-export class TenantAddComponent implements OnChanges {
-  @Input() open = false;
+export class TenantAddComponent extends KlDrawerFormHost {
   @Input() tenant: TenantDto | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
 
   private readonly tenantService = inject(TenantService);
   private readonly toast = inject(ToastService);
@@ -74,26 +77,21 @@ export class TenantAddComponent implements OnChanges {
   saving = false;
   saveError: string | null = null;
 
-  get isEdit(): boolean {
-    return !!this.tenant?.id;
-  }
-
   get title(): string {
-    return this.isEdit ? `Edit · ${this.tenant!.name}` : 'Add tenant';
+    return this.isEdit ? `Edit - ${this.tenant!.name}` : 'Add tenant';
   }
 
   get subtitle(): string {
-    if (!this.isEdit) return 'Register a new organisation on the platform.';
-    const id = this.tenant!.id;
-    return `ID ${id.slice(0, 8)}…`;
+    return this.isEdit ? `ID ${this.shortId()}` : 'Register a new organisation on the platform.';
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tenant'] || changes['open']) {
-      this.saveError = null;
-      this.saving = false;
-      this.form = this.tenant ? tenantToForm(this.tenant) : emptyForm();
-    }
+  protected get entityId(): string | null { return this.tenant?.id ?? null; }
+  protected get entityIdInputName(): string { return 'tenant'; }
+
+  protected override onDrawerStateChange(_changes: SimpleChanges): void {
+    this.saveError = null;
+    this.saving = false;
+    this.form = this.tenant ? tenantToForm(this.tenant) : emptyForm();
   }
 
   submit(): void {
@@ -125,7 +123,7 @@ export class TenantAddComponent implements OnChanges {
         next: () => {
           this.saving = false;
           this.toast.success('Tenant updated successfully.');
-          this.saved.emit();
+          this.notifySaved();
         },
         error: (err) => {
           this.saving = false;
@@ -152,7 +150,7 @@ export class TenantAddComponent implements OnChanges {
         next: () => {
           this.saving = false;
           this.toast.success('Tenant created successfully.');
-          this.saved.emit();
+          this.notifySaved();
         },
         error: (err) => {
           this.saving = false;

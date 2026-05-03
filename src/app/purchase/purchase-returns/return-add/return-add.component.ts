@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '../../../components/shared/kl-drawer/kl-drawer-form-host';
 import { ReturnFormComponent } from '../return-form/return-form.component';
 
 @Component({
@@ -9,22 +10,14 @@ import { ReturnFormComponent } from '../return-form/return-form.component';
   templateUrl: './return-add.component.html',
   styles: [':host { display: contents; }'],
 })
-export class ReturnAddComponent implements OnChanges {
-  @Input() open = false;
+export class ReturnAddComponent extends KlDrawerFormHost {
   @Input() returnId: string | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
-
-  isEdit = false;
 
   get title(): string { return this.isEdit ? 'Edit Return' : 'New Return'; }
   get subtitle(): string {
-    return this.isEdit ? `ID ${(this.returnId ?? '').slice(0, 8)}…` : 'Create a new purchase return.';
+    return this.isEdit ? `ID ${this.shortId()}` : 'Create a new purchase return.';
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['open'] || changes['returnId']) {
-      this.isEdit = !!(this.open && this.returnId);
-    }
-  }
+  protected get entityId(): string | null { return this.returnId; }
+  protected get entityIdInputName(): string { return 'returnId'; }
 }

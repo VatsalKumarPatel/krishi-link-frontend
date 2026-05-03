@@ -2,7 +2,7 @@
   [open]="open"
   [title]="title"
   [subtitle]="subtitle"
-  (close)="close.emit()">
+  (close)="closeDrawer()">
 
   @if (loading()) {
     <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
@@ -100,7 +100,7 @@
   }
 
   <ng-container drawer-actions>
-    <button class="kl-btn kl-btn-secondary" (click)="close.emit()" [disabled]="saving">Cancel</button>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()" [disabled]="saving">Cancel</button>
     <button class="kl-btn kl-btn-primary" (click)="submit()" [disabled]="saving || loading()">
       @if (saving) { Saving… } @else { {{ isEdit ? 'Save changes' : 'Create supplier' }} }
     </button>

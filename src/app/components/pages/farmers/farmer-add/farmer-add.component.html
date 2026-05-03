@@ -1,8 +1,8 @@
 <kl-drawer
   [open]="open"
-  [title]="farmer ? 'Edit · ' + farmer.name : 'Add farmer'"
-  [subtitle]="farmer ? 'Farmer ID ' + farmer.id : 'Register a new farmer. Crops and plots are managed on the detail page.'"
-  (close)="close.emit()">
+  [title]="title"
+  [subtitle]="subtitle"
+  (close)="closeDrawer()">
 
   <div class="kl-form">
     <div class="kl-form-section">Identity</div>
@@ -16,11 +16,11 @@
     </div>
     <div>
       <label class="kl-form-label">Phone</label>
-      <input class="kl-input" [value]="farmer?.phone ?? ''" placeholder="+977 …" />
+      <input class="kl-input" [value]="farmer?.phone ?? ''" placeholder="+977 ..." />
     </div>
     <div>
       <label class="kl-form-label">Co-operative</label>
-      <select class="kl-select" [value]="farmer?.coop ?? '—'">
+      <select class="kl-select" [value]="farmer?.coop ?? '-'">
         @for (c of coops; track c) { <option>{{ c }}</option> }
       </select>
     </div>
@@ -46,13 +46,13 @@
     </div>
     <div class="full">
       <label class="kl-form-label">Notes</label>
-      <textarea class="kl-textarea" placeholder="Optional internal notes visible only to admins…"></textarea>
+      <textarea class="kl-textarea" placeholder="Optional internal notes visible only to admins..."></textarea>
     </div>
   </div>
 
   <ng-container drawer-actions>
-    <button class="kl-btn kl-btn-secondary" (click)="close.emit()">Cancel</button>
-    <button class="kl-btn kl-btn-primary" (click)="close.emit()">{{ farmer ? 'Save changes' : 'Create farmer' }}</button>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="closeDrawer()">{{ isEdit ? 'Save changes' : 'Create farmer' }}</button>
   </ng-container>
 
 </kl-drawer>
