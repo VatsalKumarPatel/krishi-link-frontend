@@ -196,6 +196,79 @@
       <!-- Line Items tab -->
       @if (activeTab() === 'items') {
         <kl-card>
+          @if (isDraft()) {
+            <div style="display:grid; gap:12px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #E5E7EB;">
+              <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+                <div style="font-weight:600; font-size:14px; color:#1A2B1C;">Add Line Item</div>
+                <div class="kl-fg-3" style="font-size:13px; font-variant-numeric:tabular-nums;">Preview: Rs. {{ fmt(itemPreviewTotal()) }}</div>
+              </div>
+
+              @if (itemError()) {
+                <div style="padding:10px 12px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px;">
+                  {{ itemError() }}
+                </div>
+              }
+
+              <div class="kl-form">
+                <div class="kl-form-row">
+                  <div class="kl-form-group">
+                    <label class="kl-label">Product ID <span style="color:#DC2626;">*</span></label>
+                    <input class="kl-input" [value]="itemForm().productId" (input)="updateItemForm('productId', $any($event.target).value)" placeholder="Product ID" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">Unit ID <span style="color:#DC2626;">*</span></label>
+                    <input class="kl-input" [value]="itemForm().unitId" (input)="updateItemForm('unitId', $any($event.target).value)" placeholder="Unit ID" />
+                  </div>
+                </div>
+
+                <div class="kl-form-row">
+                  <div class="kl-form-group">
+                    <label class="kl-label">Quantity <span style="color:#DC2626;">*</span></label>
+                    <input class="kl-input" type="number" min="0.001" step="0.001"
+                      [value]="itemForm().quantity" (input)="updateItemForm('quantity', +$any($event.target).value)" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">Rate</label>
+                    <input class="kl-input" type="number" min="0" step="0.01"
+                      [value]="itemForm().ratePerUnit" (input)="updateItemForm('ratePerUnit', +$any($event.target).value)" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">Discount %</label>
+                    <input class="kl-input" type="number" min="0" max="100" step="0.01"
+                      [value]="itemForm().discountPercent" (input)="updateItemForm('discountPercent', +$any($event.target).value)" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">GST %</label>
+                    <select class="kl-select" [value]="itemForm().taxRatePercent" (change)="updateItemForm('taxRatePercent', +$any($event.target).value)">
+                      @for (r of gstRates; track r) { <option [value]="r">{{ r }}%</option> }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="kl-form-row">
+                  <div class="kl-form-group">
+                    <label class="kl-label">HSN</label>
+                    <input class="kl-input" [value]="itemForm().hsnCode" (input)="updateItemForm('hsnCode', $any($event.target).value)" placeholder="e.g. 3101" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">Batch</label>
+                    <input class="kl-input" [value]="itemForm().batchNumber" (input)="updateItemForm('batchNumber', $any($event.target).value)" placeholder="Optional batch" />
+                  </div>
+                  <div class="kl-form-group">
+                    <label class="kl-label">Expiry</label>
+                    <input class="kl-input" type="date" [value]="itemForm().expiryDate" (change)="updateItemForm('expiryDate', $any($event.target).value)" />
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                  <button class="kl-btn kl-btn-primary" [disabled]="savingItem()" (click)="addItem()">
+                    {{ savingItem() ? 'Adding...' : 'Add Item' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="kl-table-wrap">
             <table class="kl-table" style="min-width:800px;">
               <thead>
@@ -207,12 +280,15 @@
                   <th style="text-align:right;">Disc %</th>
                   <th>HSN</th>
                   <th style="text-align:right;">GST %</th>
+                  @if (isDraft()) {
+                    <th style="width:72px;"></th>
+                  }
                   <th style="text-align:right;">Total (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 @if (p.items.length === 0) {
-                  <tr><td colspan="8" class="sd-empty">No items.</td></tr>
+                  <tr><td [attr.colspan]="isDraft() ? 9 : 8" class="sd-empty">No items.</td></tr>
                 } @else {
                   @for (item of p.items; track item.id) {
                     <tr>
@@ -229,6 +305,13 @@
                       <td style="text-align:right;">{{ item.discountPercent > 0 ? item.discountPercent + '%' : '—' }}</td>
                       <td class="kl-fg-3">{{ item.hsnCode }}</td>
                       <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+                      @if (isDraft()) {
+                        <td style="text-align:right;">
+                          <button class="kl-btn kl-btn-secondary" style="padding:5px 8px; color:#DC2626;" [disabled]="removingItemId() === item.id" (click)="removeItem(item)">
+                            {{ removingItemId() === item.id ? '...' : 'Remove' }}
+                          </button>
+                        </td>
+                      }
                       <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:500;">₹{{ fmt(item.lineTotal) }}</td>
                     </tr>
                   }

@@ -9,11 +9,27 @@ import { PurchaseAddComponent } from '../purchase-add/purchase-add.component';
 import { PurchaseService } from '@services/purchase.service';
 import { UserService } from '@services/user.service';
 import {
+  AddPurchaseItemCommand,
   PurchaseDetailDto,
+  PurchaseItemDto,
   PurchaseStatus,
   PURCHASE_STATUS_LABELS,
   PURCHASE_STATUS_BADGE,
 } from '@models/purchase.model';
+
+const GST_RATES = [0, 5, 12, 18, 28];
+
+interface PurchaseItemForm {
+  productId: string;
+  unitId: string;
+  quantity: number;
+  ratePerUnit: number;
+  discountPercent: number;
+  hsnCode: string;
+  taxRatePercent: number;
+  batchNumber: string;
+  expiryDate: string;
+}
 
 @Component({
   selector: 'app-purchase-detail',
@@ -35,6 +51,11 @@ export class PurchaseDetailComponent implements OnInit {
   activeTab = signal<'details' | 'items' | 'allocations'>('details');
   drawerOpen = signal(false);
   purchaseIdForEdit = signal<string | null>(null);
+  itemForm = signal<PurchaseItemForm>(this.blankItemForm());
+  savingItem = signal(false);
+  itemError = signal<string | null>(null);
+  removingItemId = signal<string | null>(null);
+  readonly gstRates = GST_RATES;
 
   // Cancel dialog
   showCancelDialog = signal(false);
@@ -48,6 +69,9 @@ export class PurchaseDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
+    if (this.route.snapshot.queryParamMap.get('tab') === 'items') {
+      this.activeTab.set('items');
+    }
     this.load(id);
   }
 
@@ -86,6 +110,80 @@ export class PurchaseDetailComponent implements OnInit {
   canPayment(): boolean { return this.isInvoiced() || this.isPartiallyPaid(); }
   canReturn(): boolean { return this.isInvoiced() || this.isPartiallyPaid() || this.isPaid(); }
 
+  updateItemForm(field: keyof PurchaseItemForm, value: string | number): void {
+    this.itemForm.update(form => ({ ...form, [field]: value }));
+  }
+
+  addItem(): void {
+    const purchase = this.purchase();
+    if (!purchase) return;
+
+    const form = this.itemForm();
+    if (!form.productId || !form.unitId || form.quantity <= 0) {
+      this.itemError.set('Product, Unit and Quantity are required.');
+      return;
+    }
+
+    const cmd: AddPurchaseItemCommand = {
+      productId: form.productId,
+      unitId: form.unitId,
+      quantity: form.quantity,
+      ratePerUnit: form.ratePerUnit,
+      discountPercent: form.discountPercent,
+      hsnCode: form.hsnCode,
+      taxRatePercent: form.taxRatePercent,
+      batchNumber: form.batchNumber || null,
+      expiryDate: form.expiryDate || null,
+    };
+
+    this.savingItem.set(true);
+    this.itemError.set(null);
+    this.purchaseService.addItem(purchase.id, cmd)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.savingItem.set(false);
+          this.itemForm.set(this.blankItemForm());
+          this.activeTab.set('items');
+          this.load(purchase.id);
+        },
+        error: (err) => {
+          this.savingItem.set(false);
+          this.itemError.set(err.error?.detail ?? 'Failed to add item.');
+        },
+      });
+  }
+
+  removeItem(item: PurchaseItemDto): void {
+    const purchase = this.purchase();
+    if (!purchase || !this.isDraft()) return;
+
+    this.removingItemId.set(item.id);
+    this.itemError.set(null);
+    this.purchaseService.removeItem(purchase.id, item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.removingItemId.set(null);
+          this.activeTab.set('items');
+          this.load(purchase.id);
+        },
+        error: (err) => {
+          this.removingItemId.set(null);
+          this.itemError.set(err.error?.detail ?? 'Failed to remove item.');
+        },
+      });
+  }
+
+  itemPreviewTotal(): number {
+    const form = this.itemForm();
+    const gross = form.quantity * form.ratePerUnit;
+    const discount = gross * (form.discountPercent / 100);
+    const taxable = gross - discount;
+    const tax = taxable * (form.taxRatePercent / 100);
+    return +(taxable + tax).toFixed(2);
+  }
+
   isOverdue(): boolean {
     const p = this.purchase();
     if (!p?.dueDate) return false;
@@ -115,6 +213,20 @@ export class PurchaseDetailComponent implements OnInit {
 
   initials(name: string): string {
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  private blankItemForm(): PurchaseItemForm {
+    return {
+      productId: '',
+      unitId: '',
+      quantity: 1,
+      ratePerUnit: 0,
+      discountPercent: 0,
+      hsnCode: '',
+      taxRatePercent: 5,
+      batchNumber: '',
+      expiryDate: '',
+    };
   }
 
   fmt(n: number): string {

@@ -1,6 +1,20 @@
 <div class="kl-drawer-root" [class.is-open]="open">
   <div class="kl-drawer-scrim" (click)="close.emit()"></div>
-  <div class="kl-drawer">
+  <div class="kl-drawer" [class.is-resizing]="resizing()" [style.width.px]="drawerWidth()">
+    @if (resizable) {
+      <div
+        class="kl-drawer-resize"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+        title="Resize drawer"
+        [attr.aria-valuemin]="minWidth"
+        [attr.aria-valuemax]="maxWidth"
+        [attr.aria-valuenow]="drawerWidth()"
+        (pointerdown)="startResize($event)"
+        (keydown)="onHandleKeydown($event)"
+        (dblclick)="resetWidth()"></div>
+    }
     <div class="kl-dlg-head">
       <div>
         <div class="kl-dlg-title">{{ title }}</div>

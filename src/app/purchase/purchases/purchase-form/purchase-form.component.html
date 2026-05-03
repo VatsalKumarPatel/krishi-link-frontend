@@ -1,5 +1,5 @@
 <div class="kl-page-header" style="align-items:center;">
-  <a routerLink="/purchase/purchases" class="kl-link" style="font-size:13px;">← Back to Purchases</a>
+  <a routerLink="/purchase/purchases" class="kl-link" style="font-size:13px;">Back to Purchases</a>
 </div>
 
 @if (error()) {
@@ -8,155 +8,50 @@
   </div>
 }
 
-<!-- Step 1: Header -->
-@if (step() === 1) {
-  <kl-card>
-    <div style="font-weight:600; font-size:14px; margin-bottom:16px; color:#1A2B1C;">Step 1 — Purchase Details</div>
-    <div class="kl-form">
-      <div class="kl-form-row">
-        <!-- Supplier search -->
-        <div class="kl-form-group" style="position:relative;">
-          <label class="kl-label">Supplier <span style="color:#DC2626;">*</span></label>
-          @if (suppliersLoading()) {
-            <div class="animate-pulse bg-bg-muted rounded h-9 w-full"></div>
-          } @else {
-            <select class="kl-select" name="supplierId" (change)="supplierId.set($any($event.target).value)">
-              <option value="" disabled>Select supplier…</option>
-              @for (s of suppliers(); track s.id) {
-                <option [value]="s.id">{{ s.name }}</option>
-              }
-            </select>
-          }
-        </div>
-
-        <!-- Store -->
-        <div class="kl-form-group">
-          <label class="kl-label">Store <span style="color:#DC2626;">*</span></label>
-          <select class="kl-select" [value]="storeId()" (change)="storeId.set($any($event.target).value)">
-            <option value="">Select store…</option>
-            @for (s of storePicker.stores(); track s.id) {
+<kl-card>
+  <div style="font-weight:600; font-size:14px; margin-bottom:16px; color:#1A2B1C;">Purchase Details</div>
+  <div class="kl-form">
+    <div class="kl-form-row">
+      <div class="kl-form-group" style="position:relative;">
+        <label class="kl-label">Supplier <span style="color:#DC2626;">*</span></label>
+        @if (suppliersLoading()) {
+          <div class="animate-pulse bg-bg-muted rounded h-9 w-full"></div>
+        } @else {
+          <select class="kl-select" name="supplierId" [value]="supplierId()" (change)="supplierId.set($any($event.target).value)">
+            <option value="" disabled>Select supplier...</option>
+            @for (s of suppliers(); track s.id) {
               <option [value]="s.id">{{ s.name }}</option>
             }
           </select>
-        </div>
+        }
       </div>
 
-      <div class="kl-form-row">
-        <div class="kl-form-group">
-          <label class="kl-label">Purchase Date <span style="color:#DC2626;">*</span></label>
-          <input class="kl-input" type="date" [value]="purchaseDate()" (change)="purchaseDate.set($any($event.target).value)" />
-        </div>
-        <div class="kl-form-group">
-          <label class="kl-label">Notes</label>
-          <input class="kl-input" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Optional notes for this purchase" />
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #E5E7EB;">
-        <button class="kl-btn kl-btn-primary" (click)="goToStep2()">Continue → Add Items</button>
-      </div>
-    </div>
-  </kl-card>
-}
-
-<!-- Step 2: Line Items -->
-@if (step() === 2) {
-  <kl-card>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <div>
-        <div style="font-weight:600; font-size:14px; color:#1A2B1C;">Step 2 — Line Items</div>
-        <div class="kl-fg-3" style="font-size:12px;"> {{ purchaseDate() }}</div>
-      </div>
-      <button class="kl-btn kl-btn-secondary" (click)="step.set(1)">← Edit Header</button>
-    </div>
-
-    <div style="overflow-x:auto;">
-      <table class="kl-table" style="min-width:900px;">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Unit</th>
-            <th style="width:90px;">Qty</th>
-            <th style="width:110px;">Rate (₹)</th>
-            <th style="width:90px;">Disc %</th>
-            <th style="width:110px;">HSN</th>
-            <th style="width:90px;">GST %</th>
-            <th style="text-align:right; width:110px;">Line Total (₹)</th>
-            <th style="width:40px;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of items(); track $index; let i = $index) {
-            <tr>
-              <td>
-                <input class="kl-input kl-input-sm" [value]="item.productId" (input)="updateRow(i, 'productId', $any($event.target).value)" placeholder="Product ID" />
-              </td>
-              <td>
-                <input class="kl-input kl-input-sm" [value]="item.unitId" (input)="updateRow(i, 'unitId', $any($event.target).value)" placeholder="Unit ID" />
-              </td>
-              <td>
-                <input class="kl-input kl-input-sm" type="number" min="0.001" step="0.001"
-                  [value]="item.quantity" (input)="updateRow(i, 'quantity', +$any($event.target).value)" />
-              </td>
-              <td>
-                <input class="kl-input kl-input-sm" type="number" min="0" step="0.01"
-                  [value]="item.ratePerUnit" (input)="updateRow(i, 'ratePerUnit', +$any($event.target).value)" />
-              </td>
-              <td>
-                <input class="kl-input kl-input-sm" type="number" min="0" max="100" step="0.01"
-                  [value]="item.discountPercent" (input)="updateRow(i, 'discountPercent', +$any($event.target).value)" />
-              </td>
-              <td>
-                <input class="kl-input kl-input-sm" [value]="item.hsnCode" (input)="updateRow(i, 'hsnCode', $any($event.target).value)" placeholder="e.g. 3101" />
-              </td>
-              <td>
-                <select class="kl-select kl-input-sm" [value]="item.taxRatePercent" (change)="updateRow(i, 'taxRatePercent', +$any($event.target).value)">
-                  @for (r of gstRates; track r) { <option [value]="r">{{ r }}%</option> }
-                </select>
-              </td>
-              <td style="text-align:right; font-variant-numeric:tabular-nums; padding-right:16px;">
-                ₹{{ fmt(item.lineTotal) }}
-              </td>
-              <td>
-                <button style="color:#DC2626; background:none; border:none; cursor:pointer; padding:4px;" (click)="removeRow(i)" title="Remove">✕</button>
-              </td>
-            </tr>
+      <div class="kl-form-group">
+        <label class="kl-label">Store <span style="color:#DC2626;">*</span></label>
+        <select class="kl-select" [value]="storeId()" (change)="storeId.set($any($event.target).value)">
+          <option value="">Select store...</option>
+          @for (s of storePicker.stores(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
           }
-        </tbody>
-      </table>
-    </div>
-
-    <div style="padding:12px 20px 0;">
-      <button class="kl-btn kl-btn-secondary" (click)="addRow()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        Add Row
-      </button>
-    </div>
-
-    <!-- Totals -->
-    <div style="border-top:1px solid #E5E7EB; margin-top:16px; padding:16px 20px;">
-      <div style="max-width:320px; margin-left:auto;">
-        <div class="kl-total-row"><span class="kl-fg-3">Sub Total</span><span>₹{{ fmt(subTotal()) }}</span></div>
-        <div class="kl-total-row"><span class="kl-fg-3">Total Discount</span><span style="color:#166534;">−₹{{ fmt(totalDiscount()) }}</span></div>
-        <div class="kl-total-row"><span class="kl-fg-3">CGST</span><span>₹{{ fmt(totalCgst()) }}</span></div>
-        <div class="kl-total-row"><span class="kl-fg-3">SGST</span><span>₹{{ fmt(totalSgst()) }}</span></div>
-        <div class="kl-total-row"><span class="kl-fg-3">IGST</span><span>₹{{ fmt(totalIgst()) }}</span></div>
-        <div class="kl-total-row" style="font-weight:700; font-size:16px; border-top:1px solid #E5E7EB; padding-top:10px; margin-top:6px;">
-          <span>Grand Total</span><span>₹{{ fmt(grandTotal()) }}</span>
-        </div>
+        </select>
       </div>
     </div>
 
-    <!-- Footer actions -->
-    <div style="display:flex; gap:8px; justify-content:flex-end; padding:0 20px 20px; border-top:1px solid #E5E7EB; padding-top:16px;">
-      <button class="kl-btn kl-btn-secondary" [disabled]="saving() || savingReceive()" (click)="saveDraft()">
-        {{ saving() ? 'Saving…' : 'Save as Draft' }}
-      </button>
-      @if (isStoreManager()) {
-        <button class="kl-btn kl-btn-primary" [disabled]="saving() || savingReceive()" (click)="saveAndReceive()">
-          {{ savingReceive() ? 'Saving…' : 'Save & Receive' }}
-        </button>
-      }
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Purchase Date <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="date" [value]="purchaseDate()" (change)="purchaseDate.set($any($event.target).value)" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Notes</label>
+        <input class="kl-input" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Optional notes for this purchase" />
+      </div>
     </div>
-  </kl-card>
-}
+
+    <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #E5E7EB;">
+      <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="createDraft()">
+        {{ saving() ? 'Saving...' : 'Create Draft' }}
+      </button>
+    </div>
+  </div>
+</kl-card>
