@@ -89,17 +89,17 @@
           <div class="kl-detail-name" [title]="s.name">{{ s.name }}</div>
           <div class="kl-detail-meta">
             <code class="kl-mono">{{ s.code }}</code>
-            @if (s.phoneNumber) { <span>·</span><span>{{ s.phoneNumber }}</span> }
+            @if (s.phone) { <span>·</span><span>{{ s.phone }}</span> }
           </div>
         </div>
       </div>
       <dl class="kl-dl">
         <dt>Contact</dt>        <dd>{{ s.contactPerson ?? '—' }}</dd>
-        <dt>Phone</dt>          <dd>{{ s.phoneNumber ?? '—' }}</dd>
+        <dt>Phone</dt>          <dd>{{ s.phone ?? '—' }}</dd>
         <dt>Email</dt>          <dd>{{ s.email ?? '—' }}</dd>
         @if (s.gstin) { <dt>GSTIN</dt> <dd><code class="kl-mono">{{ s.gstin }}</code></dd> }
-        <dt>Payment Terms</dt>  <dd>{{ s.paymentTermsDays > 0 ? s.paymentTermsDays + ' days' : '—' }}</dd>
-        <dt>Credit Limit</dt>   <dd>₹{{ fmt(s.creditLimitFromSupplier) }}</dd>
+        <dt>Credit Days</dt>    <dd>{{ s.creditDays > 0 ? s.creditDays + ' days' : '—' }}</dd>
+        <dt>Credit Limit</dt>   <dd>₹{{ fmt(s.creditLimitAmount) }}</dd>
         <dt>Status</dt>         <dd><kl-badge [variant]="statusVariant(s.isActive)">{{ statusLabel(s.isActive) }}</kl-badge></dd>
       </dl>
     </div>
@@ -149,17 +149,25 @@
             <dt>Name</dt>           <dd>{{ s.name }}</dd>
             <dt>Code</dt>           <dd><code class="kl-mono">{{ s.code }}</code></dd>
             <dt>Contact Person</dt> <dd>{{ s.contactPerson ?? '—' }}</dd>
-            <dt>Phone</dt>          <dd>{{ s.phoneNumber ?? '—' }}</dd>
+            <dt>Phone</dt>          <dd>{{ s.phone ?? '—' }}</dd>
             <dt>Email</dt>          <dd>{{ s.email ?? '—' }}</dd>
             @if (s.gstin) { <dt>GSTIN</dt> <dd><code class="kl-mono">{{ s.gstin }}</code></dd> }
-            @if (s.address) { <dt>Address</dt> <dd>{{ s.address }}</dd> }
+            @if (s.pan) { <dt>PAN</dt> <dd><code class="kl-mono">{{ s.pan }}</code></dd> }
+            @if (s.addressLine1 || s.city) {
+              <dt>Address</dt>
+              <dd>
+                @if (s.addressLine1) { {{ s.addressLine1 }}<br> }
+                @if (s.addressLine2) { {{ s.addressLine2 }}<br> }
+                @if (s.city) { {{ s.city }} }@if (s.city && s.state) { , }@if (s.state) { {{ s.state }} }@if (s.pincode) {  - {{ s.pincode }} }
+              </dd>
+            }
           </dl>
         </kl-card>
 
         <kl-card title="Financial Terms">
           <dl class="kl-dl">
-            <dt>Credit Limit</dt>  <dd>₹{{ fmt(s.creditLimitFromSupplier) }}</dd>
-            <dt>Payment Terms</dt> <dd>{{ s.paymentTermsDays > 0 ? s.paymentTermsDays + ' days' : '—' }}</dd>
+            <dt>Credit Limit</dt>  <dd>₹{{ fmt(s.creditLimitAmount) }}</dd>
+            <dt>Credit Days</dt>   <dd>{{ s.creditDays > 0 ? s.creditDays + ' days' : '—' }}</dd>
             @if (s.lastPurchasedAt) {
               <dt>Last Purchase</dt> <dd>{{ formatDate(s.lastPurchasedAt) }}</dd>
               <dt>Last Price</dt>    <dd>₹{{ s.lastPurchasePrice !== null ? fmt(s.lastPurchasePrice) : '—' }}</dd>

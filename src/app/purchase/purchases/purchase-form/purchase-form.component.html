@@ -17,16 +17,15 @@
         <!-- Supplier search -->
         <div class="kl-form-group" style="position:relative;">
           <label class="kl-label">Supplier <span style="color:#DC2626;">*</span></label>
-          <input class="kl-input" [value]="supplierSearch()" (input)="searchSupplier($any($event.target).value)" placeholder="Search by name or code…" />
-          @if (showSupplierDrop() && supplierResults().length > 0) {
-            <div style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #D1D5DB; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,.12); z-index:100; max-height:200px; overflow-y:auto;">
-              @for (s of supplierResults(); track s.id) {
-                <button style="width:100%; padding:10px 14px; text-align:left; border:none; background:none; cursor:pointer; font-size:13px;" (click)="selectSupplier(s)">
-                  <span style="font-weight:500;">{{ s.name }}</span>
-                  <span class="kl-fg-3" style="margin-left:8px; font-size:11px;">{{ s.code }}</span>
-                </button>
+          @if (suppliersLoading()) {
+            <div class="animate-pulse bg-bg-muted rounded h-9 w-full"></div>
+          } @else {
+            <select class="kl-select" name="supplierId" (change)="supplierId.set($any($event.target).value)">
+              <option value="" disabled>Select supplier…</option>
+              @for (s of suppliers(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
               }
-            </div>
+            </select>
           }
         </div>
 
@@ -66,7 +65,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <div>
         <div style="font-weight:600; font-size:14px; color:#1A2B1C;">Step 2 — Line Items</div>
-        <div class="kl-fg-3" style="font-size:12px;">{{ selectedSupplier()?.name }} · {{ purchaseDate() }}</div>
+        <div class="kl-fg-3" style="font-size:12px;"> {{ purchaseDate() }}</div>
       </div>
       <button class="kl-btn kl-btn-secondary" (click)="step.set(1)">← Edit Header</button>
     </div>

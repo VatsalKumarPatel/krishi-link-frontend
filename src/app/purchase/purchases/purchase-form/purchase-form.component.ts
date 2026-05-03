@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, DestroyRef, computed, SimpleChanges } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,6 +13,7 @@ import {
   PurchaseDetailDto,
 } from '@models/purchase.model';
 import { SupplierSummaryDto } from '@models/supplier.model';
+import { DropdownItem } from '@app/models/shared.model';
 
 const GST_RATES = [0, 5, 12, 18, 28];
 
@@ -45,6 +46,7 @@ interface LineItem {
   styleUrls: ['./purchase-form.component.scss'],
 })
 export class PurchaseFormComponent implements OnInit {
+  
   private readonly purchaseService = inject(PurchaseService);
   private readonly supplierService = inject(SupplierService);
   private readonly router = inject(Router);
@@ -56,9 +58,8 @@ export class PurchaseFormComponent implements OnInit {
 
   // Header
   supplierId = signal('');
-  supplierSearch = signal('');
-  supplierResults = signal<SupplierSummaryDto[]>([]);
-  selectedSupplier = signal<SupplierSummaryDto | null>(null);
+  suppliers = signal<DropdownItem[]>([]);
+  suppliersLoading = signal(false);
   storeId = signal('');
   purchaseDate = signal(new Date().toISOString().substring(0, 10));
   notes = signal('');
@@ -86,24 +87,20 @@ export class PurchaseFormComponent implements OnInit {
     // Default to selected store
     const store = this.storePicker.selectedStore();
     if (store) this.storeId.set(store.id);
+    this.loadSuppliers();
   }
-
-  searchSupplier(term: string): void {
-    this.supplierSearch.set(term);
-    if (term.length < 2) { this.supplierResults.set([]); return; }
-    this.supplierService.search(term).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (r) => { this.supplierResults.set(r); this.showSupplierDrop.set(true); },
+   
+  private loadSuppliers(): void {
+    this.suppliersLoading.set(true);
+    this.supplierService.getDropdown().subscribe({
+      next: (list) => { 
+        this.suppliers.set(list);
+        this.suppliersLoading.set(false); 
+      },
+      error: () => { this.suppliersLoading.set(false); },
     });
   }
-
-  selectSupplier(s: SupplierSummaryDto): void {
-    this.selectedSupplier.set(s);
-    this.supplierId.set(s.id);
-    this.supplierSearch.set(s.name);
-    this.showSupplierDrop.set(false);
-    this.supplierResults.set([]);
-  }
-
+ 
   addRow(): void {
     this.items.update(rows => [...rows, this.blankRow()]);
   }

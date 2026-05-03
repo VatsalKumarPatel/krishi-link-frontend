@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
 import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { ReturnAddComponent } from '../return-add/return-add.component';
 import { PurchaseReturnService } from '@services/purchase-return.service';
 import {
   PurchaseReturnSummaryDto,
@@ -26,7 +27,7 @@ const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigit
 @Component({
   selector: 'app-return-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, KlGridComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent, ReturnAddComponent],
   templateUrl: './return-list.component.html',
   styleUrls: ['./return-list.component.scss'],
 })
@@ -36,6 +37,8 @@ export class ReturnListComponent {
 
   pageIndex = signal(0);
   pageSize = signal(20);
+  drawerOpen = signal(false);
+  returnIdForEdit = signal<string | null>(null);
 
   readonly columns: GridColumn[] = [
     { field: 'debitNoteNumber', header: 'Debit Note #', sortable: false },
@@ -82,5 +85,20 @@ export class ReturnListComponent {
 
   onRowClick(row: ReturnRow): void {
     this.router.navigate(['/purchase/purchase-returns', row.id]);
+  }
+
+  openAdd(): void {
+    this.returnIdForEdit.set(null);
+    this.drawerOpen.set(true);
+  }
+
+  openEdit(row: ReturnRow): void {
+    this.returnIdForEdit.set(row.id);
+    this.drawerOpen.set(true);
+  }
+
+  onDrawerSaved(): void {
+    this.drawerOpen.set(false);
+    this.returnsResource.reload();
   }
 }

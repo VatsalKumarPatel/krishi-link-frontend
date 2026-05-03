@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
 import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { PurchaseAddComponent } from '../purchase-add/purchase-add.component';
 import { PurchaseService } from '@services/purchase.service';
 import { UserService } from '@services/user.service';
 import {
@@ -28,7 +29,7 @@ const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigit
 @Component({
   selector: 'app-purchase-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, KlGridComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent, PurchaseAddComponent],
   templateUrl: './purchase-list.component.html',
   styleUrls: ['./purchase-list.component.scss'],
 })
@@ -46,6 +47,8 @@ export class PurchaseListComponent {
   toDate = signal('');
   pageIndex = signal(0);
   pageSize = signal(20);
+  drawerOpen = signal(false);
+  purchaseIdForEdit = signal<string | null>(null);
 
   readonly statusOptions = [
     { value: undefined, label: 'All Statuses' },
@@ -139,6 +142,21 @@ export class PurchaseListComponent {
 
   onRowClick(row: PurchaseRow): void {
     this.router.navigate(['/purchase/purchases', row.id]);
+  }
+
+  openAdd(): void {
+    this.purchaseIdForEdit.set(null);
+    this.drawerOpen.set(true);
+  }
+
+  openEdit(row: PurchaseRow): void {
+    this.purchaseIdForEdit.set(row.id);
+    this.drawerOpen.set(true);
+  }
+
+  onDrawerSaved(): void {
+    this.drawerOpen.set(false);
+    this.purchasesResource.reload();
   }
 
   private isOverdue(p: PurchaseSummaryDto): boolean {

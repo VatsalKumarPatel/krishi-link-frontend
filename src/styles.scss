@@ -476,7 +476,7 @@ code, pre { font-family: theme('fontFamily.mono'); font-size: theme('fontSize.xs
 .kl-profile {
   // reset button defaults when used as a <button>
   background: transparent;
-  border: 0;
+  border: 1;
   cursor: pointer;
   text-align: left;
 }

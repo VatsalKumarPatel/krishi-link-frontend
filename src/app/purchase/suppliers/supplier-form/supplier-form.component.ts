@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { SupplierService } from '@services/supplier.service';
-import { CreateSupplierCommand, SupplierDto } from '@models/supplier.model';
+import { CreateSupplierCommand, UpdateSupplierCommand, SupplierDto } from '@models/supplier.model';
 
 @Component({
   selector: 'app-supplier-form',
@@ -30,12 +30,17 @@ export class SupplierFormComponent implements OnInit {
   name = signal('');
   code = signal('');
   contactPerson = signal('');
-  phoneNumber = signal('');
+  phone = signal('');
   email = signal('');
   gstin = signal('');
-  address = signal('');
-  creditLimitFromSupplier = signal(0);
-  paymentTermsDays = signal(0);
+  pan = signal('');
+  addressLine1 = signal('');
+  addressLine2 = signal('');
+  city = signal('');
+  state = signal('');
+  pincode = signal('');
+  creditLimitAmount = signal(0);
+  creditDays = signal(0);
   isActive = signal(true);
 
   ngOnInit(): void {
@@ -54,12 +59,17 @@ export class SupplierFormComponent implements OnInit {
         this.name.set(s.name);
         this.code.set(s.code);
         this.contactPerson.set(s.contactPerson ?? '');
-        this.phoneNumber.set(s.phoneNumber ?? '');
+        this.phone.set(s.phone ?? '');
         this.email.set(s.email ?? '');
         this.gstin.set(s.gstin ?? '');
-        this.address.set(s.address ?? '');
-        this.creditLimitFromSupplier.set(s.creditLimitFromSupplier);
-        this.paymentTermsDays.set(s.paymentTermsDays);
+        this.pan.set(s.pan ?? '');
+        this.addressLine1.set(s.addressLine1 ?? '');
+        this.addressLine2.set(s.addressLine2 ?? '');
+        this.city.set(s.city ?? '');
+        this.state.set(s.state ?? '');
+        this.pincode.set(s.pincode ?? '');
+        this.creditLimitAmount.set(s.creditLimitAmount);
+        this.creditDays.set(s.creditDays);
         this.isActive.set(s.isActive);
         this.loading.set(false);
       },
@@ -73,17 +83,21 @@ export class SupplierFormComponent implements OnInit {
     this.fieldErrors.set({});
     this.error.set(null);
 
-    const cmd: CreateSupplierCommand = {
+    const base = {
       name: this.name().trim(),
       code: this.code().trim().toUpperCase(),
       contactPerson: this.contactPerson().trim() || null,
-      phoneNumber: this.phoneNumber().trim() || null,
+      phone: this.phone().trim() || null,
       email: this.email().trim() || null,
       gstin: this.gstin().trim() || null,
-      address: this.address().trim() || null,
-      creditLimitFromSupplier: this.creditLimitFromSupplier(),
-      paymentTermsDays: this.paymentTermsDays(),
-      isActive: this.isActive(),
+      pan: this.pan().trim() || null,
+      addressLine1: this.addressLine1().trim() || null,
+      addressLine2: this.addressLine2().trim() || null,
+      city: this.city().trim() || null,
+      state: this.state().trim() || null,
+      pincode: this.pincode().trim() || null,
+      creditLimitAmount: this.creditLimitAmount(),
+      creditDays: this.creditDays(),
     };
 
     this.saving.set(true);
@@ -97,12 +111,14 @@ export class SupplierFormComponent implements OnInit {
     };
 
     if (this.isEdit()) {
+      const cmd: UpdateSupplierCommand = { ...base, isActive: this.isActive() };
       this.supplierService.update(this.supplierId()!, cmd)
         .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => { this.saving.set(false); this.router.navigate(['/purchase/suppliers', this.supplierId()!]); },
           error: onError,
         });
     } else {
+      const cmd: CreateSupplierCommand = base;
       this.supplierService.create(cmd)
         .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: (result: SupplierDto) => { this.saving.set(false); this.router.navigate(['/purchase/suppliers', result.id]); },

@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
 import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { PaymentAddComponent } from '../payment-add/payment-add.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
 import {
   SupplierPaymentSummaryDto,
@@ -25,7 +26,7 @@ const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigit
 @Component({
   selector: 'app-payment-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, KlGridComponent],
+  imports: [RouterLink, KlCardComponent, KlGridComponent, PaymentAddComponent],
   templateUrl: './payment-list.component.html',
   styleUrls: ['./payment-list.component.scss'],
 })
@@ -38,6 +39,8 @@ export class PaymentListComponent {
   );
   pageIndex = signal(0);
   pageSize = signal(20);
+  drawerOpen = signal(false);
+  paymentIdForEdit = signal<string | null>(null);
 
   readonly columns: GridColumn[] = [
     { field: 'paymentRef', header: 'Payment Ref', sortable: false },
@@ -88,5 +91,20 @@ export class PaymentListComponent {
 
   onRowClick(row: PaymentRow): void {
     this.router.navigate(['/purchase/supplier-payments', row.id]);
+  }
+
+  openAdd(): void {
+    this.paymentIdForEdit.set(null);
+    this.drawerOpen.set(true);
+  }
+
+  openEdit(row: PaymentRow): void {
+    this.paymentIdForEdit.set(row.id);
+    this.drawerOpen.set(true);
+  }
+
+  onDrawerSaved(): void {
+    this.drawerOpen.set(false);
+    this.paymentsResource.reload();
   }
 }

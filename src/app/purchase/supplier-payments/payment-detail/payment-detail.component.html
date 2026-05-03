@@ -1,94 +1,220 @@
+<!-- Loading state -->
 @if (loading()) {
-  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
-} @else if (error()) {
-  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
-} @else if (payment()) {
-  <div class="kl-page-header" style="align-items:flex-start; flex-wrap:wrap; gap:12px;">
-    <div>
-      <a routerLink="/purchase/supplier-payments" class="kl-link" style="font-size:13px;">← Payments</a>
-      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px;">{{ payment()!.paymentRef }}</h2>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <kl-badge variant="info">{{ statusLabels[payment()!.status] }}</kl-badge>
-        <kl-badge variant="neutral">{{ modeLabels[payment()!.mode] }}</kl-badge>
-        <span class="kl-fg-3" style="font-size:12px;">{{ payment()!.supplierName }}</span>
-      </div>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      @if (payment()!.unallocatedAmount > 0) {
-        <a [routerLink]="['/purchase/supplier-payments', payment()!.id, 'allocate']" class="kl-btn kl-btn-secondary">Allocate Now</a>
+  <div class="kl-page-header" style="align-items:center;">
+    <div class="animate-pulse bg-bg-muted rounded h-6 w-48"></div>
+  </div>
+  <div class="kl-detail-grid">
+    <div class="kl-card" style="padding:24px;">
+      <div class="animate-pulse bg-bg-muted rounded-full" style="width:56px;height:56px;margin-bottom:16px;"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-5 w-40 mb-2"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-4 w-32 mb-6"></div>
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
       }
-      @if (canVerify()) { <button class="kl-btn kl-btn-primary" (click)="openDialog('verify')">Verify</button> }
-      @if (canBounce()) { <button class="kl-btn kl-btn-secondary" style="color:#DC2626; border-color:#DC2626;" (click)="openDialog('bounce')">Mark Cheque Bounced</button> }
-      @if (canReverse()) { <button class="kl-btn kl-btn-secondary" style="color:#DC2626;" (click)="openDialog('reverse')">Cancel Payment</button> }
     </div>
-  </div>
-
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-    <kl-card>
-      <div style="font-weight:600; margin-bottom:12px;">Payment Details</div>
-      <dl class="kl-dl">
-        <dt>Supplier</dt><dd>{{ payment()!.supplierName }}</dd>
-        <dt>Store</dt><dd>{{ payment()!.storeName }}</dd>
-        <dt>Mode</dt><dd>{{ modeLabels[payment()!.mode] }}</dd>
-        <dt>Date</dt><dd>{{ payment()!.paymentDate | slice:0:10 }}</dd>
-        @if (payment()!.upiTransactionId) { <dt>UPI Txn ID</dt><dd>{{ payment()!.upiTransactionId }}</dd> }
-        @if (payment()!.upiVpa) { <dt>VPA</dt><dd>{{ payment()!.upiVpa }}</dd> }
-        @if (payment()!.chequeNumber) { <dt>Cheque #</dt><dd>{{ payment()!.chequeNumber }}</dd> }
-        @if (payment()!.chequeBank) { <dt>Bank</dt><dd>{{ payment()!.chequeBank }}{{ payment()!.chequeBranch ? ' · ' + payment()!.chequeBranch : '' }}</dd> }
-        @if (payment()!.chequeDate) { <dt>Cheque Date</dt><dd>{{ payment()!.chequeDate! | slice:0:10 }}</dd> }
-        @if (payment()!.neftImpsRef) { <dt>Ref #</dt><dd>{{ payment()!.neftImpsRef }}</dd> }
-        @if (payment()!.bankName) { <dt>Bank</dt><dd>{{ payment()!.bankName }}</dd> }
-        @if (payment()!.valueDate) { <dt>Value Date</dt><dd>{{ payment()!.valueDate! | slice:0:10 }}</dd> }
-        @if (payment()!.notes) { <dt>Notes</dt><dd>{{ payment()!.notes }}</dd> }
-        @if (payment()!.verifiedAt) { <dt>Verified At</dt><dd>{{ payment()!.verifiedAt! | slice:0:10 }}</dd> }
-        @if (payment()!.reversedAt) { <dt>Reversed At</dt><dd style="color:#DC2626;">{{ payment()!.reversedAt! | slice:0:10 }} — {{ payment()!.reversalReason }}</dd> }
-      </dl>
-    </kl-card>
-
-    <kl-card>
-      <div style="font-weight:600; margin-bottom:16px;">Amount Summary</div>
-      <div class="kl-total-row" style="font-size:15px;"><span class="kl-fg-3">Total Paid</span><span style="font-weight:700;">₹{{ fmt(payment()!.amountPaid) }}</span></div>
-      <div class="kl-total-row"><span class="kl-fg-3">Allocated</span><span>₹{{ fmt(payment()!.amountAllocated) }}</span></div>
-      <div class="kl-total-row" style="border-top:1px solid #E5E7EB; padding-top:10px; margin-top:6px;">
-        <span style="font-weight:600;">Unallocated</span>
-        <span style="font-weight:700; color:{{ payment()!.unallocatedAmount > 0 ? '#92400E' : '#166534' }};">
-          ₹{{ fmt(payment()!.unallocatedAmount) }}
-        </span>
+    <div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        @for (i of [1,2,3]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded-md" style="width:90px;height:56px;"></div>
+        }
       </div>
-    </kl-card>
+      <div class="kl-card" style="padding:24px;">
+        @for (i of [1,2,3]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error state -->
+@if (!loading() && error()) {
+  <div style="padding:48px; text-align:center; color:#6B7A6E;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#C0392B;">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div style="font-weight:600; color:#445245; margin-bottom:4px;">{{ error() }}</div>
+    <button class="kl-btn kl-btn-secondary" style="margin-top:12px;" (click)="load()">Retry</button>
+  </div>
+}
+
+<!-- Loaded state -->
+@if (!loading() && !error() && payment(); as p) {
+
+  <!-- Breadcrumb + header -->
+  <div class="kl-page-header" style="align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <a routerLink="/purchase/supplier-payments" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="kl-crumbs" style="margin:0;">
+        <a routerLink="/purchase/supplier-payments">Payments</a>
+        <span class="sep">/</span>
+        <span>{{ p.paymentRef }}</span>
+        <kl-badge [variant]="statusBadgeVariant()" style="margin-left:4px;">{{ statusLabels[p.status] }}</kl-badge>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      @if (p.unallocatedAmount > 0) {
+        <a [routerLink]="['/purchase/supplier-payments', p.id, 'allocate']" class="kl-btn kl-btn-secondary">Allocate</a>
+      }
+      @if (canVerify()) {
+        <button class="kl-btn kl-btn-primary" [disabled]="acting()" (click)="openDialog('verify')">Verify</button>
+      }
+      @if (canBounce()) {
+        <button class="kl-btn kl-btn-secondary" style="color:#DC2626; border-color:#DC2626;" [disabled]="acting()" (click)="openDialog('bounce')">Mark Bounced</button>
+      }
+      @if (canReverse()) {
+        <button class="kl-btn kl-btn-secondary" style="color:#DC2626;" [disabled]="acting()" (click)="openDialog('reverse')">Cancel Payment</button>
+      }
+    </div>
   </div>
 
-  <!-- Allocations -->
-  <kl-card>
-    <div style="font-weight:600; margin-bottom:12px;">Invoice Allocations</div>
-    <div class="kl-table-wrap">
-      <table class="kl-table">
-        <thead>
-          <tr>
-            <th>Purchase Ref</th><th>Invoice #</th><th style="text-align:right;">Allocated (₹)</th><th>Date</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (payment()!.allocations.length === 0) {
-            <tr><td colspan="5" style="text-align:center; padding:24px; color:#6B7A6E;">No allocations yet.</td></tr>
-          } @else {
-            @for (a of payment()!.allocations; track a.id) {
-              <tr class="kl-row-link" [routerLink]="['/purchase/purchases', a.purchaseId]">
-                <td>{{ a.purchaseRef }}</td>
-                <td class="kl-fg-3">{{ a.supplierInvoiceNumber ?? '—' }}</td>
-                <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(a.allocatedAmount) }}</td>
-                <td class="kl-fg-3">{{ a.allocatedAt | slice:0:10 }}</td>
-                <td>
-                  @if (a.isReversed) { <kl-badge variant="neutral">Reversed</kl-badge> }
-                  @else { <kl-badge variant="success">Applied</kl-badge> }
-                </td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
+  <!-- Detail grid -->
+  <div class="kl-detail-grid">
+
+    <!-- Left: payment summary card -->
+    <div class="kl-card">
+      <div class="kl-detail-header">
+        <div class="kl-avatar-lg">{{ initials(p.supplierName) }}</div>
+        <div>
+          <div class="kl-detail-name" [title]="p.paymentRef">{{ p.paymentRef }}</div>
+          <div class="kl-detail-meta">
+            <span>{{ p.supplierName }}</span>
+            <span>·</span>
+            <span>{{ p.storeName }}</span>
+          </div>
+        </div>
+      </div>
+      <dl class="kl-dl">
+        <dt>Supplier</dt>      <dd>{{ p.supplierName }}</dd>
+        <dt>Store</dt>         <dd>{{ p.storeName }}</dd>
+        <dt>Mode</dt>          <dd>{{ modeLabels[p.mode] }}</dd>
+        <dt>Date</dt>          <dd>{{ p.paymentDate | slice:0:10 }}</dd>
+        <dt>Status</dt>        <dd><kl-badge [variant]="statusBadgeVariant()">{{ statusLabels[p.status] }}</kl-badge></dd>
+        @if (p.upiTransactionId) { <dt>UPI Txn ID</dt><dd>{{ p.upiTransactionId }}</dd> }
+        @if (p.upiVpa) { <dt>VPA</dt><dd>{{ p.upiVpa }}</dd> }
+        @if (p.chequeNumber) { <dt>Cheque #</dt><dd>{{ p.chequeNumber }}</dd> }
+        @if (p.chequeBank) { <dt>Bank</dt><dd>{{ p.chequeBank }}{{ p.chequeBranch ? ' · ' + p.chequeBranch : '' }}</dd> }
+        @if (p.chequeDate) { <dt>Cheque Date</dt><dd>{{ p.chequeDate | slice:0:10 }}</dd> }
+        @if (p.neftImpsRef) { <dt>Ref #</dt><dd>{{ p.neftImpsRef }}</dd> }
+        @if (p.bankName) { <dt>Bank</dt><dd>{{ p.bankName }}</dd> }
+        @if (p.valueDate) { <dt>Value Date</dt><dd>{{ p.valueDate | slice:0:10 }}</dd> }
+        @if (p.notes) { <dt>Notes</dt><dd>{{ p.notes }}</dd> }
+        @if (p.verifiedAt) { <dt>Verified At</dt><dd>{{ p.verifiedAt | slice:0:10 }}</dd> }
+        @if (p.reversedAt) { <dt>Reversed At</dt><dd style="color:#DC2626;">{{ p.reversedAt | slice:0:10 }} — {{ p.reversalReason }}</dd> }
+      </dl>
     </div>
-  </kl-card>
+
+    <!-- Right: KPI pills + tabs + content -->
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+      <!-- KPI pills -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Total Paid</div>
+          <div class="kl-stat-pill-val">₹{{ fmt(p.amountPaid) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Allocated</div>
+          <div class="kl-stat-pill-val">₹{{ fmt(p.amountAllocated) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Unallocated</div>
+          <div class="kl-stat-pill-val" [style.color]="p.unallocatedAmount > 0 ? '#92400E' : '#166534'">₹{{ fmt(p.unallocatedAmount) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Allocations</div>
+          <div class="kl-stat-pill-val">{{ p.allocations.length }}</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="kl-tabs" style="margin-top:0;">
+        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="activeTab.set('details')">Details</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='allocations'" (click)="activeTab.set('allocations')">
+          Allocations<span class="kl-count">{{ p.allocations.length }}</span>
+        </button>
+      </div>
+
+      <!-- Details tab -->
+      @if (activeTab() === 'details') {
+        <kl-card title="Payment Details">
+          <dl class="kl-dl">
+            <dt>Supplier</dt>      <dd>{{ p.supplierName }}</dd>
+            <dt>Store</dt>         <dd>{{ p.storeName }}</dd>
+            <dt>Mode</dt>          <dd>{{ modeLabels[p.mode] }}</dd>
+            <dt>Date</dt>          <dd>{{ p.paymentDate | slice:0:10 }}</dd>
+            @if (p.upiTransactionId) { <dt>UPI Txn ID</dt><dd>{{ p.upiTransactionId }}</dd> }
+            @if (p.upiVpa) { <dt>VPA</dt><dd>{{ p.upiVpa }}</dd> }
+            @if (p.chequeNumber) { <dt>Cheque #</dt><dd>{{ p.chequeNumber }}</dd> }
+            @if (p.chequeBank) { <dt>Bank</dt><dd>{{ p.chequeBank }}{{ p.chequeBranch ? ' · ' + p.chequeBranch : '' }}</dd> }
+            @if (p.chequeDate) { <dt>Cheque Date</dt><dd>{{ p.chequeDate | slice:0:10 }}</dd> }
+            @if (p.neftImpsRef) { <dt>Ref #</dt><dd>{{ p.neftImpsRef }}</dd> }
+            @if (p.bankName) { <dt>Bank</dt><dd>{{ p.bankName }}</dd> }
+            @if (p.valueDate) { <dt>Value Date</dt><dd>{{ p.valueDate | slice:0:10 }}</dd> }
+            @if (p.notes) { <dt>Notes</dt><dd>{{ p.notes }}</dd> }
+            @if (p.verifiedAt) { <dt>Verified At</dt><dd>{{ p.verifiedAt | slice:0:10 }}</dd> }
+            @if (p.reversedAt) { <dt>Reversed At</dt><dd style="color:#DC2626;">{{ p.reversedAt | slice:0:10 }} — {{ p.reversalReason }}</dd> }
+          </dl>
+        </kl-card>
+
+        <kl-card title="Amount Summary">
+          <dl class="kl-dl">
+            <dt>Total Paid</dt>    <dd style="font-weight:700; font-size:18px;">₹{{ fmt(p.amountPaid) }}</dd>
+            <dt>Allocated</dt>     <dd>₹{{ fmt(p.amountAllocated) }}</dd>
+            <dt style="font-weight:600;">Unallocated</dt>
+            <dd style="font-weight:700;" [style.color]="p.unallocatedAmount > 0 ? '#92400E' : '#166534'">₹{{ fmt(p.unallocatedAmount) }}</dd>
+          </dl>
+        </kl-card>
+      }
+
+      <!-- Allocations tab -->
+      @if (activeTab() === 'allocations') {
+        <kl-card>
+          <div class="kl-table-wrap">
+            <table class="kl-table">
+              <thead>
+                <tr>
+                  <th>Purchase Ref</th>
+                  <th>Invoice #</th>
+                  <th style="text-align:right;">Allocated (₹)</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (p.allocations.length === 0) {
+                  <tr><td colspan="5" style="text-align:center; padding:24px; color:#6B7A6E;">No allocations yet.</td></tr>
+                } @else {
+                  @for (a of p.allocations; track a.id) {
+                    <tr class="kl-row-link" [routerLink]="['/purchase/purchases', a.purchaseId]">
+                      <td>{{ a.purchaseRef }}</td>
+                      <td class="kl-fg-3">{{ a.supplierInvoiceNumber ?? '—' }}</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(a.allocatedAmount) }}</td>
+                      <td class="kl-fg-3">{{ a.allocatedAt | slice:0:10 }}</td>
+                      <td>
+                        @if (a.isReversed) { <kl-badge variant="neutral">Reversed</kl-badge> }
+                        @else { <kl-badge variant="success">Applied</kl-badge> }
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </kl-card>
+      }
+
+    </div>
+  </div>
+
+  <!-- Edit drawer -->
+  <app-payment-add
+    [open]="drawerOpen()"
+    [paymentId]="paymentIdForEdit()"
+    (close)="drawerOpen.set(false)"
+    (saved)="reloadAfterSave()" />
 }
 
 <!-- Verify dialog -->

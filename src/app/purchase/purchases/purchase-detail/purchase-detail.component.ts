@@ -5,6 +5,7 @@ import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { PurchaseAddComponent } from '../purchase-add/purchase-add.component';
 import { PurchaseService } from '@services/purchase.service';
 import { UserService } from '@services/user.service';
 import {
@@ -17,7 +18,7 @@ import {
 @Component({
   selector: 'app-purchase-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent, PurchaseAddComponent],
   templateUrl: './purchase-detail.component.html',
   styleUrls: ['./purchase-detail.component.scss'],
 })
@@ -31,6 +32,9 @@ export class PurchaseDetailComponent implements OnInit {
   purchase = signal<PurchaseDetailDto | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+  activeTab = signal<'details' | 'items' | 'allocations'>('details');
+  drawerOpen = signal(false);
+  purchaseIdForEdit = signal<string | null>(null);
 
   // Cancel dialog
   showCancelDialog = signal(false);
@@ -55,6 +59,11 @@ export class PurchaseDetailComponent implements OnInit {
       next: (p) => { this.purchase.set(p); this.loading.set(false); },
       error: () => { this.error.set('Failed to load purchase.'); this.loading.set(false); },
     });
+  }
+
+  reloadAfterSave(): void {
+    this.drawerOpen.set(false);
+    this.load();
   }
 
   get p(): PurchaseDetailDto { return this.purchase()!; }
@@ -100,6 +109,12 @@ export class PurchaseDetailComponent implements OnInit {
           this.cancelError.set(err.error?.detail ?? 'Failed to cancel purchase.');
         },
       });
+  }
+
+  shortId(id: string): string { return id.slice(0, 8) + '…'; }
+
+  initials(name: string): string {
+    return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
 
   fmt(n: number): string {

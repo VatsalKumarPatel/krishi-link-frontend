@@ -13,6 +13,8 @@
     }
 
     <div class="kl-form">
+
+      <!-- Supplier Details -->
       <div class="kl-form-row">
         <div class="kl-form-group">
           <label class="kl-label" for="name">Supplier Name <span style="color:#DC2626;">*</span></label>
@@ -35,9 +37,9 @@
             [value]="contactPerson()" (input)="contactPerson.set($any($event.target).value)" placeholder="e.g. Ramesh Sharma" />
         </div>
         <div class="kl-form-group">
-          <label class="kl-label" for="phone">Phone Number</label>
+          <label class="kl-label" for="phone">Phone</label>
           <input id="phone" class="kl-input" type="tel"
-            [value]="phoneNumber()" (input)="phoneNumber.set($any($event.target).value)" placeholder="+91 98765 43210" />
+            [value]="phone()" (input)="phone.set($any($event.target).value)" placeholder="+91 98765 43210" />
         </div>
       </div>
 
@@ -54,22 +56,56 @@
         </div>
       </div>
 
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="pan">PAN</label>
+          <input id="pan" class="kl-input" maxlength="10" style="text-transform:uppercase;"
+            [value]="pan()" (input)="pan.set($any($event.target).value.toUpperCase())" placeholder="AABCU9603R" />
+        </div>
+      </div>
+
+      <!-- Address -->
       <div class="kl-form-group">
-        <label class="kl-label" for="address">Address</label>
-        <textarea id="address" class="kl-input" rows="3"
-          [value]="address()" (input)="address.set($any($event.target).value)" placeholder="Registered address"></textarea>
+        <label class="kl-label" for="addressLine1">Address Line 1</label>
+        <input id="addressLine1" class="kl-input" maxlength="200"
+          [value]="addressLine1()" (input)="addressLine1.set($any($event.target).value)" placeholder="Street / Door no." />
+      </div>
+
+      <div class="kl-form-group">
+        <label class="kl-label" for="addressLine2">Address Line 2</label>
+        <input id="addressLine2" class="kl-input" maxlength="200"
+          [value]="addressLine2()" (input)="addressLine2.set($any($event.target).value)" placeholder="Area / Landmark (optional)" />
       </div>
 
       <div class="kl-form-row">
         <div class="kl-form-group">
-          <label class="kl-label" for="credit">Credit Limit from Supplier (₹)</label>
-          <input id="credit" class="kl-input" type="number" min="0" step="0.01"
-            [value]="creditLimitFromSupplier()" (input)="creditLimitFromSupplier.set(+$any($event.target).value)" />
+          <label class="kl-label" for="city">City</label>
+          <input id="city" class="kl-input" maxlength="100"
+            [value]="city()" (input)="city.set($any($event.target).value)" placeholder="City" />
         </div>
         <div class="kl-form-group">
-          <label class="kl-label" for="terms">Payment Terms (Days)</label>
+          <label class="kl-label" for="state">State</label>
+          <input id="state" class="kl-input" maxlength="100"
+            [value]="state()" (input)="state.set($any($event.target).value)" placeholder="State" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="pincode">Pincode</label>
+          <input id="pincode" class="kl-input" maxlength="10"
+            [value]="pincode()" (input)="pincode.set($any($event.target).value)" placeholder="600001" />
+        </div>
+      </div>
+
+      <!-- Financial Terms -->
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label class="kl-label" for="credit">Credit Limit (₹)</label>
+          <input id="credit" class="kl-input" type="number" min="0" step="0.01"
+            [value]="creditLimitAmount()" (input)="creditLimitAmount.set(+$any($event.target).value)" />
+        </div>
+        <div class="kl-form-group">
+          <label class="kl-label" for="terms">Credit Days</label>
           <input id="terms" class="kl-input" type="number" min="0"
-            [value]="paymentTermsDays()" (input)="paymentTermsDays.set(+$any($event.target).value)" />
+            [value]="creditDays()" (input)="creditDays.set(+$any($event.target).value)" />
           <div class="kl-field-hint">Used to pre-fill due date on purchases</div>
         </div>
       </div>

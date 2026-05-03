@@ -26,8 +26,8 @@
         <input class="kl-input" [(ngModel)]="form.contactPerson" name="contactPerson" maxlength="100" placeholder="e.g. Ramesh Sharma" />
       </div>
       <div>
-        <label class="kl-form-label">Phone Number</label>
-        <input class="kl-input" [(ngModel)]="form.phoneNumber" name="phoneNumber" type="tel" placeholder="+91 98765 43210" />
+        <label class="kl-form-label">Phone</label>
+        <input class="kl-input" [(ngModel)]="form.phone" name="phone" type="tel" placeholder="+91 98765 43210" />
       </div>
       <div>
         <label class="kl-form-label">Email</label>
@@ -37,20 +37,43 @@
         <label class="kl-form-label">GSTIN</label>
         <input class="kl-input" [(ngModel)]="form.gstin" name="gstin" maxlength="15" placeholder="27AABCU9603R1ZX" />
       </div>
+      <div>
+        <label class="kl-form-label">PAN</label>
+        <input class="kl-input" [(ngModel)]="form.pan" name="pan" maxlength="10" style="text-transform:uppercase;" placeholder="AABCU9603R" />
+      </div>
+
+      <!-- Address -->
+      <div class="kl-form-section">Address</div>
       <div class="full">
-        <label class="kl-form-label">Address</label>
-        <textarea class="kl-input" [(ngModel)]="form.address" name="address" rows="3" placeholder="Registered address"></textarea>
+        <label class="kl-form-label">Address Line 1</label>
+        <input class="kl-input" [(ngModel)]="form.addressLine1" name="addressLine1" maxlength="200" placeholder="Street / Door no." />
+      </div>
+      <div class="full">
+        <label class="kl-form-label">Address Line 2</label>
+        <input class="kl-input" [(ngModel)]="form.addressLine2" name="addressLine2" maxlength="200" placeholder="Area / Landmark (optional)" />
+      </div>
+      <div>
+        <label class="kl-form-label">City</label>
+        <input class="kl-input" [(ngModel)]="form.city" name="city" maxlength="100" placeholder="City" />
+      </div>
+      <div>
+        <label class="kl-form-label">State</label>
+        <input class="kl-input" [(ngModel)]="form.state" name="state" maxlength="100" placeholder="State" />
+      </div>
+      <div>
+        <label class="kl-form-label">Pincode</label>
+        <input class="kl-input" [(ngModel)]="form.pincode" name="pincode" maxlength="10" placeholder="600001" />
       </div>
 
       <!-- Financial Terms -->
       <div class="kl-form-section">Financial Terms</div>
       <div>
-        <label class="kl-form-label">Credit Limit from Supplier (₹)</label>
-        <input class="kl-input" [(ngModel)]="form.creditLimitFromSupplier" name="creditLimitFromSupplier" type="number" min="0" step="0.01" />
+        <label class="kl-form-label">Credit Limit (₹)</label>
+        <input class="kl-input" [(ngModel)]="form.creditLimitAmount" name="creditLimitAmount" type="number" min="0" step="0.01" />
       </div>
       <div>
-        <label class="kl-form-label">Payment Terms (Days)</label>
-        <input class="kl-input" [(ngModel)]="form.paymentTermsDays" name="paymentTermsDays" type="number" min="0" />
+        <label class="kl-form-label">Credit Days</label>
+        <input class="kl-input" [(ngModel)]="form.creditDays" name="creditDays" type="number" min="0" />
         <span class="kl-form-hint">Used to pre-fill due date on purchases</span>
       </div>
 

@@ -6,26 +6,32 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
 import { SupplierService } from '@services/supplier.service';
 import { ToastService } from '@services/toast.service';
-import { SupplierDto, CreateSupplierCommand } from '@models/supplier.model';
+import { SupplierDto, CreateSupplierCommand, UpdateSupplierCommand } from '@models/supplier.model';
 
 interface SupplierForm {
   name: string;
   code: string;
   contactPerson: string;
-  phoneNumber: string;
+  phone: string;
   email: string;
   gstin: string;
-  address: string;
-  creditLimitFromSupplier: number;
-  paymentTermsDays: number;
+  pan: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  creditLimitAmount: number;
+  creditDays: number;
   isActive: boolean;
 }
 
 function emptyForm(): SupplierForm {
   return {
-    name: '', code: '', contactPerson: '', phoneNumber: '',
-    email: '', gstin: '', address: '',
-    creditLimitFromSupplier: 0, paymentTermsDays: 0, isActive: true,
+    name: '', code: '', contactPerson: '', phone: '',
+    email: '', gstin: '', pan: '',
+    addressLine1: '', addressLine2: '', city: '', state: '', pincode: '',
+    creditLimitAmount: 0, creditDays: 0, isActive: true,
   };
 }
 
@@ -34,12 +40,17 @@ function supplierToForm(s: SupplierDto): SupplierForm {
     name: s.name,
     code: s.code,
     contactPerson: s.contactPerson ?? '',
-    phoneNumber: s.phoneNumber ?? '',
+    phone: s.phone ?? '',
     email: s.email ?? '',
     gstin: s.gstin ?? '',
-    address: s.address ?? '',
-    creditLimitFromSupplier: s.creditLimitFromSupplier,
-    paymentTermsDays: s.paymentTermsDays,
+    pan: s.pan ?? '',
+    addressLine1: s.addressLine1 ?? '',
+    addressLine2: s.addressLine2 ?? '',
+    city: s.city ?? '',
+    state: s.state ?? '',
+    pincode: s.pincode ?? '',
+    creditLimitAmount: s.creditLimitAmount,
+    creditDays: s.creditDays,
     isActive: s.isActive,
   };
 }
@@ -113,17 +124,21 @@ export class SupplierAddComponent implements OnChanges {
     this.saving = true;
     this.saveError = null;
 
-    const cmd: CreateSupplierCommand = {
+    const base = {
       name: this.form.name.trim(),
       code: this.form.code.trim().toUpperCase(),
       contactPerson: this.form.contactPerson.trim() || null,
-      phoneNumber: this.form.phoneNumber.trim() || null,
+      phone: this.form.phone.trim() || null,
       email: this.form.email.trim() || null,
       gstin: this.form.gstin.trim() || null,
-      address: this.form.address.trim() || null,
-      creditLimitFromSupplier: this.form.creditLimitFromSupplier,
-      paymentTermsDays: this.form.paymentTermsDays,
-      isActive: this.form.isActive,
+      pan: this.form.pan.trim() || null,
+      addressLine1: this.form.addressLine1.trim() || null,
+      addressLine2: this.form.addressLine2.trim() || null,
+      city: this.form.city.trim() || null,
+      state: this.form.state.trim() || null,
+      pincode: this.form.pincode.trim() || null,
+      creditLimitAmount: this.form.creditLimitAmount,
+      creditDays: this.form.creditDays,
     };
 
     const onError = (err: { error?: { detail?: string; message?: string } }) => {
@@ -133,6 +148,7 @@ export class SupplierAddComponent implements OnChanges {
     };
 
     if (this.isEdit) {
+      const cmd: UpdateSupplierCommand = { ...base, isActive: this.form.isActive };
       this.supplierService.update(this.supplierId!, cmd)
         .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
@@ -143,6 +159,7 @@ export class SupplierAddComponent implements OnChanges {
           error: onError,
         });
     } else {
+      const cmd: CreateSupplierCommand = base;
       this.supplierService.create(cmd)
         .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {

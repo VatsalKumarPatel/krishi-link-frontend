@@ -1,31 +1,134 @@
+<!-- Loading state -->
 @if (loading()) {
-  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
-} @else if (error()) {
-  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
-} @else if (batch()) {
   <div class="kl-page-header" style="align-items:center;">
+    <div class="animate-pulse bg-bg-muted rounded h-6 w-48"></div>
+  </div>
+  <div class="kl-detail-grid">
+    <div class="kl-card" style="padding:24px;">
+      <div class="animate-pulse bg-bg-muted rounded-full" style="width:56px;height:56px;margin-bottom:16px;"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-5 w-40 mb-2"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-4 w-32 mb-6"></div>
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+      }
+    </div>
     <div>
-      <a routerLink="/purchase/batches" class="kl-link" style="font-size:13px;">← Batches</a>
-      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px;">{{ batch()!.batchNumber }}</h2>
-      <div class="kl-fg-3" style="font-size:12px;">{{ batch()!.productName }}</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        @for (i of [1,2,3]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded-md" style="width:90px;height:56px;"></div>
+        }
+      </div>
+      <div class="kl-card" style="padding:24px;">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+        }
+      </div>
     </div>
   </div>
-  <kl-card>
-    <dl class="kl-dl">
-      <dt>Product</dt><dd>{{ batch()!.productName }}</dd>
-      <dt>Supplier</dt><dd>{{ batch()!.supplierName }}</dd>
-      <dt>Expiry Date</dt>
-      <dd [style.color]="isExpired() ? '#DC2626' : ''">{{ batch()!.expiryDate | slice:0:10 }}
-        @if (isExpired()) { <kl-badge variant="danger" style="margin-left:6px;">Expired</kl-badge> }
-      </dd>
-      @if (batch()!.manufactureDate) { <dt>Manufacture Date</dt><dd>{{ batch()!.manufactureDate! | slice:0:10 }}</dd> }
-      <dt>Received Qty</dt><dd>{{ fmt(batch()!.quantityReceivedInBase) }}</dd>
-      <dt>Available Qty</dt><dd>{{ fmt(batch()!.quantityAvailableInBase) }}</dd>
-      <dt>Cost Price / Unit</dt><dd>₹{{ fmt(batch()!.costPricePerUnit) }}</dd>
-      <dt>Status</dt><dd>
-        @if (!batch()!.isActive) { <kl-badge variant="neutral">Depleted</kl-badge> }
-        @else { <kl-badge variant="success">Active</kl-badge> }
-      </dd>
-    </dl>
-  </kl-card>
+}
+
+<!-- Error state -->
+@if (!loading() && error()) {
+  <div style="padding:48px; text-align:center; color:#6B7A6E;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#C0392B;">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div style="font-weight:600; color:#445245; margin-bottom:4px;">{{ error() }}</div>
+  </div>
+}
+
+<!-- Loaded state -->
+@if (!loading() && !error() && batch(); as b) {
+
+  <!-- Breadcrumb + header -->
+  <div class="kl-page-header" style="align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <a routerLink="/purchase/batches" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="kl-crumbs" style="margin:0;">
+        <a routerLink="/purchase/batches">Batches</a>
+        <span class="sep">/</span>
+        <span>{{ b.batchNumber }}</span>
+        @if (isExpired()) {
+          <kl-badge variant="danger" style="margin-left:4px;">Expired</kl-badge>
+        } @else if (b.isActive) {
+          <kl-badge variant="success" style="margin-left:4px;">Active</kl-badge>
+        } @else {
+          <kl-badge variant="neutral" style="margin-left:4px;">Depleted</kl-badge>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail grid -->
+  <div class="kl-detail-grid">
+
+    <!-- Left: batch summary card -->
+    <div class="kl-card">
+      <div class="kl-detail-header">
+        <div class="kl-avatar-lg">{{ initials(b.productName) }}</div>
+        <div>
+          <div class="kl-detail-name" [title]="b.batchNumber">{{ b.batchNumber }}</div>
+          <div class="kl-detail-meta">
+            <span>{{ b.productName }}</span>
+            <span>·</span>
+            <span>{{ b.supplierName }}</span>
+          </div>
+        </div>
+      </div>
+      <dl class="kl-dl">
+        <dt>Product</dt>           <dd>{{ b.productName }}</dd>
+        <dt>Supplier</dt>          <dd>{{ b.supplierName }}</dd>
+        <dt>Expiry Date</dt>
+        <dd [style.color]="isExpired() ? '#DC2626' : ''">
+          {{ b.expiryDate | slice:0:10 }}
+          @if (isExpired()) { <kl-badge variant="danger" style="margin-left:6px;">Expired</kl-badge> }
+        </dd>
+        @if (b.manufactureDate) { <dt>Mfr. Date</dt><dd>{{ b.manufactureDate | slice:0:10 }}</dd> }
+        <dt>Status</dt>
+        <dd>
+          @if (isExpired()) { <kl-badge variant="danger">Expired</kl-badge> }
+          @else if (b.isActive) { <kl-badge variant="success">Active</kl-badge> }
+          @else { <kl-badge variant="neutral">Depleted</kl-badge> }
+        </dd>
+      </dl>
+    </div>
+
+    <!-- Right: KPI pills + details -->
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+      <!-- KPI pills -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Received</div>
+          <div class="kl-stat-pill-val">{{ fmt(b.quantityReceivedInBase) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Available</div>
+          <div class="kl-stat-pill-val">{{ fmt(b.quantityAvailableInBase) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Cost / Unit</div>
+          <div class="kl-stat-pill-val">₹{{ fmt(b.costPricePerUnit) }}</div>
+        </div>
+      </div>
+
+      <!-- Batch details card -->
+      <kl-card title="Batch Details">
+        <dl class="kl-dl">
+          <dt>Batch Number</dt>      <dd>{{ b.batchNumber }}</dd>
+          <dt>Product</dt>           <dd>{{ b.productName }}</dd>
+          <dt>Supplier</dt>          <dd>{{ b.supplierName }}</dd>
+          <dt>Expiry Date</dt>
+          <dd [style.color]="isExpired() ? '#DC2626' : ''">{{ b.expiryDate | slice:0:10 }}</dd>
+          @if (b.manufactureDate) { <dt>Mfr. Date</dt><dd>{{ b.manufactureDate | slice:0:10 }}</dd> }
+          <dt>Received Qty</dt>      <dd>{{ fmt(b.quantityReceivedInBase) }}</dd>
+          <dt>Available Qty</dt>     <dd>{{ fmt(b.quantityAvailableInBase) }}</dd>
+          <dt>Cost Price / Unit</dt> <dd>₹{{ fmt(b.costPricePerUnit) }}</dd>
+        </dl>
+      </kl-card>
+
+    </div>
+  </div>
 }

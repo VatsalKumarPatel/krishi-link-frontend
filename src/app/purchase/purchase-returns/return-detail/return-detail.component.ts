@@ -4,6 +4,7 @@ import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { ReturnAddComponent } from '../return-add/return-add.component';
 import { PurchaseReturnService } from '@services/purchase-return.service';
 import { UserService } from '@services/user.service';
 import { PurchaseReturnDetailDto, PurchaseReturnStatus, RETURN_STATUS_LABELS } from '@models/purchase-return.model';
@@ -11,7 +12,7 @@ import { PurchaseReturnDetailDto, PurchaseReturnStatus, RETURN_STATUS_LABELS } f
 @Component({
   selector: 'app-return-detail',
   standalone: true,
-  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, SlicePipe, KlCardComponent, BadgeComponent, ReturnAddComponent],
   templateUrl: './return-detail.component.html',
   styleUrls: ['./return-detail.component.scss'],
 })
@@ -25,6 +26,9 @@ export class ReturnDetailComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   acting = signal(false);
+  activeTab = signal<'details' | 'items'>('details');
+  drawerOpen = signal(false);
+  returnIdForEdit = signal<string | null>(null);
 
   readonly statusLabels = RETURN_STATUS_LABELS;
   readonly PurchaseReturnStatus = PurchaseReturnStatus;
@@ -41,6 +45,11 @@ export class ReturnDetailComponent implements OnInit {
       next: (r) => { this.ret.set(r); this.loading.set(false); },
       error: () => { this.error.set('Failed to load return.'); this.loading.set(false); },
     });
+  }
+
+  reloadAfterSave(): void {
+    this.drawerOpen.set(false);
+    this.load();
   }
 
   isStoreManager(): boolean {

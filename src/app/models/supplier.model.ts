@@ -3,12 +3,17 @@ export interface SupplierDto {
   name: string;
   code: string;
   contactPerson: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
   email: string | null;
   gstin: string | null;
-  address: string | null;
-  creditLimitFromSupplier: number;
-  paymentTermsDays: number;
+  pan: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  creditLimitAmount: number;
+  creditDays: number;
   lastPurchasePrice: number | null;
   lastPurchasedAt: string | null;
   isActive: boolean;
@@ -45,25 +50,34 @@ export interface CreateSupplierCommand {
   name: string;
   code: string;
   contactPerson: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
   email: string | null;
   gstin: string | null;
-  address: string | null;
-  creditLimitFromSupplier: number;
-  paymentTermsDays: number;
-  isActive: boolean;
+  pan: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  creditLimitAmount: number;
+  creditDays: number;
 }
 
 export interface UpdateSupplierCommand {
   name: string;
   code: string;
   contactPerson: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
   email: string | null;
   gstin: string | null;
-  address: string | null;
-  creditLimitFromSupplier: number;
-  paymentTermsDays: number;
+  pan: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  creditLimitAmount: number;
+  creditDays: number;
   isActive: boolean;
 }
 

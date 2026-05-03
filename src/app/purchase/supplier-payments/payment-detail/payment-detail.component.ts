@@ -5,6 +5,7 @@ import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
 import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { PaymentAddComponent } from '../payment-add/payment-add.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
 import { UserService } from '@services/user.service';
 import {
@@ -18,7 +19,7 @@ import {
 @Component({
   selector: 'app-payment-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent],
+  imports: [RouterLink, FormsModule, SlicePipe, KlCardComponent, BadgeComponent, PaymentAddComponent],
   templateUrl: './payment-detail.component.html',
   styleUrls: ['./payment-detail.component.scss'],
 })
@@ -31,6 +32,9 @@ export class PaymentDetailComponent implements OnInit {
   payment = signal<SupplierPaymentDetailDto | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+  activeTab = signal<'details' | 'allocations'>('details');
+  drawerOpen = signal(false);
+  paymentIdForEdit = signal<string | null>(null);
 
   // Dialogs
   showBounceDialog = signal(false);
@@ -59,6 +63,11 @@ export class PaymentDetailComponent implements OnInit {
       next: (p) => { this.payment.set(p); this.loading.set(false); },
       error: () => { this.error.set('Failed to load payment.'); this.loading.set(false); },
     });
+  }
+
+  reloadAfterSave(): void {
+    this.drawerOpen.set(false);
+    this.load();
   }
 
   isStoreManager(): boolean {
@@ -122,6 +131,15 @@ export class PaymentDetailComponent implements OnInit {
 
   closeDialogs(): void {
     this.showBounceDialog.set(false); this.showReverseDialog.set(false); this.showVerifyDialog.set(false);
+  }
+
+  initials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }
+
+  statusBadgeVariant(): 'neutral' | 'warning' | 'success' | 'danger' {
+    const s = this.payment()?.status;
+    if (s === SupplierPaymentStatus.Reversed) return 'danger';
+    if (s === SupplierPaymentStatus.Recorded) return 'warning';
+    return 'success';
   }
 
   fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }

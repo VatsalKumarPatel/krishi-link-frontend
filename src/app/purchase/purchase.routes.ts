@@ -36,13 +36,6 @@ export const purchaseRoutes: Routes = [
       import('./purchases/purchase-list/purchase-list.component').then(m => m.PurchaseListComponent),
   },
   {
-    path: 'purchases/new',
-    canActivate: [authGuard],
-    data: { title: 'New Purchase', subtitle: 'Create a purchase draft', excludeSuperAdmin: true },
-    loadComponent: () =>
-      import('./purchases/purchase-form/purchase-form.component').then(m => m.PurchaseFormComponent),
-  },
-  {
     path: 'purchases/:id',
     canActivate: [authGuard],
     data: { title: 'Purchase Detail', subtitle: '', excludeSuperAdmin: true },
@@ -66,13 +59,6 @@ export const purchaseRoutes: Routes = [
       import('./purchase-returns/return-list/return-list.component').then(m => m.ReturnListComponent),
   },
   {
-    path: 'purchase-returns/new',
-    canActivate: [authGuard],
-    data: { title: 'New Return', subtitle: 'Create a purchase return', excludeSuperAdmin: true },
-    loadComponent: () =>
-      import('./purchase-returns/return-form/return-form.component').then(m => m.ReturnFormComponent),
-  },
-  {
     path: 'purchase-returns/:id',
     canActivate: [authGuard],
     data: { title: 'Return Detail', subtitle: '', excludeSuperAdmin: true },
@@ -87,13 +73,6 @@ export const purchaseRoutes: Routes = [
     data: { title: 'Supplier Payments', subtitle: 'Payments made to suppliers', excludeSuperAdmin: true },
     loadComponent: () =>
       import('./supplier-payments/payment-list/payment-list.component').then(m => m.PaymentListComponent),
-  },
-  {
-    path: 'supplier-payments/new',
-    canActivate: [authGuard],
-    data: { title: 'Record Payment', subtitle: 'Record a supplier payment', excludeSuperAdmin: true },
-    loadComponent: () =>
-      import('./supplier-payments/payment-form/payment-form.component').then(m => m.PaymentFormComponent),
   },
   {
     path: 'supplier-payments/:id',

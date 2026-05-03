@@ -1,22 +1,68 @@
+<!-- Loading state -->
 @if (loading()) {
-  <div style="padding:40px; text-align:center; color:#6B7A6E;">Loading…</div>
-} @else if (error()) {
-  <div style="padding:20px; background:#FEF2F2; border-radius:8px; color:#991B1B;">{{ error() }}</div>
-} @else if (purchase()) {
-  <!-- Header -->
-  <div class="kl-page-header" style="align-items:flex-start; flex-wrap:wrap; gap:12px;">
+  <div class="kl-page-header" style="align-items:center;">
+    <div class="animate-pulse bg-bg-muted rounded h-6 w-48"></div>
+    <div style="display:flex; gap:8px;">
+      <div class="animate-pulse bg-bg-muted rounded-md h-9 w-28"></div>
+    </div>
+  </div>
+  <div class="kl-detail-grid">
+    <div class="kl-card" style="padding:24px;">
+      <div class="animate-pulse bg-bg-muted rounded-full" style="width:56px;height:56px;margin-bottom:16px;"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-5 w-40 mb-2"></div>
+      <div class="animate-pulse bg-bg-muted rounded h-4 w-32 mb-6"></div>
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+      }
+    </div>
     <div>
-      <a routerLink="/purchase/purchases" class="kl-link" style="font-size:13px;">← Purchases</a>
-      <h2 style="font-family:'Fraunces',serif; font-size:20px; margin:4px 0 2px; color:#1A2B1C;">{{ p.purchaseRef }}</h2>
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <kl-badge [variant]="statusBadge[p.status]">{{ statusLabels[p.status] }}</kl-badge>
-        @if (isOverdue()) { <kl-badge variant="danger">Overdue</kl-badge> }
-        <span class="kl-fg-3" style="font-size:12px;">{{ p.supplierName }} · {{ p.storeName }}</span>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded-md" style="width:90px;height:56px;"></div>
+        }
+      </div>
+      <div class="kl-card" style="padding:24px;">
+        @for (i of [1,2,3]; track i) {
+          <div class="animate-pulse bg-bg-muted rounded h-4 w-full mb-3"></div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error state -->
+@if (!loading() && error()) {
+  <div style="padding:48px; text-align:center; color:#6B7A6E;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px; display:block; color:#C0392B;">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div style="font-weight:600; color:#445245; margin-bottom:4px;">{{ error() }}</div>
+    <button class="kl-btn kl-btn-secondary" style="margin-top:12px;" (click)="load()">Retry</button>
+  </div>
+}
+
+<!-- Loaded state -->
+@if (!loading() && !error() && purchase(); as p) {
+
+  <!-- Breadcrumb + header -->
+  <div class="kl-page-header" style="align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <a routerLink="/purchase/purchases" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="kl-crumbs" style="margin:0;">
+        <a routerLink="/purchase/purchases">Purchases</a>
+        <span class="sep">/</span>
+        <span>{{ p.purchaseRef }}</span>
+        <span class="sep">·</span>
+        <code class="kl-mono" [title]="p.id">{{ shortId(p.id) }}</code>
+        <kl-badge [variant]="statusBadge[p.status]" style="margin-left:4px;">{{ statusLabels[p.status] }}</kl-badge>
+        @if (isOverdue()) { <kl-badge variant="danger" style="margin-left:4px;">Overdue</kl-badge> }
       </div>
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       @if (canReceive()) {
-        <a [routerLink]="['/purchase/purchases', p.id, 'receive']" class="kl-btn kl-btn-primary">Receive & Invoice</a>
+        <a [routerLink]="['/purchase/purchases', p.id, 'receive']" class="kl-btn kl-btn-primary">Receive &amp; Invoice</a>
       }
       @if (canPayment()) {
         <a [routerLink]="['/purchase/supplier-payments/new']" [queryParams]="{supplierId: p.supplierId, purchaseId: p.id}" class="kl-btn kl-btn-secondary">Record Payment</a>
@@ -27,157 +73,243 @@
       @if (canCancel()) {
         <button class="kl-btn kl-btn-secondary" style="color:#DC2626; border-color:#DC2626;" (click)="showCancelDialog.set(true)">Cancel</button>
       }
+      @if (canEdit()) {
+        <button class="kl-btn kl-btn-primary" (click)="purchaseIdForEdit.set(p.id); drawerOpen.set(true)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          </svg>
+          Edit
+        </button>
+      }
     </div>
   </div>
 
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-    <!-- Purchase info -->
-    <kl-card>
-      <div style="font-weight:600; margin-bottom:12px;">Purchase Information</div>
+  <!-- Detail grid -->
+  <div class="kl-detail-grid">
+
+    <!-- Left: purchase summary card -->
+    <div class="kl-card">
+      <div class="kl-detail-header">
+        <div class="kl-avatar-lg">{{ initials(p.supplierName) }}</div>
+        <div>
+          <div class="kl-detail-name" [title]="p.purchaseRef">{{ p.purchaseRef }}</div>
+          <div class="kl-detail-meta">
+            <span>{{ p.supplierName }}</span>
+            <span>·</span>
+            <span>{{ p.storeName }}</span>
+          </div>
+        </div>
+      </div>
       <dl class="kl-dl">
-        <dt>Supplier</dt><dd>{{ p.supplierName }}</dd>
-        <dt>Store</dt><dd>{{ p.storeName }}</dd>
-        <dt>Purchase Date</dt><dd>{{ p.purchaseDate | slice:0:10 }}</dd>
-        <dt>Invoice #</dt><dd>{{ p.supplierInvoiceNumber ?? '—' }}</dd>
-        <dt>Invoice Date</dt><dd>{{ p.invoiceDate ? (p.invoiceDate | slice:0:10) : '—' }}</dd>
-        <dt>Due Date</dt><dd [style.color]="isOverdue() ? '#DC2626' : ''">{{ p.dueDate ? (p.dueDate | slice:0:10) : '—' }}</dd>
+        <dt>Supplier</dt>      <dd>{{ p.supplierName }}</dd>
+        <dt>Store</dt>         <dd>{{ p.storeName }}</dd>
+        <dt>Purchase Date</dt> <dd>{{ p.purchaseDate | slice:0:10 }}</dd>
+        <dt>Invoice #</dt>     <dd>{{ p.supplierInvoiceNumber ?? '—' }}</dd>
+        <dt>Due Date</dt>
+        <dd [style.color]="isOverdue() ? '#DC2626' : ''">{{ p.dueDate ? (p.dueDate | slice:0:10) : '—' }}</dd>
+        <dt>Status</dt>
+        <dd>
+          <kl-badge [variant]="statusBadge[p.status]">{{ statusLabels[p.status] }}</kl-badge>
+          @if (isOverdue()) { <kl-badge variant="danger" style="margin-left:4px;">Overdue</kl-badge> }
+        </dd>
         @if (p.notes) { <dt>Notes</dt><dd>{{ p.notes }}</dd> }
-        @if (p.cancellationReason) { <dt>Cancel Reason</dt><dd style="color:#DC2626;">{{ p.cancellationReason }}</dd> }
+        @if (p.cancellationReason) { <dt>Cancelled</dt><dd style="color:#DC2626;">{{ p.cancellationReason }}</dd> }
       </dl>
-    </kl-card>
-
-    <!-- GST info -->
-    <kl-card>
-      <div style="font-weight:600; margin-bottom:12px;">Tax Information</div>
-      <dl class="kl-dl">
-        <dt>Seller GSTIN</dt><dd>{{ p.sellerGstin ?? '—' }}</dd>
-        <dt>Buyer GSTIN</dt><dd>{{ p.buyerGstin ?? '—' }}</dd>
-        <dt>Place of Supply</dt><dd>{{ p.placeOfSupply ?? '—' }}</dd>
-        <dt>Transaction Type</dt><dd>{{ p.isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST + SGST)' }}</dd>
-      </dl>
-    </kl-card>
-  </div>
-
-  <!-- Line items -->
-  <kl-card>
-    <div style="font-weight:600; margin-bottom:12px;">Line Items</div>
-    <div class="kl-table-wrap">
-      <table class="kl-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Unit</th>
-            <th style="text-align:right;">Qty</th>
-            <th style="text-align:right;">Rate (₹)</th>
-            <th style="text-align:right;">Disc %</th>
-            <th>HSN</th>
-            <th style="text-align:right;">GST %</th>
-            <th style="text-align:right;">Line Total (₹)</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (p.items.length === 0) {
-            <tr><td colspan="8" style="text-align:center; padding:24px; color:#6B7A6E;">No items.</td></tr>
-          } @else {
-            @for (item of p.items; track item.id) {
-              <tr>
-                <td>{{ item.productName }}
-                  @if (item.batchNumber) { <div class="kl-fg-3" style="font-size:11px;">Batch: {{ item.batchNumber }}{{ item.expiryDate ? ' · Exp: ' + (item.expiryDate | slice:0:10) : '' }}</div> }
-                </td>
-                <td class="kl-fg-3">{{ item.unitName }}</td>
-                <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ item.quantity }}</td>
-                <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(item.ratePerUnit) }}</td>
-                <td style="text-align:right;">{{ item.discountPercent > 0 ? item.discountPercent + '%' : '—' }}</td>
-                <td class="kl-fg-3">{{ item.hsnCode }}</td>
-                <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
-                <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:500;">₹{{ fmt(item.lineTotal) }}</td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
     </div>
 
-    <!-- Totals -->
-    <div style="border-top:1px solid #E5E7EB; padding:16px 20px 8px;">
-      <div style="max-width:300px; margin-left:auto;">
-        <div class="kl-total-row"><span class="kl-fg-3">Sub Total</span><span>₹{{ fmt(p.subTotal) }}</span></div>
-        <div class="kl-total-row"><span class="kl-fg-3">Discount</span><span style="color:#166534;">−₹{{ fmt(p.totalDiscount) }}</span></div>
-        @if (!p.isInterState) {
-          <div class="kl-total-row"><span class="kl-fg-3">CGST</span><span>₹{{ fmt(p.totalCgst) }}</span></div>
-          <div class="kl-total-row"><span class="kl-fg-3">SGST</span><span>₹{{ fmt(p.totalSgst) }}</span></div>
-        } @else {
-          <div class="kl-total-row"><span class="kl-fg-3">IGST</span><span>₹{{ fmt(p.totalIgst) }}</span></div>
+    <!-- Right: KPI pills + tabs + content -->
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+      <!-- KPI pills -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Grand Total</div>
+          <div class="kl-stat-pill-val">₹{{ fmt(p.totalAmount) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Outstanding</div>
+          <div class="kl-stat-pill-val" [style.color]="p.outstandingAmount > 0 ? '#92400E' : '#166534'">
+            ₹{{ fmt(p.outstandingAmount) }}
+          </div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Paid</div>
+          <div class="kl-stat-pill-val" style="color:#166534;">₹{{ fmt(p.allocatedAmount) }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Items</div>
+          <div class="kl-stat-pill-val">{{ p.items.length }}</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="kl-tabs" style="margin-top:0;">
+        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="activeTab.set('details')">Details</button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='items'" (click)="activeTab.set('items')">
+          Line Items<span class="kl-count">{{ p.items.length }}</span>
+        </button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='allocations'" (click)="activeTab.set('allocations')">
+          Payments<span class="kl-count">{{ p.allocations.length }}</span>
+        </button>
+      </div>
+
+      <!-- Details tab -->
+      @if (activeTab() === 'details') {
+        <kl-card title="Purchase Information">
+          <dl class="kl-dl">
+            <dt>Supplier</dt>        <dd>{{ p.supplierName }}</dd>
+            <dt>Store</dt>           <dd>{{ p.storeName }}</dd>
+            <dt>Purchase Date</dt>   <dd>{{ p.purchaseDate | slice:0:10 }}</dd>
+            <dt>Invoice #</dt>       <dd>{{ p.supplierInvoiceNumber ?? '—' }}</dd>
+            <dt>Invoice Date</dt>    <dd>{{ p.invoiceDate ? (p.invoiceDate | slice:0:10) : '—' }}</dd>
+            <dt>Due Date</dt>
+            <dd [style.color]="isOverdue() ? '#DC2626' : ''">{{ p.dueDate ? (p.dueDate | slice:0:10) : '—' }}</dd>
+            @if (p.notes) { <dt>Notes</dt><dd>{{ p.notes }}</dd> }
+          </dl>
+        </kl-card>
+
+        <kl-card title="Tax Information">
+          <dl class="kl-dl">
+            <dt>Seller GSTIN</dt>     <dd>{{ p.sellerGstin ?? '—' }}</dd>
+            <dt>Buyer GSTIN</dt>      <dd>{{ p.buyerGstin ?? '—' }}</dd>
+            <dt>Place of Supply</dt>  <dd>{{ p.placeOfSupply ?? '—' }}</dd>
+            <dt>Type</dt>             <dd>{{ p.isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST + SGST)' }}</dd>
+          </dl>
+        </kl-card>
+
+        <kl-card title="Totals">
+          <dl class="kl-dl">
+            <dt>Sub Total</dt>  <dd>₹{{ fmt(p.subTotal) }}</dd>
+            <dt>Discount</dt>   <dd style="color:#166534;">−₹{{ fmt(p.totalDiscount) }}</dd>
+            @if (!p.isInterState) {
+              <dt>CGST</dt>     <dd>₹{{ fmt(p.totalCgst) }}</dd>
+              <dt>SGST</dt>     <dd>₹{{ fmt(p.totalSgst) }}</dd>
+            } @else {
+              <dt>IGST</dt>     <dd>₹{{ fmt(p.totalIgst) }}</dd>
+            }
+            <dt style="font-weight:700;">Grand Total</dt>
+            <dd style="font-weight:700;">₹{{ fmt(p.totalAmount) }}</dd>
+          </dl>
+        </kl-card>
+      }
+
+      <!-- Line Items tab -->
+      @if (activeTab() === 'items') {
+        <kl-card>
+          <div class="kl-table-wrap">
+            <table class="kl-table" style="min-width:800px;">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Unit</th>
+                  <th style="text-align:right;">Qty</th>
+                  <th style="text-align:right;">Rate (₹)</th>
+                  <th style="text-align:right;">Disc %</th>
+                  <th>HSN</th>
+                  <th style="text-align:right;">GST %</th>
+                  <th style="text-align:right;">Total (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (p.items.length === 0) {
+                  <tr><td colspan="8" class="sd-empty">No items.</td></tr>
+                } @else {
+                  @for (item of p.items; track item.id) {
+                    <tr>
+                      <td>{{ item.productName }}
+                        @if (item.batchNumber) {
+                          <div class="kl-fg-3" style="font-size:11px;">
+                            Batch: {{ item.batchNumber }}{{ item.expiryDate ? ' · Exp: ' + (item.expiryDate | slice:0:10) : '' }}
+                          </div>
+                        }
+                      </td>
+                      <td class="kl-fg-3">{{ item.unitName }}</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ item.quantity }}</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(item.ratePerUnit) }}</td>
+                      <td style="text-align:right;">{{ item.discountPercent > 0 ? item.discountPercent + '%' : '—' }}</td>
+                      <td class="kl-fg-3">{{ item.hsnCode }}</td>
+                      <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:500;">₹{{ fmt(item.lineTotal) }}</td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </kl-card>
+      }
+
+      <!-- Payments / Allocations tab -->
+      @if (activeTab() === 'allocations') {
+        <kl-card>
+          <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            @if (p.outstandingAmount > 0) {
+              <span style="color:#92400E; font-weight:600; font-size:14px;">Outstanding: ₹{{ fmt(p.outstandingAmount) }}</span>
+            } @else {
+              <kl-badge variant="success">Fully Paid</kl-badge>
+            }
+          </div>
+          <div class="kl-table-wrap">
+            <table class="kl-table">
+              <thead>
+                <tr>
+                  <th>Payment Ref</th>
+                  <th style="text-align:right;">Allocated (₹)</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (p.allocations.length === 0) {
+                  <tr><td colspan="4" class="sd-empty">No payments allocated yet.</td></tr>
+                } @else {
+                  @for (a of p.allocations; track a.id) {
+                    <tr class="kl-row-link" [routerLink]="['/purchase/supplier-payments', a.supplierPaymentId]">
+                      <td>{{ a.paymentRef }}</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(a.allocatedAmount) }}</td>
+                      <td class="kl-fg-3">{{ a.allocatedAt | slice:0:10 }}</td>
+                      <td>
+                        @if (a.isReversed) { <kl-badge variant="neutral">Reversed</kl-badge> }
+                        @else { <kl-badge variant="success">Applied</kl-badge> }
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </kl-card>
+      }
+
+    </div>
+  </div>
+
+  <!-- Edit drawer (Draft only) -->
+  <app-purchase-add
+    [open]="drawerOpen()"
+    [purchaseId]="purchaseIdForEdit()"
+    (close)="drawerOpen.set(false)"
+    (saved)="reloadAfterSave()" />
+
+  <!-- Cancel dialog -->
+  @if (showCancelDialog()) {
+    <div class="kl-overlay" (click)="showCancelDialog.set(false)">
+      <div class="kl-dialog" (click)="$event.stopPropagation()">
+        <div class="kl-dialog-head">Cancel Purchase</div>
+        @if (cancelError()) {
+          <div style="margin-bottom:12px; color:#DC2626; font-size:13px;">{{ cancelError() }}</div>
         }
-        <div class="kl-total-row" style="font-weight:700; font-size:16px; border-top:1px solid #E5E7EB; padding-top:10px; margin-top:6px;">
-          <span>Grand Total</span><span>₹{{ fmt(p.totalAmount) }}</span>
+        <div class="kl-form-group">
+          <label class="kl-label">Reason <span style="color:#DC2626;">*</span></label>
+          <textarea class="kl-input" rows="3" [value]="cancelReason()" (input)="cancelReason.set($any($event.target).value)" placeholder="Explain why this purchase is being cancelled…"></textarea>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+          <button class="kl-btn kl-btn-secondary" (click)="showCancelDialog.set(false)">Keep</button>
+          <button class="kl-btn kl-btn-danger" [disabled]="cancelling()" (click)="submitCancel()">
+            {{ cancelling() ? 'Cancelling…' : 'Cancel Purchase' }}
+          </button>
         </div>
       </div>
     </div>
-  </kl-card>
-
-  <!-- Payment allocations -->
-  @if (p.allocations.length > 0 || p.outstandingAmount > 0) {
-    <kl-card>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <div style="font-weight:600;">Payment Allocations</div>
-        @if (p.outstandingAmount > 0) {
-          <span style="color:#92400E; font-weight:600; font-size:14px;">Outstanding: ₹{{ fmt(p.outstandingAmount) }}</span>
-        } @else {
-          <kl-badge variant="success">Fully Paid</kl-badge>
-        }
-      </div>
-      <div class="kl-table-wrap">
-        <table class="kl-table">
-          <thead>
-            <tr>
-              <th>Payment Ref</th>
-              <th>Allocated Amount (₹)</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (p.allocations.length === 0) {
-              <tr><td colspan="4" style="text-align:center; padding:20px; color:#6B7A6E;">No payments allocated yet.</td></tr>
-            } @else {
-              @for (a of p.allocations; track a.id) {
-                <tr class="kl-row-link" [routerLink]="['/purchase/supplier-payments', a.supplierPaymentId]">
-                  <td>{{ a.paymentRef }}</td>
-                  <td style="font-variant-numeric:tabular-nums;">₹{{ fmt(a.allocatedAmount) }}</td>
-                  <td class="kl-fg-3">{{ a.allocatedAt | slice:0:10 }}</td>
-                  <td>
-                    @if (a.isReversed) { <kl-badge variant="neutral">Reversed</kl-badge> }
-                    @else { <kl-badge variant="success">Applied</kl-badge> }
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-    </kl-card>
   }
-}
-
-<!-- Cancel dialog -->
-@if (showCancelDialog()) {
-  <div class="kl-overlay" (click)="showCancelDialog.set(false)">
-    <div class="kl-dialog" (click)="$event.stopPropagation()">
-      <div class="kl-dialog-head">Cancel Purchase</div>
-      @if (cancelError()) {
-        <div style="margin-bottom:12px; color:#DC2626; font-size:13px;">{{ cancelError() }}</div>
-      }
-      <div class="kl-form-group">
-        <label class="kl-label">Reason <span style="color:#DC2626;">*</span></label>
-        <textarea class="kl-input" rows="3" [value]="cancelReason()" (input)="cancelReason.set($any($event.target).value)" placeholder="Explain why this purchase is being cancelled…"></textarea>
-      </div>
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
-        <button class="kl-btn kl-btn-secondary" (click)="showCancelDialog.set(false)">Keep</button>
-        <button class="kl-btn kl-btn-danger" [disabled]="cancelling()" (click)="submitCancel()">
-          {{ cancelling() ? 'Cancelling…' : 'Cancel Purchase' }}
-        </button>
-      </div>
-    </div>
-  </div>
 }

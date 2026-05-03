@@ -59,14 +59,16 @@ export class SupplierDetailComponent implements OnInit {
     forkJoin({
       supplier: this.supplierService.getById(id),
       balance: this.supplierService.getBalance(id),
-      purchases: this.supplierService.getPurchases(id),
-      payments: this.supplierService.getPayments(id),
+      // purchases: this.supplierService.getPurchases(id),
+      // payments: this.supplierService.getPayments(id),
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ supplier, balance, purchases, payments }) => {
+      next: ({ supplier, balance
+        // , purchases, payments 
+      }) => {
         this.supplier.set(supplier);
         this.balance.set(balance);
-        this.purchases.set(purchases.items);
-        this.payments.set(payments.items);
+        // this.purchases.set(purchases.items);
+        // this.payments.set(payments.items);
         this.loading.set(false);
       },
       error: () => {

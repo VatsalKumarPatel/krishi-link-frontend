@@ -1,10 +1,10 @@
 <div class="kl-page-header" style="align-items:center;">
   <p class="kl-fg-3" style="font-size:13px; margin:0;">Debit notes sent back to suppliers.</p>
-  <a routerLink="/purchase/purchase-returns/new" class="kl-btn kl-btn-primary">
+  <button class="kl-btn kl-btn-primary" (click)="openAdd()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
       stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     New Return
-  </a>
+  </button>
 </div>
 
 <kl-card>
@@ -19,3 +19,6 @@
     (rowClick)="onRowClick($event)">
   </kl-grid>
 </kl-card>
+
+<!-- Return Add Drawer -->
+<app-return-add [open]="drawerOpen()" [returnId]="returnIdForEdit()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />

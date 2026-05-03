@@ -13,6 +13,7 @@ import {
 } from '@models/supplier.model';
 import { PurchaseSummaryPagedResult } from '@models/purchase.model';
 import { SupplierPaymentSummaryPagedResult } from '@models/supplier-payment.model';
+import { DropdownItem } from '@app/models/shared.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupplierService {
@@ -27,6 +28,10 @@ export class SupplierService {
     if (search)            params = params.set('search', search);
     if (isActive != null)  params = params.set('isActive', String(isActive));
     return this.http.get<SupplierDtoPagedResult>(this.base, { params });
+  }
+
+  getDropdown(): Observable<DropdownItem[]> {
+    return this.http.get<DropdownItem[]>(`${this.base}/dropdown`);
   }
 
   /** Lightweight list for dropdowns */

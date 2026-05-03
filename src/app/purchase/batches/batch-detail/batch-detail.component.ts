@@ -46,5 +46,6 @@ export class BatchDetailComponent implements OnInit {
   }
 
   isExpired(): boolean { return this.batch() ? new Date(this.batch()!.expiryDate) < new Date() : false; }
+  initials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }
   fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 4 }).format(n); }
 }
