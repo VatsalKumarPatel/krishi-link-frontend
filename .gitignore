@@ -52,3 +52,8 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Graphify analysis artifacts
+.graphify_*
+graphify-out/
+src/graphify-out/
