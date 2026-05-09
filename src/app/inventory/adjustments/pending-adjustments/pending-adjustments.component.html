@@ -1,0 +1,77 @@
+<div class="kl-breadcrumb">
+  <a routerLink="/inventory/adjustments" class="kl-link">Adjustments</a>
+  <span class="kl-breadcrumb-sep">›</span>
+  <span>Pending Approvals</span>
+</div>
+
+<div class="kl-page-header">
+  <p class="kl-fg-3">Adjustments awaiting your approval. Review carefully before approving.</p>
+</div>
+
+@if (items().length === 0) {
+  <kl-card>
+    <div style="padding:40px; text-align:center; color:#6b7280;">
+      <div style="font-size:32px; margin-bottom:8px;">✓</div>
+      <div style="font-weight:500;">All clear — no pending approvals</div>
+    </div>
+  </kl-card>
+} @else {
+  <kl-card>
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Store</th>
+          <th>Type</th>
+          <th>System Qty</th>
+          <th>Physical Qty</th>
+          <th>Difference</th>
+          <th>Reason</th>
+          <th>Created by</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of items(); track a.id) {
+          <tr>
+            <td style="font-weight:500;">{{ a.productName }}</td>
+            <td class="kl-fg-3">{{ a.storeName }}</td>
+            <td>
+              <kl-badge [variant]="a.adjustmentType === 'Damage' ? 'danger' : a.adjustmentType === 'PhysicalCount' ? 'neutral' : 'info'">
+                {{ typeLabel(a.adjustmentType) }}
+              </kl-badge>
+            </td>
+            <td>{{ a.systemQty }} {{ a.unit }}</td>
+            <td>{{ a.physicalQty }} {{ a.unit }}</td>
+            <td [style.color]="a.differenceQty < 0 ? 'var(--kl-danger)' : a.differenceQty > 0 ? 'var(--kl-success)' : 'inherit'" style="font-weight:600;">
+              {{ a.differenceQty > 0 ? '+' : '' }}{{ a.differenceQty }} {{ a.unit }}
+            </td>
+            <td class="kl-fg-3" style="max-width:200px; font-size:12px;">{{ a.reason || '—' }}</td>
+            <td class="kl-fg-3">{{ a.createdBy }}</td>
+            <td>
+              @if (rejectingId() === a.id) {
+                <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+                  <textarea class="kl-input" style="font-size:12px; padding:6px;" rows="2"
+                    [value]="rejectionReason()"
+                    (input)="rejectionReason.set($any($event.target).value)"
+                    placeholder="Rejection reason (required)">
+                  </textarea>
+                  <div style="display:flex; gap:6px;">
+                    <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:4px 10px;" (click)="cancelReject()">Cancel</button>
+                    <button class="kl-btn" style="font-size:12px; padding:4px 10px; background:#dc2626; color:#fff;"
+                      [disabled]="!rejectionReason().trim()" (click)="confirmReject(a.id)">Reject</button>
+                  </div>
+                </div>
+              } @else {
+                <div style="display:flex; gap:6px;">
+                  <button class="kl-btn kl-btn-primary" style="font-size:12px; padding:4px 12px;" (click)="approve(a.id)">Approve</button>
+                  <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:4px 12px; color:#dc2626;" (click)="startReject(a.id)">Reject</button>
+                </div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </kl-card>
+}

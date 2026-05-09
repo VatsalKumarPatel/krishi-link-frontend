@@ -1,7 +1,7 @@
-import { Component, Input, SimpleChanges, inject } from '@angular/core';
+﻿import { Component, Input, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { KlDrawerComponent } from '../../../../shared/kl-drawer/kl-drawer.component';
-import { KlDrawerFormHost } from '../../../../shared/kl-drawer/kl-drawer-form-host';
+import { KlDrawerComponent } from '@shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '@shared/kl-drawer/kl-drawer-form-host';
 import { TenantService } from '@services/tenant.service';
 import { ToastService } from '@services/toast.service';
 import { TenantDto } from '@models/tenant.model';

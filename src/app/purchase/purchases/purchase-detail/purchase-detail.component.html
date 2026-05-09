@@ -73,12 +73,12 @@
       @if (canCancel()) {
         <button class="kl-btn kl-btn-secondary" style="color:#DC2626; border-color:#DC2626;" (click)="showCancelDialog.set(true)">Cancel</button>
       }
-      @if (canEdit()) {
-        <button class="kl-btn kl-btn-primary" (click)="purchaseIdForEdit.set(p.id); drawerOpen.set(true)">
+      @if (canAddItems()) {
+        <button class="kl-btn kl-btn-primary" (click)="itemDrawerOpen.set(true)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="M12 5v14M5 12h14"/>
           </svg>
-          Edit
+          Add Line Item
         </button>
       }
     </div>
@@ -144,133 +144,19 @@
 
       <!-- Tabs -->
       <div class="kl-tabs" style="margin-top:0;">
-        <button class="kl-tab" [class.is-active]="activeTab()==='details'" (click)="activeTab.set('details')">Details</button>
         <button class="kl-tab" [class.is-active]="activeTab()==='items'" (click)="activeTab.set('items')">
           Line Items<span class="kl-count">{{ p.items.length }}</span>
         </button>
-        <button class="kl-tab" [class.is-active]="activeTab()==='allocations'" (click)="activeTab.set('allocations')">
+        <!-- <button class="kl-tab" [class.is-active]="activeTab()==='allocations'" (click)="activeTab.set('allocations')">
           Payments<span class="kl-count">{{ p.allocations.length }}</span>
-        </button>
+        </button> -->
       </div>
-
-      <!-- Details tab -->
-      @if (activeTab() === 'details') {
-        <kl-card title="Purchase Information">
-          <dl class="kl-dl">
-            <dt>Supplier</dt>        <dd>{{ p.supplierName }}</dd>
-            <dt>Store</dt>           <dd>{{ p.storeName }}</dd>
-            <dt>Purchase Date</dt>   <dd>{{ p.purchaseDate | slice:0:10 }}</dd>
-            <dt>Invoice #</dt>       <dd>{{ p.supplierInvoiceNumber ?? '—' }}</dd>
-            <dt>Invoice Date</dt>    <dd>{{ p.invoiceDate ? (p.invoiceDate | slice:0:10) : '—' }}</dd>
-            <dt>Due Date</dt>
-            <dd [style.color]="isOverdue() ? '#DC2626' : ''">{{ p.dueDate ? (p.dueDate | slice:0:10) : '—' }}</dd>
-            @if (p.notes) { <dt>Notes</dt><dd>{{ p.notes }}</dd> }
-          </dl>
-        </kl-card>
-
-        <kl-card title="Tax Information">
-          <dl class="kl-dl">
-            <dt>Seller GSTIN</dt>     <dd>{{ p.sellerGstin ?? '—' }}</dd>
-            <dt>Buyer GSTIN</dt>      <dd>{{ p.buyerGstin ?? '—' }}</dd>
-            <dt>Place of Supply</dt>  <dd>{{ p.placeOfSupply ?? '—' }}</dd>
-            <dt>Type</dt>             <dd>{{ p.isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST + SGST)' }}</dd>
-          </dl>
-        </kl-card>
-
-        <kl-card title="Totals">
-          <dl class="kl-dl">
-            <dt>Sub Total</dt>  <dd>₹{{ fmt(p.subTotal) }}</dd>
-            <dt>Discount</dt>   <dd style="color:#166534;">−₹{{ fmt(p.totalDiscount) }}</dd>
-            @if (!p.isInterState) {
-              <dt>CGST</dt>     <dd>₹{{ fmt(p.totalCgst) }}</dd>
-              <dt>SGST</dt>     <dd>₹{{ fmt(p.totalSgst) }}</dd>
-            } @else {
-              <dt>IGST</dt>     <dd>₹{{ fmt(p.totalIgst) }}</dd>
-            }
-            <dt style="font-weight:700;">Grand Total</dt>
-            <dd style="font-weight:700;">₹{{ fmt(p.totalAmount) }}</dd>
-          </dl>
-        </kl-card>
-      }
 
       <!-- Line Items tab -->
       @if (activeTab() === 'items') {
         <kl-card>
-          @if (isDraft()) {
-            <div style="display:grid; gap:12px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #E5E7EB;">
-              <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
-                <div style="font-weight:600; font-size:14px; color:#1A2B1C;">Add Line Item</div>
-                <div class="kl-fg-3" style="font-size:13px; font-variant-numeric:tabular-nums;">Preview: Rs. {{ fmt(itemPreviewTotal()) }}</div>
-              </div>
-
-              @if (itemError()) {
-                <div style="padding:10px 12px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px;">
-                  {{ itemError() }}
-                </div>
-              }
-
-              <div class="kl-form">
-                <div class="kl-form-row">
-                  <div class="kl-form-group">
-                    <label class="kl-label">Product ID <span style="color:#DC2626;">*</span></label>
-                    <input class="kl-input" [value]="itemForm().productId" (input)="updateItemForm('productId', $any($event.target).value)" placeholder="Product ID" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">Unit ID <span style="color:#DC2626;">*</span></label>
-                    <input class="kl-input" [value]="itemForm().unitId" (input)="updateItemForm('unitId', $any($event.target).value)" placeholder="Unit ID" />
-                  </div>
-                </div>
-
-                <div class="kl-form-row">
-                  <div class="kl-form-group">
-                    <label class="kl-label">Quantity <span style="color:#DC2626;">*</span></label>
-                    <input class="kl-input" type="number" min="0.001" step="0.001"
-                      [value]="itemForm().quantity" (input)="updateItemForm('quantity', +$any($event.target).value)" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">Rate</label>
-                    <input class="kl-input" type="number" min="0" step="0.01"
-                      [value]="itemForm().ratePerUnit" (input)="updateItemForm('ratePerUnit', +$any($event.target).value)" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">Discount %</label>
-                    <input class="kl-input" type="number" min="0" max="100" step="0.01"
-                      [value]="itemForm().discountPercent" (input)="updateItemForm('discountPercent', +$any($event.target).value)" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">GST %</label>
-                    <select class="kl-select" [value]="itemForm().taxRatePercent" (change)="updateItemForm('taxRatePercent', +$any($event.target).value)">
-                      @for (r of gstRates; track r) { <option [value]="r">{{ r }}%</option> }
-                    </select>
-                  </div>
-                </div>
-
-                <div class="kl-form-row">
-                  <div class="kl-form-group">
-                    <label class="kl-label">HSN</label>
-                    <input class="kl-input" [value]="itemForm().hsnCode" (input)="updateItemForm('hsnCode', $any($event.target).value)" placeholder="e.g. 3101" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">Batch</label>
-                    <input class="kl-input" [value]="itemForm().batchNumber" (input)="updateItemForm('batchNumber', $any($event.target).value)" placeholder="Optional batch" />
-                  </div>
-                  <div class="kl-form-group">
-                    <label class="kl-label">Expiry</label>
-                    <input class="kl-input" type="date" [value]="itemForm().expiryDate" (change)="updateItemForm('expiryDate', $any($event.target).value)" />
-                  </div>
-                </div>
-
-                <div style="display:flex; justify-content:flex-end;">
-                  <button class="kl-btn kl-btn-primary" [disabled]="savingItem()" (click)="addItem()">
-                    {{ savingItem() ? 'Adding...' : 'Add Item' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
-
           <div class="kl-table-wrap">
-            <table class="kl-table" style="min-width:800px;">
+            <table class="kl-table">
               <thead>
                 <tr>
                   <th>Product</th>
@@ -278,45 +164,59 @@
                   <th style="text-align:right;">Qty</th>
                   <th style="text-align:right;">Rate (₹)</th>
                   <th style="text-align:right;">Disc %</th>
-                  <th>HSN</th>
+                  <th style="text-align:right;">Taxable (₹)</th>
                   <th style="text-align:right;">GST %</th>
-                  @if (isDraft()) {
-                    <th style="width:72px;"></th>
-                  }
                   <th style="text-align:right;">Total (₹)</th>
+                  @if (isDraft()) { <th></th> }
                 </tr>
               </thead>
               <tbody>
                 @if (p.items.length === 0) {
-                  <tr><td [attr.colspan]="isDraft() ? 9 : 8" class="sd-empty">No items.</td></tr>
+                  <tr>
+                    <td [attr.colspan]="isDraft() ? 9 : 8" style="text-align:center; padding:40px 20px; color:#6B7A6E;">
+                      No line items yet. Click <strong>Add Line Item</strong> to get started.
+                    </td>
+                  </tr>
                 } @else {
                   @for (item of p.items; track item.id) {
                     <tr>
-                      <td>{{ item.productName }}
-                        @if (item.batchNumber) {
-                          <div class="kl-fg-3" style="font-size:11px;">
-                            Batch: {{ item.batchNumber }}{{ item.expiryDate ? ' · Exp: ' + (item.expiryDate | slice:0:10) : '' }}
-                          </div>
-                        }
-                      </td>
+                      <td>{{ item.productName }}</td>
                       <td class="kl-fg-3">{{ item.unitName }}</td>
                       <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ item.quantity }}</td>
-                      <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(item.ratePerUnit) }}</td>
-                      <td style="text-align:right;">{{ item.discountPercent > 0 ? item.discountPercent + '%' : '—' }}</td>
-                      <td class="kl-fg-3">{{ item.hsnCode }}</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ fmt(item.ratePerUnit) }}</td>
+                      <td style="text-align:right;">{{ item.discountPercent }}%</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ fmt(item.taxableAmount) }}</td>
                       <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+                      <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">{{ fmt(item.lineTotal) }}</td>
                       @if (isDraft()) {
                         <td style="text-align:right;">
-                          <button class="kl-btn kl-btn-secondary" style="padding:5px 8px; color:#DC2626;" [disabled]="removingItemId() === item.id" (click)="removeItem(item)">
-                            {{ removingItemId() === item.id ? '...' : 'Remove' }}
+                          <button
+                            class="kl-action-btn"
+                            style="color:#DC2626;"
+                            [disabled]="removingItemId() === item.id"
+                            (click)="removeItem(item)"
+                            title="Remove">
+                            @if (removingItemId() === item.id) {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+                            } @else {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                            }
                           </button>
                         </td>
                       }
-                      <td style="text-align:right; font-variant-numeric:tabular-nums; font-weight:500;">₹{{ fmt(item.lineTotal) }}</td>
                     </tr>
                   }
                 }
               </tbody>
+              @if (p.items.length > 0) {
+                <tfoot>
+                  <tr style="font-weight:600;">
+                    <td colspan="7" style="text-align:right; color:#6B7A6E; font-weight:400;">Grand Total</td>
+                    <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(p.totalAmount) }}</td>
+                    @if (isDraft()) { <td></td> }
+                  </tr>
+                </tfoot>
+              }
             </table>
           </div>
         </kl-card>
@@ -367,12 +267,12 @@
     </div>
   </div>
 
-  <!-- Edit drawer (Draft only) -->
-  <app-purchase-add
-    [open]="drawerOpen()"
-    [purchaseId]="purchaseIdForEdit()"
-    (close)="drawerOpen.set(false)"
-    (saved)="reloadAfterSave()" />
+  <!-- Add Line Item drawer -->
+  <app-purchase-item-add
+    [open]="itemDrawerOpen()"
+    [purchaseId]="p.id"
+    (close)="itemDrawerOpen.set(false)"
+    (saved)="load(p.id)" />
 
   <!-- Cancel dialog -->
   @if (showCancelDialog()) {

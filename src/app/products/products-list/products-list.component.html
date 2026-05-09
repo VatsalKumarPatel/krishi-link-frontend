@@ -1,0 +1,35 @@
+<div class="kl-page-header">
+  <p class="kl-fg-3">Manage your product catalogue — fertilizers, pesticides, seeds and equipment.</p>
+  <button class="kl-btn kl-btn-primary" (click)="openAdd()">Add product</button>
+</div>
+
+<kl-card>
+  <div card-actions style="display:flex; gap:6px; flex-wrap:wrap;">
+    @for (cat of categories; track cat) {
+      <button class="kl-filter-btn" [class.is-active]="categoryFilter() === cat" (click)="setCategory(cat)">
+        {{ cat ?? 'All' }}
+      </button>
+    }
+  </div>
+
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showActions]="true"
+    [searchValue]="query()"
+    searchPlaceholder="Search by name or SKU…"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (rowClick)="onRowClick($event)"
+    (editClick)="openEdit($event)">
+  </kl-grid>
+</kl-card>
+
+<app-product-add
+  [open]="drawerOpen()"
+  [productId]="editId()"
+  (close)="closeDrawer()"
+  (saved)="closeDrawer()" />

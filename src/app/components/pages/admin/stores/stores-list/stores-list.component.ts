@@ -1,16 +1,14 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+﻿import { Component, computed, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
-import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { StoreAddComponent } from '../store-add/store-add.component';
 import { StoreService } from '@services/store.service';
 import { StoreDto, StoreListFilters } from '@models/store.model';
-import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
-import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { KlGridComponent } from '@shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@shared/kl-grid/kl-grid.types';
 import { createEmptyPaginatedResponse, PaginatedResponse } from '@app/models/pagination.model';
-
-type StoreRow = StoreDto & { status: string };
+import { PagedListBase } from '@app/utils/paged-list-base';
 
 @Component({
   selector: 'app-stores-list',
@@ -19,20 +17,17 @@ type StoreRow = StoreDto & { status: string };
   templateUrl: './stores-list.component.html',
   styleUrl: './stores-list.component.scss',
 })
-export class StoresListComponent {
+export class StoresListComponent extends PagedListBase {
   tenantId = input<string | null>(null);
   embedded = input(false);
 
   private readonly storeService = inject(StoreService);
   private readonly router = inject(Router);
 
-  query = signal('');
-  pageIndex = signal(0);
-  pageSize = signal(10);
-  sorting = signal('name');
-
-  drawerOpen = signal(false);
-  editStore = signal<StoreDto | null>(null);
+  editStore = computed(() => {
+    const id = this.editId();
+    return this.storesResource.value()?.items.find(s => s.id === id) ?? null;
+  });
 
   private readonly allColumns: GridColumn[] = [
     { field: 'name', header: 'Store' },
@@ -40,8 +35,9 @@ export class StoresListComponent {
     { field: 'city', header: 'City' },
     { field: 'gstin', header: 'GSTIN', sortable: false },
     { field: 'phone', header: 'Phone', sortable: false },
-    { field: 'status', header: 'Status', type: 'badge', sortable: false,
-      badgeVariant: (_v: string, row: StoreRow) => row.isActive ? 'success' : 'neutral' },
+    { field: 'isActive', header: 'Status', type: 'badge', sortable: false,
+      badgeVariant: (_v: string, row: StoreDto) => row.isActive ? 'success' : 'neutral',
+      displayValue: (v: boolean) => v ? 'Active' : 'Inactive' },
   ];
 
   columns = computed(() =>
@@ -54,63 +50,32 @@ export class StoresListComponent {
     query: this.query(),
     pageIndex: this.pageIndex(),
     pageSize: this.pageSize(),
-    sort: this.sorting(),
+    sortCol: this.sortCol(),
+    sortDir: this.sortDir(),
     tenantId: this.tenantId(),
   }));
 
-  storesResource = rxResource<PaginatedResponse<StoreRow>, ReturnType<StoresListComponent['queryParams']>>({
+  storesResource = rxResource<PaginatedResponse<StoreDto>, ReturnType<StoresListComponent['queryParams']>>({
     params: () => this.queryParams(),
     stream: ({ params }) => {
-      const sortField = params.sort.startsWith('-') ? params.sort.slice(1) : params.sort;
-      const sortDir = params.sort.startsWith('-') ? 'desc' : 'asc';
       const filters: StoreListFilters = {
         search: params.query || undefined,
         tenantId: params.tenantId ?? undefined,
-        sortBy: sortField,
-        sortDir,
+        sortBy: params.sortCol || undefined,
+        sortDir: params.sortDir,
       };
-      return this.storeService.getAll(params.pageIndex + 1, params.pageSize, filters).pipe(
-        map(result => ({
-          items: result.items.map(s => ({ ...s, status: s.isActive ? 'Active' : 'Inactive' })),
-          totalCount: result.totalCount,
-          pageNumber: result.page,
-          pageSize: result.pageSize,
-          totalPages: result.totalPages,
-          hasPreviousPage: result.hasPreviousPage,
-          hasNextPage: result.hasNextPage,
-        }))
-      );
+      return this.storeService.getAll(params.pageIndex + 1, params.pageSize, filters);
     },
   });
 
-  stores = computed(() => this.storesResource.value() ?? createEmptyPaginatedResponse<StoreRow>());
+  stores = computed(() => this.storesResource.value() ?? createEmptyPaginatedResponse<StoreDto>());
 
-  onSearch(value: string): void {
-    this.query.set(value);
-    this.pageIndex.set(0);
-  }
-
-  onPageChange(event: { pageIndex: number; pageSize: number }): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-  }
-
-  onSortChange(sort: string): void {
-    this.sorting.set(sort);
-    this.pageIndex.set(0);
-  }
-
-  onRowClick(store: StoreRow): void {
+  onRowClick(store: StoreDto): void {
     this.router.navigate(['/admin/stores', store.id]);
   }
 
-  openAdd(): void {
-    this.editStore.set(null);
-    this.drawerOpen.set(true);
-  }
-
-  openEdit(s: StoreRow): void {
-    this.editStore.set(s);
+  openEditStore(s: StoreDto): void {
+    this.editId.set(s.id);
     this.drawerOpen.set(true);
   }
 

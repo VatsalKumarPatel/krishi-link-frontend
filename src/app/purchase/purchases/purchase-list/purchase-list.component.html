@@ -42,4 +42,4 @@
 </kl-card>
 
 <!-- Purchase Add Drawer -->
-<app-purchase-add [open]="drawerOpen()" [purchaseId]="purchaseIdForEdit()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />
+<app-purchase-add [open]="drawerOpen()" [purchaseId]="editId()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />

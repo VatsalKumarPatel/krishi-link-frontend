@@ -1,13 +1,14 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { PurchaseReturnService } from '@services/purchase-return.service';
 import { SupplierService } from '@services/supplier.service';
 import { StorePickerService } from '@services/store-picker.service';
 import { CreatePurchaseReturnCommand, CreateReturnItemCommand } from '@models/purchase-return.model';
 import { SupplierSummaryDto } from '@models/supplier.model';
+import { formatNumber } from '@app/utils/format';
 
 interface ReturnRow {
   productId: string;
@@ -116,6 +117,7 @@ export class ReturnFormComponent implements OnInit {
     });
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  fmt(n: number): string { return formatNumber(n); }
   get grandTotal(): number { return this.items().reduce((s, i) => s + i.lineTotal, 0); }
 }
+

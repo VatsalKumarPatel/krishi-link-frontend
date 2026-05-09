@@ -1,0 +1,29 @@
+<div class="kl-page-header">
+  <p class="kl-fg-3">Stock transfers between stores — track from creation to receipt.</p>
+  <a routerLink="/inventory/transfers/new" class="kl-btn kl-btn-primary">New transfer</a>
+</div>
+
+<kl-card>
+  <div card-actions style="display:flex; gap:6px;">
+    <button class="kl-filter-btn" [class.is-active]="statusTab() === 'all'" (click)="setTab('all')">All</button>
+    <button class="kl-filter-btn" [class.is-active]="statusTab() === 'PendingApproval'" (click)="setTab('PendingApproval')">Pending</button>
+    <button class="kl-filter-btn" [class.is-active]="statusTab() === 'InTransit'" (click)="setTab('InTransit')">In Transit</button>
+    <button class="kl-filter-btn" [class.is-active]="statusTab() === 'Received'" (click)="setTab('Received')">Received</button>
+    <button class="kl-filter-btn" [class.is-active]="statusTab() === 'Cancelled'" (click)="setTab('Cancelled')">Cancelled</button>
+  </div>
+
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showActions]="false"
+    [searchValue]="query()"
+    searchPlaceholder="Search by store name…"
+    emptyMessage="No transfers match your filters."
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (rowClick)="onRowClick($event)">
+  </kl-grid>
+</kl-card>

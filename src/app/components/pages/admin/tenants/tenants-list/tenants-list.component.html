@@ -24,19 +24,20 @@
 <!-- Table card -->
 <kl-card>
   <kl-grid
-    [columns]="columns"
-    [inputdata]="tenants()"
-    [loading]="tenantsResource.isLoading()"
-    [pageIndex]="pageIndex()"
-    [showActions]="true"
-    [searchValue]="query()"
-    searchPlaceholder="Search by name, city, or email…"
-    (searchChange)="onSearch($event)"
-    (pageChange)="onPageChange($event)"
-    (sortChange)="onSortChange($event)"
-    (rowClick)="onRowClick($event)"
-    (editClick)="openEdit($event)">
-  </kl-grid>
+  [columns]="columns"
+  [inputdata]="tenants()"
+  [loading]="tenantsResource.isLoading()"
+  [pageIndex]="pageIndex()"
+  [searchValue]="query()"
+  [showActions]="true"
+  searchPlaceholder="Search by name, city, or email…"
+  [setSearch]="setSearch"
+  [setPage]="setPage"
+  [setSort]="setSort"
+
+  (rowClick)="onRowClick($event)"
+  (editClick)="openEdit($event)">
+</kl-grid>
 </kl-card>
 
 <!-- Add / Edit drawer -->

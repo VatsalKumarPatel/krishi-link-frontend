@@ -1,0 +1,128 @@
+<div class="kl-breadcrumb">
+  <a routerLink="/inventory/transfers" class="kl-link">Transfers</a>
+  <span class="kl-breadcrumb-sep">›</span>
+  <span>New Transfer</span>
+</div>
+
+<!-- Step indicator -->
+<div style="display:flex; gap:0; margin-bottom:24px; align-items:center;">
+  @for (s of [1,2,3]; track s) {
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;"
+           [style.background]="step() >= s ? 'var(--kl-primary,#3C9A4A)' : '#e5e7eb'"
+           [style.color]="step() >= s ? '#fff' : '#6b7280'">
+        {{ s }}
+      </div>
+      <span style="font-size:13px;" [style.color]="step() >= s ? 'inherit' : '#6b7280'">
+        {{ s === 1 ? 'Stores' : s === 2 ? 'Items' : 'Review' }}
+      </span>
+    </div>
+    @if (s < 3) {
+      <div style="flex:1; height:1px; background:#e5e7eb; margin:0 12px;"></div>
+    }
+  }
+</div>
+
+@if (error()) {
+  <kl-alert variant="danger" [message]="error()!" style="display:block; margin-bottom:16px;" />
+}
+
+<!-- Step 1: Stores -->
+@if (step() === 1) {
+  <kl-card title="Select stores">
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>From store <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [value]="fromStoreId()" (change)="fromStoreId.set($any($event.target).value)">
+          @for (s of stores; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>To store <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [value]="toStoreId()" (change)="toStoreId.set($any($event.target).value)">
+          @for (s of stores; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (sameStoreError) {
+      <p style="color:#dc2626; font-size:13px; margin-top:4px;">Source and destination cannot be the same store.</p>
+    }
+    <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+      <button class="kl-btn kl-btn-primary" [disabled]="sameStoreError" (click)="nextStep()">Next: Add items →</button>
+    </div>
+  </kl-card>
+}
+
+<!-- Step 2: Items -->
+@if (step() === 2) {
+  <kl-card [title]="'Items — ' + stores.find(s => s.id === fromStoreId())!.name + ' → ' + stores.find(s => s.id === toStoreId())!.name">
+    <table class="kl-table" style="margin-bottom:12px;">
+      <thead>
+        <tr><th>Product</th><th>Unit</th><th>Quantity</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track $index) {
+          <tr>
+            <td>
+              <select class="kl-input" style="font-size:13px; padding:4px 8px;"
+                [value]="item.productId" (change)="updateItem($index, $any($event.target).value)">
+                @for (p of products; track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </td>
+            <td class="kl-fg-3">{{ item.unit }}</td>
+            <td>
+              <input class="kl-input" type="number" style="width:100px; font-size:13px; padding:4px 8px;"
+                [value]="item.quantity" (change)="updateQty($index, +$any($event.target).value)" min="1" placeholder="Qty" />
+            </td>
+            <td>
+              <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:3px 8px; color:#dc2626;" (click)="removeItem($index)">Remove</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <button class="kl-btn kl-btn-secondary" style="font-size:13px;" (click)="addItem()">+ Add item</button>
+    <div style="display:flex; justify-content:space-between; margin-top:16px;">
+      <button class="kl-btn kl-btn-secondary" (click)="prevStep()">← Back</button>
+      <button class="kl-btn kl-btn-primary" [disabled]="items().length === 0" (click)="step.set(3)">Next: Review →</button>
+    </div>
+  </kl-card>
+}
+
+<!-- Step 3: Review -->
+@if (step() === 3) {
+  <kl-card title="Review and submit">
+    <dl class="kl-dl" style="margin-bottom:16px;">
+      <dt>From store</dt> <dd>{{ stores.find(s => s.id === fromStoreId())?.name }}</dd>
+      <dt>To store</dt>   <dd>{{ stores.find(s => s.id === toStoreId())?.name }}</dd>
+      <dt>Items</dt>      <dd>{{ items().length }} product(s)</dd>
+    </dl>
+    <table class="kl-table" style="margin-bottom:16px;">
+      <thead><tr><th>Product</th><th>Quantity</th></tr></thead>
+      <tbody>
+        @for (item of items(); track $index) {
+          <tr>
+            <td>{{ item.productName }}</td>
+            <td>{{ item.quantity }} {{ item.unit }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <div class="kl-form-group" style="margin-bottom:16px;">
+      <label>Notes (optional)</label>
+      <textarea class="kl-input" rows="2" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Any notes for the receiving store…"></textarea>
+    </div>
+    <div style="display:flex; justify-content:space-between;">
+      <button class="kl-btn kl-btn-secondary" (click)="prevStep()">← Back</button>
+      <button class="kl-btn kl-btn-primary" [disabled]="submitting()" (click)="submit()">
+        {{ submitting() ? 'Submitting…' : 'Submit for approval' }}
+      </button>
+    </div>
+  </kl-card>
+}

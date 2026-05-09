@@ -1,4 +1,5 @@
 import { Directive, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { formatShortId } from '@app/utils/format';
 
 @Directive()
 export abstract class KlDrawerFormHost implements OnChanges {
@@ -27,7 +28,7 @@ export abstract class KlDrawerFormHost implements OnChanges {
   }
 
   protected shortId(id = this.entityId): string {
-    return id ? `${id.slice(0, 8)}...` : '...';
+    return formatShortId(id);
   }
 
   protected onDrawerStateChange(_changes: SimpleChanges): void {}

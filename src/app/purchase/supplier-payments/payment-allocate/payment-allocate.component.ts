@@ -1,10 +1,11 @@
-import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
 import { SupplierPaymentDetailDto, OutstandingInvoiceDto, PaymentAllocationLineCommand } from '@models/supplier-payment.model';
+import { formatNumber } from '@app/utils/format';
 
 @Component({
   selector: 'app-payment-allocate',
@@ -82,5 +83,6 @@ export class PaymentAllocateComponent implements OnInit {
       });
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  fmt(n: number): string { return formatNumber(n); }
 }
+

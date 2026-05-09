@@ -1,11 +1,12 @@
-import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { SupplierService } from '@services/supplier.service';
 import { SupplierDto, SupplierLedgerEntryDto } from '@models/supplier.model';
+import { formatNumber } from '@app/utils/format';
 
 interface LedgerRowWithBalance extends SupplierLedgerEntryDto {
   runningBalance: number;
@@ -36,7 +37,7 @@ export class SupplierLedgerComponent implements OnInit {
   hasNextPage = signal(false);
   readonly pageSize = 50;
 
-  // Date range — defaults to current financial year
+  // Date range â€” defaults to current financial year
   fromDate = signal(this.financialYearStart());
   toDate = signal(new Date().toISOString().substring(0, 10));
 
@@ -90,7 +91,7 @@ export class SupplierLedgerComponent implements OnInit {
   abs(n: number): number { return Math.abs(n); }
 
   fmt(n: number): string {
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+    return formatNumber(n);
   }
 
   rowClass(row: LedgerRowWithBalance): string {
@@ -99,3 +100,4 @@ export class SupplierLedgerComponent implements OnInit {
     return '';
   }
 }
+

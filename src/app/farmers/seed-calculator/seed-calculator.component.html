@@ -1,0 +1,144 @@
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;">
+
+  <!-- Input panel -->
+  <div>
+    <div class="kl-form">
+
+      @if (crops.length > 0) {
+        <div class="kl-form-group">
+          <label>Select crop (optional — pre-fills area)</label>
+          <select class="kl-input" [value]="form.cropId" (change)="form.cropId = $any($event.target).value; onCropSelect()">
+            <option value="">— Enter area manually —</option>
+            @for (c of crops; track c.id) {
+              <option [value]="c.id">{{ c.cropName }} · {{ c.areaUnderCrop }} {{ c.areaUnit }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label>Land area <span style="color:#C0392B;">*</span></label>
+          <input class="kl-input" type="number" [(ngModel)]="form.landArea" placeholder="e.g. 3" min="0.1" step="0.1" />
+        </div>
+        <div class="kl-form-group">
+          <label>Unit</label>
+          <select class="kl-input" [(ngModel)]="form.landAreaUnit">
+            @for (u of areaUnits; track u) { <option [value]="u">{{ u }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <div class="kl-form-group">
+        <label>Seed variety <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.productId">
+          @for (p of seedProducts; track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+        @if (selectedProduct) {
+          <p style="font-size:12px; color:#6b7280; margin-top:4px;">
+            Germination: {{ selectedProduct.germinationRate }}% · {{ selectedProduct.seedsPerPacket | number }} seeds/packet
+          </p>
+        }
+      </div>
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label>Row spacing <span style="color:#C0392B;">*</span></label>
+          <input class="kl-input" type="number" [(ngModel)]="form.rowSpacing" placeholder="e.g. 24" min="1" />
+        </div>
+        <div class="kl-form-group">
+          <label>Plant spacing <span style="color:#C0392B;">*</span></label>
+          <input class="kl-input" type="number" [(ngModel)]="form.plantSpacing" placeholder="e.g. 18" min="1" />
+        </div>
+      </div>
+
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label>Spacing unit</label>
+          <select class="kl-input" [(ngModel)]="form.spacingUnit">
+            @for (u of spacingUnits; track u) { <option [value]="u">{{ u }}</option> }
+          </select>
+        </div>
+        <div class="kl-form-group">
+          <label>Buffer %</label>
+          <input class="kl-input" type="number" [(ngModel)]="form.bufferPercent" min="0" max="50" />
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="kl-btn kl-btn-primary" [disabled]="!canCalculate" (click)="calculate()">Calculate</button>
+        @if (result()) {
+          <button class="kl-btn kl-btn-secondary" (click)="reset()">Reset</button>
+        }
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Result panel -->
+  <div>
+    @if (result(); as r) {
+      <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:20px; font-size:13px;">
+        <div style="font-weight:700; font-size:14px; margin-bottom:16px; color:#111827;">Calculation Result</div>
+
+        <table style="width:100%; border-collapse:collapse;">
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Total Area</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.landArea }} {{ r.landAreaUnit }}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Spacing</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.rowSpacing }} × {{ r.plantSpacing }} {{ r.spacingUnit }}</td>
+          </tr>
+          <tr><td colspan="2"><hr style="border:none; border-top:1px solid #e5e7eb; margin:8px 0;" /></td></tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Estimated Plants</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.totalPlants | number }}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Seeds Required (raw)</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.seedsRequiredRaw | number }}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Germination Rate</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.product!.germinationRate }}%</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Adjusted Seeds</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.seedsRequiredAdjusted | number }}</td>
+          </tr>
+          <tr><td colspan="2"><hr style="border:none; border-top:1px solid #e5e7eb; margin:8px 0;" /></td></tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Packets Required</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">{{ r.packetsRequired }} packets</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 0; color:#6b7280;">Buffer ({{ r.bufferPercent }}%)</td>
+            <td style="padding:5px 0; text-align:right; font-weight:500;">+ {{ r.bufferPackets }} packets</td>
+          </tr>
+          <tr><td colspan="2"><hr style="border:none; border-top:1px solid #e5e7eb; margin:8px 0;" /></td></tr>
+          <tr style="font-size:15px;">
+            <td style="padding:6px 0; font-weight:700; color:#111827;">Total Recommended</td>
+            <td style="padding:6px 0; text-align:right; font-weight:800; color:#3C9A4A; font-size:18px;">{{ r.totalRecommendedPackets }}</td>
+          </tr>
+        </table>
+
+        @if (r.product!.returnPolicyDays > 0) {
+          <div style="margin-top:14px; padding:10px 12px; background:#eff6ff; border-radius:6px; font-size:12px; color:#1e40af;">
+            Return policy: Unused unopened packets returnable within {{ r.product!.returnPolicyDays }} days of purchase.
+          </div>
+        }
+      </div>
+    } @else {
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:#9ca3af; text-align:center;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
+          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+        </svg>
+        <div style="font-size:14px; color:#6b7280;">Fill in the inputs and click Calculate to see the seed quantity breakdown.</div>
+      </div>
+    }
+  </div>
+
+</div>

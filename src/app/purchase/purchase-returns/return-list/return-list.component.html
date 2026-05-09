@@ -21,4 +21,4 @@
 </kl-card>
 
 <!-- Return Add Drawer -->
-<app-return-add [open]="drawerOpen()" [returnId]="returnIdForEdit()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />
+<app-return-add [open]="drawerOpen()" [returnId]="editId()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />

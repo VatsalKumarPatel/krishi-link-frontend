@@ -1,32 +1,34 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { environment } from '@app/environment';
 import {
   StoreDto,
-  StorePagedResult,
   CreateStoreCommand,
   UpdateStoreCommand,
   StoreListFilters,
 } from '@models/store.model';
 import { ActivityPagedResult } from './tenant.service';
+import { PaginatedResponse } from '@app/models/pagination.model';
+import { buildListParams } from '@app/utils/http-params';
 
 @Injectable({ providedIn: 'root' })
 export class StoreService {
   private readonly base = `${environment.apiBaseUrl}/${environment.version}/admin/stores`;
+  private http = inject(HttpClient);
+  private abort$ = new Subject<void>();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor() {}
 
-  getAll(page = 1, pageSize = 20, filters?: StoreListFilters): Observable<StorePagedResult> {
-    let params = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
-    if (filters?.search)   params = params.set('search', filters.search);
-    if (filters?.status)   params = params.set('status', filters.status);
-    if (filters?.tenantId) params = params.set('tenantId', filters.tenantId);
-    if (filters?.sortBy)   params = params.set('sortBy', filters.sortBy);
-    if (filters?.sortDir)  params = params.set('sortDir', filters.sortDir);
-    return this.http.get<StorePagedResult>(this.base, { params });
+  getAll(page = 1, pageSize = 10, filters?: StoreListFilters): Observable<PaginatedResponse<StoreDto>> {
+    const params = buildListParams(page, pageSize, {
+      search: filters?.search,
+      status: filters?.status,
+      sortDir: filters?.sortDir,
+    });
+    return this.http.get<PaginatedResponse<StoreDto>>(this.base, { params }).pipe(
+      takeUntil(this.abort$),
+    );
   }
 
   getById(id: string): Observable<StoreDto> {
@@ -42,9 +44,7 @@ export class StoreService {
   }
 
   getActivity(id: string, page = 1, pageSize = 50): Observable<ActivityPagedResult> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
+    const params = buildListParams(page, pageSize);
     return this.http.get<ActivityPagedResult>(`${this.base}/${id}/activity`, { params });
   }
 }

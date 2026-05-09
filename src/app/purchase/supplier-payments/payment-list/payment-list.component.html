@@ -21,4 +21,4 @@
 </kl-card>
 
 <!-- Payment Add Drawer -->
-<app-payment-add [open]="drawerOpen()" [paymentId]="paymentIdForEdit()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />
+<app-payment-add [open]="drawerOpen()" [paymentId]="editId()" (close)="drawerOpen.set(false)" (saved)="onDrawerSaved()" />

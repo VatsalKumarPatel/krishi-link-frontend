@@ -33,9 +33,9 @@
     [showActions]="true"
     [searchValue]="query()"
     searchPlaceholder="Search by name, code, or location…"
-    (searchChange)="onSearch($event)"
-    (pageChange)="onPageChange($event)"
-    (sortChange)="onSortChange($event)"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
     (rowClick)="onRowClick($event)"
     (editClick)="openEdit($event)">
   </kl-grid>

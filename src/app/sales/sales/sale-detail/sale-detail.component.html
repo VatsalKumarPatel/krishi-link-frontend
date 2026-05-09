@@ -1,0 +1,249 @@
+@let s = sale();
+
+<div class="kl-page-header">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a routerLink="/sales" class="kl-btn kl-btn-secondary" style="font-size:13px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+      Sales
+    </a>
+    <div class="kl-crumbs">
+      <a routerLink="/sales">Sales</a>
+      <span>/</span>
+      <span>{{ s.saleRef }}</span>
+      <kl-badge [variant]="$any(badgeVariant(s.status))">{{ statusLabels[s.status] }}</kl-badge>
+    </div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    @if (isDraft()) {
+      <button class="kl-btn kl-btn-secondary" (click)="itemDrawerOpen.set(true)" style="font-size:13px;">Add Item</button>
+      <button class="kl-btn kl-btn-primary" (click)="showConfirmDialog.set(true)" style="font-size:13px;">Confirm &amp; Invoice</button>
+    }
+    @if (isConfirmed()) {
+      <button class="kl-btn kl-btn-primary" (click)="showConfirmDialog.set(true)" style="font-size:13px;">Invoice</button>
+    }
+    @if (isInvoiced() || isPartiallyPaid()) {
+      <a routerLink="/sales/payments/new" class="kl-btn kl-btn-primary" style="font-size:13px;">Record Payment</a>
+    }
+    @if (!isPaid() && !isCancelled()) {
+      <button class="kl-btn kl-btn-secondary" (click)="showCancelDialog.set(true)" style="font-size:13px; color:#B7362E; border-color:#FECACA;">Cancel Sale</button>
+    }
+  </div>
+</div>
+
+<div class="kl-detail-grid">
+
+  <!-- Left: summary card -->
+  <kl-card>
+    <div class="kl-detail-header">
+      <div class="kl-avatar-lg">{{ initials(s.farmerName) }}</div>
+      <div>
+        <div class="kl-detail-name">{{ s.farmerName }}</div>
+        <div class="kl-detail-meta">{{ s.farmerCode }} · {{ s.storeName }}</div>
+      </div>
+    </div>
+
+    @if (s.outstandingAmount > 0) {
+      <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:12px 14px; margin:12px 0;">
+        <div style="font-size:11px; font-weight:600; color:#9A3412; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Outstanding</div>
+        <div style="font-size:22px; font-weight:700; color:#C0392B;">{{ fmtInr(s.outstandingAmount) }}</div>
+      </div>
+    }
+
+    <dl class="kl-dl">
+      <dt>Sale Ref</dt>      <dd><code class="kl-mono" style="font-size:12px;">{{ s.saleRef }}</code></dd>
+      <dt>Invoice #</dt>     <dd>{{ s.invoiceNumber ?? '—' }}</dd>
+      <dt>Season</dt>        <dd>{{ s.seasonName }}</dd>
+      <dt>Payment Mode</dt>  <dd>{{ s.paymentMode }}</dd>
+      <dt>Credit Days</dt>   <dd>{{ s.paymentMode === 'Credit' ? s.creditDays + ' days' : '—' }}</dd>
+      <dt>Sale Date</dt>     <dd>{{ s.saleDate }}</dd>
+      <dt>Due Date</dt>      <dd>{{ s.dueDate ?? '—' }}</dd>
+      <dt>Invoiced At</dt>   <dd>{{ s.invoicedAt ?? '—' }}</dd>
+    </dl>
+
+    <div style="border-top:1px solid #E5EBE6; margin-top:12px; padding-top:12px;">
+      <div style="font-size:11px; font-weight:600; color:#6B7A6E; text-transform:uppercase; margin-bottom:8px;">GST Details</div>
+      <dl class="kl-dl">
+        <dt>Seller GSTIN</dt>  <dd style="font-size:12px;">{{ s.sellerGstin ?? '—' }}</dd>
+        <dt>Buyer GSTIN</dt>   <dd style="font-size:12px;">{{ s.buyerGstin ?? '—' }}</dd>
+        <dt>Place of Supply</dt><dd style="font-size:12px;">{{ s.placeOfSupply ?? '—' }}</dd>
+      </dl>
+    </div>
+
+    @if (s.notes) {
+      <div style="border-top:1px solid #E5EBE6; margin-top:12px; padding-top:12px; font-size:13px; color:#6B7A6E; font-style:italic;">
+        "{{ s.notes }}"
+      </div>
+    }
+  </kl-card>
+
+  <!-- Right: KPI pills + tabs + content -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Grand Total</div>
+        <div class="kl-stat-pill-val">{{ fmtInr(s.totalAmount) }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Allocated</div>
+        <div class="kl-stat-pill-val" style="color:#2F7D3B;">{{ fmtInr(s.allocatedAmount) }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Outstanding</div>
+        <div class="kl-stat-pill-val" [style.color]="s.outstandingAmount > 0 ? '#C0392B' : '#2F7D3B'">{{ fmtInr(s.outstandingAmount) }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Line Items</div>
+        <div class="kl-stat-pill-val">{{ s.items.length }}</div>
+      </div>
+    </div>
+
+    <div class="kl-tabs">
+      <button class="kl-tab" [class.is-active]="activeTab()==='items'"    (click)="activeTab.set('items')">
+        Line Items <span class="kl-count">{{ s.items.length }}</span>
+      </button>
+      <button class="kl-tab" [class.is-active]="activeTab()==='payments'" (click)="activeTab.set('payments')">
+        Payments <span class="kl-count">{{ s.allocations.length }}</span>
+      </button>
+    </div>
+
+    <!-- Line Items tab -->
+    @if (activeTab() === 'items') {
+      <kl-card>
+        <div class="kl-table-wrap">
+          <table class="kl-table">
+            <thead>
+              <tr>
+                <th>Product</th><th>Unit</th><th style="text-align:right;">Qty</th>
+                <th style="text-align:right;">Rate (₹)</th><th style="text-align:right;">Disc%</th>
+                <th style="text-align:right;">Taxable (₹)</th><th style="text-align:right;">GST%</th>
+                <th style="text-align:right;">CGST (₹)</th><th style="text-align:right;">SGST (₹)</th>
+                <th style="text-align:right;">Line Total (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of s.items; track item.id) {
+                <tr>
+                  <td>{{ item.productName }}</td>
+                  <td class="kl-fg-3">{{ item.unitName }}</td>
+                  <td style="text-align:right;">{{ item.quantity }}</td>
+                  <td style="text-align:right;">{{ fmt(item.ratePerUnit) }}</td>
+                  <td style="text-align:right;">{{ item.discountPercent }}%</td>
+                  <td style="text-align:right;">{{ fmt(item.taxableAmount) }}</td>
+                  <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+                  <td style="text-align:right;">{{ fmt(item.cgstAmount) }}</td>
+                  <td style="text-align:right;">{{ fmt(item.sgstAmount) }}</td>
+                  <td style="text-align:right; font-weight:600;">{{ fmt(item.lineTotal) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr style="border-top:2px solid #D1D5DB; font-weight:600;">
+                <td colspan="5" style="color:#6B7A6E; font-size:12px;">Subtotal</td>
+                <td style="text-align:right;">{{ fmt(s.subTotal) }}</td>
+                <td></td>
+                <td style="text-align:right;">{{ fmt(s.totalCgst) }}</td>
+                <td style="text-align:right;">{{ fmt(s.totalSgst) }}</td>
+                <td style="text-align:right; font-size:15px; color:#14251B;">{{ fmt(s.totalAmount) }}</td>
+              </tr>
+              @if (s.totalDiscount > 0) {
+                <tr style="font-size:12px; color:#6B7A6E;">
+                  <td colspan="9">Total discount applied</td>
+                  <td style="text-align:right;">−{{ fmt(s.totalDiscount) }}</td>
+                </tr>
+              }
+            </tfoot>
+          </table>
+        </div>
+      </kl-card>
+    }
+
+    <!-- Payments tab -->
+    @if (activeTab() === 'payments') {
+      @if (s.outstandingAmount > 0) {
+        <div style="display:flex; align-items:center; gap:12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:12px 14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span style="flex:1; font-size:13px; color:#92400E;">{{ fmtInr(s.outstandingAmount) }} still outstanding.</span>
+          <a routerLink="/sales/payments/new" class="kl-link" style="font-size:12px; white-space:nowrap;">Record payment →</a>
+        </div>
+      }
+      <kl-card>
+        @if (s.allocations.length === 0) {
+          <div style="padding:24px; text-align:center; color:#6B7A6E; font-size:13px;">No payments recorded yet.</div>
+        } @else {
+          <div class="kl-table-wrap">
+            <table class="kl-table">
+              <thead>
+                <tr>
+                  <th>Payment Ref</th><th>Date</th><th>Mode</th>
+                  <th style="text-align:right;">Allocated (₹)</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of s.allocations; track a.paymentRef) {
+                  <tr>
+                    <td><a [routerLink]="['/sales/payments']" class="kl-link">{{ a.paymentRef }}</a></td>
+                    <td class="kl-fg-3">{{ a.paymentDate }}</td>
+                    <td class="kl-fg-3">{{ a.mode }}</td>
+                    <td style="text-align:right; font-weight:600;">{{ fmtInr(a.allocatedAmount) }}</td>
+                    <td>
+                      @if (a.isReversed) {
+                        <kl-badge variant="danger">Reversed</kl-badge>
+                      } @else {
+                        <kl-badge variant="success">Applied</kl-badge>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </kl-card>
+    }
+
+  </div>
+</div>
+
+<!-- Confirm & Invoice dialog -->
+@if (showConfirmDialog()) {
+  <div class="kl-overlay" (click)="showConfirmDialog.set(false)">
+    <div class="kl-dialog" (click)="$event.stopPropagation()">
+      <div class="kl-dialog-head">Confirm &amp; Invoice</div>
+      <div style="font-size:13px; color:#445245; margin-bottom:12px;">
+        This will confirm the sale and issue GST invoice <strong>{{ s.saleRef }}</strong>.
+      </div>
+      <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; padding:10px 12px; font-size:12px; color:#92400E; margin-bottom:16px;">
+        Stock will be deducted from inventory. Customer ledger will be debited. This action cannot be undone.
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="kl-btn kl-btn-secondary" (click)="showConfirmDialog.set(false)">Keep Draft</button>
+        <button class="kl-btn kl-btn-primary" [disabled]="confirming()">
+          {{ confirming() ? 'Processing…' : 'Confirm &amp; Invoice' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Cancel dialog -->
+@if (showCancelDialog()) {
+  <div class="kl-overlay" (click)="showCancelDialog.set(false)">
+    <div class="kl-dialog" (click)="$event.stopPropagation()">
+      <div class="kl-dialog-head">Cancel Sale</div>
+      <div class="kl-form-group" style="margin-bottom:16px;">
+        <label class="kl-label">Reason <span style="color:#DC2626;">*</span></label>
+        <textarea class="kl-input" rows="3" [value]="cancelReason()" (input)="cancelReason.set($any($event.target).value)" placeholder="Why is this sale being cancelled?"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="kl-btn kl-btn-secondary" (click)="showCancelDialog.set(false)">Keep Sale</button>
+        <button class="kl-btn" style="background:#B7362E; color:#fff; border-color:#B7362E;" [disabled]="cancelling() || !cancelReason().trim()">
+          {{ cancelling() ? 'Cancelling…' : 'Cancel Sale' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Item add drawer -->
+<app-sale-item-add [open]="itemDrawerOpen()" (close)="itemDrawerOpen.set(false)" (saved)="itemDrawerOpen.set(false)" />

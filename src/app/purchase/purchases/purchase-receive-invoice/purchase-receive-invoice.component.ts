@@ -1,10 +1,11 @@
-import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { PurchaseService } from '@services/purchase.service';
 import { PurchaseDetailDto, ReceiveAndInvoiceCommand } from '@models/purchase.model';
+import { formatNumber } from '@app/utils/format';
 
 const PLACE_OF_SUPPLY_OPTIONS = [
   '01-J&K', '02-HP', '03-Punjab', '04-Chandigarh', '05-Uttarakhand',
@@ -142,6 +143,7 @@ export class PurchaseReceiveInvoiceComponent implements OnInit {
   }
 
   fmt(n: number): string {
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+    return formatNumber(n);
   }
 }
+

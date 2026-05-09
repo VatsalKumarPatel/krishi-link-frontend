@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { environment } from '@app/environment';
+import { buildListParams } from '@app/utils/http-params';
 import {
   TenantDto,
   CreateTenantCommand,
@@ -39,17 +40,14 @@ export class TenantService {
   }
 
   getAll(page = 1, pageSize = 20, filters?: TenantListFilters): Observable<PaginatedResponse<TenantDto>> {
-    let params = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize))
-      // .set('sort', sort);
-    if (filters?.search) params = params.set('search', filters.search);
-    if (filters?.status) params = params.set('status', filters.status);
-    // if (filters?.sortBy) params = params.set('sortBy', filters.sortBy);
-    if (filters?.sortDir) params = params.set('sortDir', filters.sortDir);
+    const params = buildListParams(page, pageSize, {
+      search: filters?.search,
+      status: filters?.status,
+      sortDir: filters?.sortDir,
+    });
     return this._httpClient.get<PaginatedResponse<TenantDto>>(this.base, { params }).pipe(
-          takeUntil(this.abort$),
-        );
+      takeUntil(this.abort$),
+    );
   }
 
   getById(id: string): Observable<TenantDto> {
@@ -65,9 +63,7 @@ export class TenantService {
   }
 
   getActivity(id: string, page = 1, pageSize = 50): Observable<ActivityPagedResult> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
+    const params = buildListParams(page, pageSize);
     return this._httpClient.get<ActivityPagedResult>(`${this.base}/${id}/activity`, { params });
   }
 
@@ -76,9 +72,7 @@ export class TenantService {
   }
 
   getStores(tenantId: string, page = 1, pageSize = 50): Observable<PaginatedResponse<AdminStoreDtoForTenant>> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
+    const params = buildListParams(page, pageSize);
     return this._httpClient.get<PaginatedResponse<AdminStoreDtoForTenant>>(`${this.base}/${tenantId}/stores`, { params });
   }
 }

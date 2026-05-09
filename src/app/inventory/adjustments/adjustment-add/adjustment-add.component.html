@@ -1,0 +1,89 @@
+<kl-drawer
+  [open]="open"
+  [title]="'New Stock Adjustment'"
+  subtitle="Manual correction · Physical count · Damage"
+  (closeDrawer)="closeDrawer()">
+
+  @if (saveError) {
+    <kl-alert variant="danger" [message]="saveError" />
+  }
+
+  <form #f="ngForm">
+
+    <div class="kl-form-section">Adjustment details</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Store <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.storeId" name="storeId">
+          @for (s of stores; track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>Product <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.productId" name="productId">
+          @for (p of products; track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group full">
+        <label>Adjustment type <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.adjustmentType" name="adjustmentType">
+          @for (t of adjustmentTypes; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-section">Quantities</div>
+
+    <div style="background:var(--kl-surface-2,#f9fafb); border:1px solid var(--kl-border,#e5e7eb); border-radius:8px; padding:12px 16px; margin-bottom:12px;">
+      <div style="font-size:13px; color:var(--kl-fg-3,#6b7280);">System quantity (current stock)</div>
+      <div style="font-size:22px; font-weight:600; margin-top:4px;">{{ systemQty }} <span style="font-size:14px; font-weight:400;">{{ systemUnit }}</span></div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group full">
+        <label>{{ form.adjustmentType === 'PhysicalCount' ? 'Physical count' : 'Corrected quantity' }} <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" type="number" [(ngModel)]="form.physicalQty" name="physicalQty" min="0" required placeholder="Enter quantity" />
+      </div>
+    </div>
+
+    @if (form.physicalQty != null) {
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:8px 12px; border-radius:6px;"
+           [style.background]="difference === 0 ? '#f9fafb' : difference > 0 ? '#ecfdf5' : '#fef2f2'"
+           [style.border]="'1px solid ' + (difference === 0 ? '#e5e7eb' : difference > 0 ? '#bbf7d0' : '#fecaca')">
+        <span style="font-size:13px; color:#6b7280;">Difference:</span>
+        <span style="font-size:16px; font-weight:600;"
+              [style.color]="difference === 0 ? '#6b7280' : difference > 0 ? '#16a34a' : '#dc2626'">
+          {{ difference > 0 ? '+' : '' }}{{ difference }} {{ systemUnit }}
+        </span>
+      </div>
+    }
+
+    <div class="kl-form-row">
+      <div class="kl-form-group full">
+        <label>Reason {{ reasonRequired ? '' : '(optional)' }} @if (reasonRequired) { <span style="color:#C0392B;">*</span> }</label>
+        <textarea class="kl-input" [(ngModel)]="form.reason" name="reason" rows="3"
+          [placeholder]="form.adjustmentType === 'Damage' ? 'Describe the damage (mandatory)' : 'Optional — describe the reason for adjustment'">
+        </textarea>
+      </div>
+    </div>
+
+  </form>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving || !canSubmit" (click)="submit()">
+      {{ saving ? 'Submitting…' : 'Submit for approval' }}
+    </button>
+  </ng-container>
+
+</kl-drawer>

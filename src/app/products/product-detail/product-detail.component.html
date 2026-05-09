@@ -1,0 +1,114 @@
+<!-- Breadcrumb -->
+<div class="kl-breadcrumb">
+  <a routerLink="/products" class="kl-link">Products</a>
+  <span class="kl-breadcrumb-sep">›</span>
+  <span>{{ product?.name ?? 'Unknown' }}</span>
+</div>
+
+@if (!product) {
+  <p class="kl-fg-3">Product not found.</p>
+} @else {
+
+  <!-- Header -->
+  <div class="kl-detail-header">
+    <div class="kl-detail-avatar">{{ product.name.charAt(0) }}</div>
+    <div class="kl-detail-meta">
+      <div class="kl-detail-name">{{ product.name }}</div>
+      <div class="kl-fg-3" style="font-size:13px;">{{ product.sku }} · {{ product.category }}</div>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <kl-badge [variant]="product.isActive ? 'success' : 'neutral'">
+        {{ product.isActive ? 'Active' : 'Inactive' }}
+      </kl-badge>
+      <button class="kl-btn kl-btn-secondary" (click)="openEdit()">Edit</button>
+    </div>
+  </div>
+
+  <div class="kl-two-col" style="margin-top:16px;">
+
+    <!-- Product info -->
+    <kl-card title="Product details">
+      <dl class="kl-dl">
+        <dt>Name</dt>       <dd>{{ product.name }}</dd>
+        <dt>SKU</dt>        <dd>{{ product.sku }}</dd>
+        <dt>Category</dt>   <dd>{{ product.category }}</dd>
+        <dt>Base Unit</dt>  <dd>{{ product.baseUnit }}</dd>
+        @if (product.secondaryUnit) {
+          <dt>Secondary Unit</dt> <dd>{{ product.secondaryUnit }} (1 {{ product.secondaryUnit }} = {{ product.conversionFactor }} {{ product.baseUnit }})</dd>
+        }
+        <dt>HSN Code</dt>   <dd>{{ product.hsn || '—' }}</dd>
+        <dt>GST Rate</dt>   <dd>{{ product.gstRate === 0 ? 'Exempt' : product.gstRate + '%' }}</dd>
+      </dl>
+    </kl-card>
+
+    <!-- Stock by store -->
+    <kl-card title="Stock levels" subtitle="Current stock across all stores">
+      @if (stockByStore.length === 0) {
+        <p class="kl-fg-3" style="padding:12px 0;">No stock records found for this product.</p>
+      } @else {
+        <table class="kl-table">
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Available</th>
+              <th>Reserved</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of stockByStore; track s.storeId) {
+              <tr>
+                <td>{{ s.storeName }}</td>
+                <td>{{ s.availableQuantity }} {{ s.baseUnit }}</td>
+                <td>{{ s.reservedQuantity }} {{ s.baseUnit }}</td>
+                <td>
+                  <kl-badge [variant]="stockVariant(s.stockStatus)">
+                    {{ stockLabel(s.stockStatus) }}
+                  </kl-badge>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </kl-card>
+
+  </div>
+
+  <!-- Movement history -->
+  <kl-card title="Recent stock movements" subtitle="Last 10 ledger entries for this product" style="margin-top:16px;">
+    <table class="kl-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Quantity</th>
+          <th>Reference</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of ledger; track e.id) {
+          <tr>
+            <td>{{ e.date }}</td>
+            <td>
+              <kl-badge [variant]="ledgerVariant(e.entryType)">{{ e.entryType }}</kl-badge>
+            </td>
+            <td [style.color]="e.quantity < 0 ? 'var(--kl-danger)' : 'var(--kl-success)'">
+              {{ e.quantity > 0 ? '+' : '' }}{{ e.quantity }} {{ e.unit }}
+            </td>
+            <td>{{ e.reference }}</td>
+            <td class="kl-fg-3">{{ e.notes || '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </kl-card>
+
+}
+
+<app-product-add
+  [open]="editOpen()"
+  [productId]="productId"
+  (close)="closeEdit()"
+  (saved)="closeEdit()" />

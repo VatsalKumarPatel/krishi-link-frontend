@@ -1,8 +1,8 @@
-import { Component, DestroyRef, Input, SimpleChanges, inject, signal } from '@angular/core';
+﻿import { Component, DestroyRef, Input, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
-import { KlDrawerFormHost } from '../../../components/shared/kl-drawer/kl-drawer-form-host';
+import { KlDrawerComponent } from '@shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '@shared/kl-drawer/kl-drawer-form-host';
 import { SupplierService } from '@services/supplier.service';
 import { ToastService } from '@services/toast.service';
 import { SupplierDto, CreateSupplierCommand, UpdateSupplierCommand } from '@models/supplier.model';

@@ -1,0 +1,121 @@
+@let r = ret();
+
+<!-- Page header -->
+<div class="kl-page-header" style="align-items:center; gap:12px;">
+  <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+    <a routerLink="/sales/returns" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="kl-crumbs" style="margin:0;">
+      <a routerLink="/sales/returns">Sale Returns</a>
+      <span>/</span>
+      <span>{{ r.creditNoteNumber }}</span>
+      <kl-badge [variant]="statusVariant()" style="margin-left:4px;">{{ r.status }}</kl-badge>
+    </div>
+  </div>
+  <div style="display:flex; gap:8px;">
+    @if (canConfirm()) {
+      <button class="kl-btn kl-btn-secondary" [disabled]="isConfirming()" (click)="confirmReturn()">
+        {{ isConfirming() ? 'Confirming…' : 'Confirm Return' }}
+      </button>
+    }
+    @if (canCredit()) {
+      <button class="kl-btn kl-btn-primary" [disabled]="isCrediting()" (click)="creditToAccount()">
+        {{ isCrediting() ? 'Crediting…' : 'Credit to Account' }}
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Detail grid -->
+<div class="kl-detail-grid">
+
+  <!-- Left card -->
+  <div class="kl-card">
+    <div class="kl-detail-header">
+      <div class="kl-avatar-lg">{{ initials(r.farmerName) }}</div>
+      <div>
+        <div class="kl-detail-name">{{ r.farmerName }}</div>
+        <div class="kl-detail-meta">
+          <span>{{ r.farmerCode }}</span>
+          <span>·</span>
+          <span>{{ r.storeName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credit amount box -->
+    <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:12px 16px; margin-bottom:16px; text-align:center;">
+      <div style="font-size:11px; color:#166534; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+        @if (r.status === 'Credited') { Credited to Account } @else { Credit Amount }
+      </div>
+      <div style="font-size:22px; font-weight:700; color:#166534;">₹{{ fmt(r.totalAmount) }}</div>
+    </div>
+
+    <dl class="kl-dl">
+      <dt>Credit Note #</dt>    <dd>{{ r.creditNoteNumber }}</dd>
+      <dt>Original Sale</dt>    <dd><a [routerLink]="['/sales', r.saleId]" style="color:#1a5c31; text-decoration:underline;">{{ r.saleRef }}</a></dd>
+      <dt>Return Date</dt>      <dd>{{ r.returnDate }}</dd>
+      <dt>Reason</dt>           <dd>{{ r.reason }}</dd>
+      <dt>Status</dt>           <dd><kl-badge [variant]="statusVariant()">{{ r.status }}</kl-badge></dd>
+      <dt>Store</dt>            <dd>{{ r.storeName }}</dd>
+      @if (r.confirmedAt) { <dt>Confirmed At</dt> <dd>{{ r.confirmedAt }}</dd> }
+      @if (r.creditedAt)  { <dt>Credited At</dt>  <dd>{{ r.creditedAt }}</dd>  }
+    </dl>
+  </div>
+
+  <!-- Right column -->
+  <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+    <!-- KPI pills -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Credit Amount</div>
+        <div class="kl-stat-pill-val">₹{{ fmt(r.totalAmount) }}</div>
+      </div>
+      <div class="kl-stat-pill">
+        <div class="kl-stat-pill-label">Items Returned</div>
+        <div class="kl-stat-pill-val">{{ r.items.length }}</div>
+      </div>
+    </div>
+
+    <!-- Return items table -->
+    <kl-card title="Returned Items">
+      <div class="kl-table-wrap">
+        <table class="kl-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Unit</th>
+              <th style="text-align:right;">Qty</th>
+              <th style="text-align:right;">Rate (₹)</th>
+              <th style="text-align:right;">Taxable (₹)</th>
+              <th style="text-align:right;">GST %</th>
+              <th style="text-align:right;">Line Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of r.items; track item.id) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td class="kl-fg-3">{{ item.unitName }}</td>
+                <td style="text-align:right;">{{ item.quantity }}</td>
+                <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ fmt(item.ratePerUnit) }}</td>
+                <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ fmt(item.taxableAmount) }}</td>
+                <td style="text-align:right;">{{ item.taxRatePercent }}%</td>
+                <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">{{ fmt(item.lineTotal) }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr style="font-weight:700; background:#F9FAF9;">
+              <td colspan="6" style="text-align:right;">Total Credit</td>
+              <td style="text-align:right; font-variant-numeric:tabular-nums;">₹{{ fmt(r.totalAmount) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </kl-card>
+
+  </div>
+</div>

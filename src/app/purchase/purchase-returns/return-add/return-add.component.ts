@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
-import { KlDrawerComponent } from '../../../components/shared/kl-drawer/kl-drawer.component';
-import { KlDrawerFormHost } from '../../../components/shared/kl-drawer/kl-drawer-form-host';
+﻿import { Component, Input } from '@angular/core';
+import { KlDrawerComponent } from '@shared/kl-drawer/kl-drawer.component';
+import { KlDrawerFormHost } from '@shared/kl-drawer/kl-drawer-form-host';
 import { ReturnFormComponent } from '../return-form/return-form.component';
 
 @Component({

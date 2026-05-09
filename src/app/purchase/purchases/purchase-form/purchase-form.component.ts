@@ -1,8 +1,8 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { PurchaseService } from '@services/purchase.service';
 import { SupplierService } from '@services/supplier.service';
 import { UserService } from '@services/user.service';

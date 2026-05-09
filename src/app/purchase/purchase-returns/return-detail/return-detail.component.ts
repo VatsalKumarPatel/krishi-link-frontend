@@ -1,13 +1,14 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { BadgeComponent } from '@shared/badge/badge.component';
 import { ReturnAddComponent } from '../return-add/return-add.component';
 import { PurchaseReturnService } from '@services/purchase-return.service';
 import { UserService } from '@services/user.service';
 import { PurchaseReturnDetailDto, PurchaseReturnStatus, RETURN_STATUS_LABELS } from '@models/purchase-return.model';
+import { formatNumber } from '@app/utils/format';
 
 @Component({
   selector: 'app-return-detail',
@@ -81,5 +82,6 @@ export class ReturnDetailComponent implements OnInit {
     return 'success';
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  fmt(n: number): string { return formatNumber(n); }
 }
+

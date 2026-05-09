@@ -1,14 +1,15 @@
-import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef, computed } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { SupplierPaymentService } from '@services/supplier-payment.service';
 import { SupplierService } from '@services/supplier.service';
 import { StorePickerService } from '@services/store-picker.service';
 import { SupplierSummaryDto } from '@models/supplier.model';
 import { OutstandingInvoiceDto, PaymentAllocationLineCommand } from '@models/supplier-payment.model';
+import { formatNumber } from '@app/utils/format';
 
 type PayMode = 'Cash' | 'UPI' | 'Cheque' | 'NEFT';
 
@@ -173,5 +174,6 @@ export class PaymentFormComponent implements OnInit {
     });
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  fmt(n: number): string { return formatNumber(n); }
 }
+

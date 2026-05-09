@@ -1,0 +1,206 @@
+@if (farmer(); as f) {
+
+  <!-- Breadcrumb header -->
+  <div class="kl-page-header" style="align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <a routerLink="/collections" class="kl-btn kl-btn-secondary" style="padding:6px 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </a>
+      <div class="kl-crumbs" style="margin:0;">
+        <a routerLink="/collections">Collections</a>
+        <span class="sep">/</span>
+        <span>{{ f.farmerName }}</span>
+        <span class="sep">·</span>
+        <code class="kl-mono">{{ f.farmerCode }}</code>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="kl-btn kl-btn-secondary" (click)="noteDrawerOpen.set(true)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Add Note
+      </button>
+      <button class="kl-btn kl-btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Record Payment
+      </button>
+    </div>
+  </div>
+
+  <!-- Detail grid -->
+  <div class="kl-detail-grid">
+
+    <!-- Left: Farmer summary card -->
+    <div class="kl-card">
+      <div class="kl-detail-header">
+        <div class="kl-avatar-lg">{{ initials(f.farmerName) }}</div>
+        <div>
+          <div class="kl-detail-name">{{ f.farmerName }}</div>
+          <div class="kl-detail-meta">
+            <code class="kl-mono">{{ f.farmerCode }}</code>
+            <span>·</span>
+            <span>{{ f.village }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outstanding highlight -->
+      <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:14px 16px; margin-bottom:16px;">
+        <div style="font-size:24px; font-weight:700; color:#C0392B;">₹{{ f.totalOutstanding | number:'1.0-0' }}</div>
+        <div style="font-size:12px; color:#9A3412; margin-top:2px; font-weight:500; text-transform:uppercase; letter-spacing:0.4px;">Total Outstanding</div>
+      </div>
+
+      <dl class="kl-dl">
+        <dt>Oldest Due</dt>       <dd>{{ f.oldestDueDays }} days ago</dd>
+        @if (f.lastPaymentDate) {
+          <dt>Last Payment</dt>   <dd>₹{{ f.lastPaymentAmount | number:'1.0-0' }} on {{ f.lastPaymentDate }}</dd>
+        } @else {
+          <dt>Last Payment</dt>   <dd style="color:#9AA69C;">No payments recorded</dd>
+        }
+        @if (f.lastContactDate) {
+          <dt>Last Contact</dt>   <dd>{{ f.lastContactDate }} <span class="kl-fg-3">({{ f.lastContactBy }})</span></dd>
+        } @else {
+          <dt>Last Contact</dt>   <dd style="color:#9AA69C;">No contact recorded</dd>
+        }
+        <dt>Harvest Month</dt>    <dd>{{ f.harvestMonth ?? '—' }}</dd>
+        <dt>Priority Score</dt>   <dd>{{ f.priorityScore | number:'1.0-0' }}</dd>
+        <dt>Age Factor</dt>       <dd>{{ f.ageFactor }}×</dd>
+        <dt>Harvest Factor</dt>   <dd>{{ f.harvestFactor }}×</dd>
+      </dl>
+
+      @if (f.lastContactNote) {
+        <div style="margin-top:12px; background:#F0F4F1; border-radius:8px; padding:12px 14px; font-size:13px; color:#445245;">
+          <div style="font-size:11px; font-weight:600; color:#6B7A6E; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Last Note</div>
+          "{{ f.lastContactNote }}"
+        </div>
+      }
+    </div>
+
+    <!-- Right: KPI pills + tabs + content -->
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0;">
+
+      <!-- KPI pills -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Outstanding</div>
+          <div class="kl-stat-pill-val" style="color:#C0392B;">₹{{ f.totalOutstanding | number:'1.0-0' }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Unpaid Sales</div>
+          <div class="kl-stat-pill-val">{{ f.unpaidSales.length }}</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Oldest Due</div>
+          <div class="kl-stat-pill-val">{{ f.oldestDueDays }} days</div>
+        </div>
+        <div class="kl-stat-pill">
+          <div class="kl-stat-pill-label">Priority Score</div>
+          <div class="kl-stat-pill-val">{{ f.priorityScore | number:'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="kl-tabs" style="margin-top:0;">
+        <button class="kl-tab" [class.is-active]="activeTab()==='unpaid'" (click)="activeTab.set('unpaid')">
+          Unpaid Sales<span class="kl-count">{{ f.unpaidSales.length }}</span>
+        </button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='payments'" (click)="activeTab.set('payments')">
+          Payment History<span class="kl-count">{{ f.recentPayments.length }}</span>
+        </button>
+        <button class="kl-tab" [class.is-active]="activeTab()==='activity'" (click)="activeTab.set('activity')">
+          Activity<span class="kl-count">{{ f.activityNotes.length }}</span>
+        </button>
+      </div>
+
+      <!-- Unpaid Sales tab -->
+      @if (activeTab() === 'unpaid') {
+        <kl-card>
+          <kl-grid
+            [columns]="unpaidSalesColumns"
+            [inputdata]="unpaidSalesData()"
+            [loading]="false"
+            [showSearch]="false"
+            emptyMessage="No unpaid sales on record.">
+          </kl-grid>
+        </kl-card>
+      }
+
+      <!-- Payment History tab -->
+      @if (activeTab() === 'payments') {
+        <kl-card title="Recent Payments" subtitle="Last 10 transactions">
+          @if (f.recentPayments.length === 0) {
+            <div style="padding:32px 20px; text-align:center; color:#9AA69C; font-size:13px;">
+              No payments recorded yet.
+            </div>
+          } @else {
+            <dl class="kl-dl">
+              @for (p of f.recentPayments; track p.date) {
+                <dt>{{ p.date }}</dt>
+                <dd>
+                  <span style="color:#15803D; font-weight:600;">₹{{ p.amount | number:'1.0-0' }}</span>
+                  <span class="kl-fg-3" style="margin-left:8px; font-size:12px;">{{ p.description }}</span>
+                </dd>
+              }
+            </dl>
+          }
+        </kl-card>
+      }
+
+      <!-- Activity tab -->
+      @if (activeTab() === 'activity') {
+        <kl-card>
+          <button card-actions class="kl-btn kl-btn-primary" style="font-size:12px; padding:5px 12px;" (click)="noteDrawerOpen.set(true)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Note
+          </button>
+
+          @if (f.activityNotes.length === 0) {
+            <div style="padding:32px 20px; text-align:center; color:#9AA69C; font-size:13px;">
+              No follow-up notes yet. Add one to record your contact.
+            </div>
+          } @else {
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+              @for (note of f.activityNotes; track note.id) {
+                <li style="display:flex; gap:12px; padding-bottom:12px; border-bottom:1px solid #E5EBE6;">
+                  <div style="width:8px; height:8px; border-radius:50%; background:#3C9A4A; margin-top:6px; flex-shrink:0;"></div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:14px; color:#445245;">{{ note.text }}</div>
+                    <div style="font-size:12px; color:#9AA69C; margin-top:4px;">
+                      {{ note.createdBy }} · {{ note.createdAt }}
+                      @if (note.hasTodo) {
+                        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:8px; background:#EFF6FF; color:#1D4ED8; border-radius:4px; padding:1px 6px; font-size:11px;">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                          To-Do: {{ note.todoDate }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </kl-card>
+      }
+
+    </div>
+  </div>
+
+  <!-- Add Note drawer -->
+  <app-collection-note-add
+    [open]="noteDrawerOpen()"
+    [farmerName]="f.farmerName"
+    (close)="noteDrawerOpen.set(false)"
+    (saved)="noteDrawerOpen.set(false)" />
+
+}

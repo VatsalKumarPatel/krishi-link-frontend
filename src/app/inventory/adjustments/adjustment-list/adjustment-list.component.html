@@ -1,0 +1,46 @@
+<div class="kl-page-header">
+  <p class="kl-fg-3">All stock adjustments — manual corrections, physical counts, and damage write-offs.</p>
+  <div style="display:flex; gap:8px;">
+    @if (pendingCount() > 0) {
+      <a routerLink="/inventory/adjustments/pending" class="kl-btn kl-btn-secondary" style="color:var(--kl-warning);">
+        {{ pendingCount() }} pending approval
+      </a>
+    }
+    <button class="kl-btn kl-btn-primary" (click)="openAdd()">New adjustment</button>
+  </div>
+</div>
+
+<kl-card>
+  <div card-actions style="display:flex; gap:6px; flex-wrap:wrap;">
+    <button class="kl-filter-btn" [class.is-active]="typeFilter() === undefined" (click)="setType(undefined)">All types</button>
+    <button class="kl-filter-btn" [class.is-active]="typeFilter() === 'ManualCorrection'" (click)="setType('ManualCorrection')">Manual</button>
+    <button class="kl-filter-btn" [class.is-active]="typeFilter() === 'PhysicalCount'" (click)="setType('PhysicalCount')">Physical Count</button>
+    <button class="kl-filter-btn" [class.is-active]="typeFilter() === 'Damage'" (click)="setType('Damage')">Damage</button>
+    <div style="width:1px; background:#e5e7eb; margin:0 4px;"></div>
+    <button class="kl-filter-btn" [class.is-active]="statusFilter() === undefined" (click)="setStatus(undefined)">All statuses</button>
+    <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'PendingApproval'" (click)="setStatus('PendingApproval')">Pending</button>
+    <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'Approved'" (click)="setStatus('Approved')">Approved</button>
+    <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'Rejected'" (click)="setStatus('Rejected')">Rejected</button>
+  </div>
+
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showActions]="false"
+    [searchValue]="query()"
+    searchPlaceholder="Search by product or store…"
+    emptyMessage="No adjustments match your filters."
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (rowClick)="onRowClick($event)">
+  </kl-grid>
+</kl-card>
+
+<app-adjustment-add
+  [open]="drawerOpen()"
+  [adjustmentId]="editId()"
+  (close)="closeDrawer()"
+  (saved)="closeDrawer()" />

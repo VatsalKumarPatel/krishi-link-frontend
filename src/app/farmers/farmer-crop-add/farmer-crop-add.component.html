@@ -1,0 +1,103 @@
+<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="closeDrawer()">
+
+  @if (saveError) {
+    <kl-alert variant="danger" [message]="saveError" style="display:block; margin-bottom:12px;" />
+  }
+
+  <div class="kl-form">
+
+    <!-- Season — read-only -->
+    <div class="kl-form-section">Season (auto-applied)</div>
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Season</label>
+        <input class="kl-input" [value]="season.seasonName" readonly style="background:var(--bg-muted,#F1F3EF); color:#6B7A6E;" />
+      </div>
+      <div class="kl-form-group">
+        <label>Year</label>
+        <input class="kl-input" [value]="season.seasonYear" readonly style="background:var(--bg-muted,#F1F3EF); color:#6B7A6E;" />
+      </div>
+    </div>
+
+    <!-- Crop -->
+    <div class="kl-form-section">Crop</div>
+
+    <div class="kl-form-group">
+      <label>Crop name <span style="color:#C0392B;">*</span></label>
+      <select class="kl-input" [(ngModel)]="form.cropName">
+        @for (c of cropNames; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Area <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" type="number" [(ngModel)]="form.areaUnderCrop" placeholder="e.g. 3" min="0.1" step="0.1" />
+      </div>
+      <div class="kl-form-group">
+        <label>Unit</label>
+        <select class="kl-input" [(ngModel)]="form.areaUnit">
+          @for (u of areaUnits; track u) { <option [value]="u">{{ u }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <!-- Schedule -->
+    <div class="kl-form-section">Schedule</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Expected sowing month</label>
+        <select class="kl-input" [value]="form.expectedSowingMonth" (change)="form.expectedSowingMonth = +$any($event.target).value || null">
+          <option [value]="null">— Select —</option>
+          @for (m of months; track $index) {
+            <option [value]="$index + 1">{{ m }}</option>
+          }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>Expected harvest month</label>
+        <select class="kl-input" [value]="form.expectedHarvestMonth" (change)="form.expectedHarvestMonth = +$any($event.target).value || null">
+          <option [value]="null">— Select —</option>
+          @for (m of months; track $index) {
+            <option [value]="$index + 1">{{ m }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- Optional details -->
+    <div class="kl-form-section">Optional details</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Irrigation source</label>
+        <select class="kl-input" [(ngModel)]="form.irrigationSource">
+          <option value="">— Select —</option>
+          @for (s of irrigationSources; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>Soil type</label>
+        <select class="kl-input" [(ngModel)]="form.soilType">
+          <option value="">— Select —</option>
+          @for (s of soilTypes; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-group">
+      <label>Notes</label>
+      <textarea class="kl-input" rows="2" [(ngModel)]="form.notes" placeholder="Any notes about this crop…" style="resize:vertical;"></textarea>
+    </div>
+
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving || !canSubmit" (click)="submit()">
+      {{ saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Add crop') }}
+    </button>
+  </ng-container>
+
+</kl-drawer>

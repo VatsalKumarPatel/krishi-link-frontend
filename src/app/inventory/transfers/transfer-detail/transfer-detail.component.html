@@ -1,0 +1,115 @@
+<div class="kl-breadcrumb">
+  <a routerLink="/inventory/transfers" class="kl-link">Transfers</a>
+  <span class="kl-breadcrumb-sep">›</span>
+  <span>{{ transferId.toUpperCase() }}</span>
+</div>
+
+@if (!transfer()) {
+  <p class="kl-fg-3">Transfer not found.</p>
+} @else {
+  <!-- Header -->
+  <div class="kl-detail-header">
+    <div class="kl-detail-meta">
+      <div class="kl-detail-name">{{ transfer()!.fromStoreName }} → {{ transfer()!.toStoreName }}</div>
+      <div class="kl-fg-3" style="font-size:13px;">
+        {{ transferId.toUpperCase() }} · Created by {{ transfer()!.createdBy }}
+      </div>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <kl-badge [variant]="statusVariant(transfer()!.status)">
+        {{ statusLabelMap[transfer()!.status] }}
+      </kl-badge>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div style="display:flex; gap:8px; margin:16px 0;">
+    @switch (transfer()!.status) {
+      @case ('PendingApproval') {
+        <button class="kl-btn kl-btn-primary" (click)="approve()">Approve</button>
+        <button class="kl-btn kl-btn-secondary" style="color:#dc2626;" (click)="cancel()">Cancel</button>
+      }
+      @case ('Approved') {
+        <button class="kl-btn kl-btn-primary" (click)="dispatch()">Dispatch</button>
+        <button class="kl-btn kl-btn-secondary" style="color:#dc2626;" (click)="cancel()">Cancel</button>
+      }
+      @case ('InTransit') {
+        <button class="kl-btn kl-btn-primary" (click)="openReceive()">Receive</button>
+      }
+      @case ('PartiallyReceived') {
+        <button class="kl-btn kl-btn-primary" (click)="openReceive()">Receive remaining</button>
+      }
+    }
+  </div>
+
+  <div class="kl-two-col">
+    <!-- Transfer info -->
+    <kl-card title="Transfer details">
+      <dl class="kl-dl">
+        <dt>From store</dt>   <dd>{{ transfer()!.fromStoreName }}</dd>
+        <dt>To store</dt>     <dd>{{ transfer()!.toStoreName }}</dd>
+        <dt>Status</dt>       <dd>{{ statusLabelMap[transfer()!.status] }}</dd>
+        <dt>Created by</dt>   <dd>{{ transfer()!.createdBy }}</dd>
+        <dt>Created at</dt>   <dd>{{ transfer()!.createdAt | date:'dd MMM yyyy' }}</dd>
+        @if (transfer()!.notes) {
+          <dt>Notes</dt>      <dd>{{ transfer()!.notes }}</dd>
+        }
+      </dl>
+    </kl-card>
+
+    <!-- Items -->
+    <kl-card title="Items" [subtitle]="transfer()!.items.length + ' product(s)'">
+      @if (transfer()!.items.length === 0) {
+        <p class="kl-fg-3" style="padding:12px 0;">No items added yet.</p>
+      } @else {
+        <table class="kl-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Requested</th>
+              <th>Dispatched</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of transfer()!.items; track item.id) {
+              <tr>
+                <td style="font-weight:500;">{{ item.productName }}</td>
+                <td>{{ item.requestedQty }} {{ item.unit }}</td>
+                <td>{{ item.dispatchedQty != null ? item.dispatchedQty + ' ' + item.unit : '—' }}</td>
+                <td [style.color]="item.receivedQty != null && item.receivedQty < item.requestedQty ? 'var(--kl-warning)' : 'inherit'">
+                  {{ item.receivedQty != null ? item.receivedQty + ' ' + item.unit : '—' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </kl-card>
+  </div>
+}
+
+<!-- Receive drawer -->
+<kl-drawer [open]="receiveDrawerOpen()" title="Receive Transfer" subtitle="Enter actual quantities received" (closeDrawer)="receiveDrawerOpen.set(false)">
+  <table class="kl-table" style="font-size:13px;">
+    <thead>
+      <tr><th>Product</th><th>Dispatched</th><th>Receiving</th></tr>
+    </thead>
+    <tbody>
+      @for (item of receiveItems(); track item.id) {
+        <tr>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.dispatchedQty ?? item.requestedQty }} {{ item.unit }}</td>
+          <td>
+            <input class="kl-input" type="number" style="width:90px; padding:4px 8px; font-size:13px;"
+              [(ngModel)]="item.receivingQty" [min]="0" [max]="item.dispatchedQty ?? item.requestedQty" />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="receiveDrawerOpen.set(false)">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="confirmReceive()">Confirm receipt</button>
+  </ng-container>
+</kl-drawer>

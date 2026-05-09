@@ -1,0 +1,17 @@
+<div class="kl-page-header" style="align-items:center;">
+  <p class="kl-fg-3" style="font-size:13px; margin:0;">Credit notes raised against farmer sales.</p>
+</div>
+
+<kl-card>
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="returnsData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showSearch]="true"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    emptyMessage="No sale returns found."
+    (rowClick)="onRowClick($event)">
+  </kl-grid>
+</kl-card>

@@ -1,0 +1,43 @@
+<kl-drawer
+  [open]="open"
+  title="Set Collection Target"
+  subtitle="Set a daily or weekly goal for cash collection."
+  (close)="closeDrawer()">
+
+  <div class="kl-form">
+
+    <div class="kl-form-section">Target</div>
+
+    <div class="full">
+      <label class="kl-form-label">Target type <span style="color:#C0392B;">*</span></label>
+      <select class="kl-select" [(ngModel)]="form.targetType" name="targetType">
+        <option value="Daily">Daily</option>
+        <option value="Weekly">Weekly</option>
+      </select>
+      <span class="kl-form-hint">{{ periodHint }}</span>
+    </div>
+
+    <div class="full">
+      <label class="kl-form-label">Target amount (₹) <span style="color:#C0392B;">*</span></label>
+      <input
+        class="kl-input"
+        [(ngModel)]="form.targetAmount"
+        name="targetAmount"
+        type="number"
+        min="0"
+        placeholder="e.g. 80000" />
+      <span class="kl-form-hint">
+        If an active target already exists for this type, it will be replaced.
+      </span>
+    </div>
+
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()" [disabled]="saving">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="submit()" [disabled]="saving || !form.targetAmount">
+      @if (saving) { Saving… } @else { Save Target }
+    </button>
+  </ng-container>
+
+</kl-drawer>

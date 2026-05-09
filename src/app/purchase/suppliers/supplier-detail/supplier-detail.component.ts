@@ -1,10 +1,10 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent, BadgeVariant } from '../../../components/shared/badge/badge.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { BadgeComponent, BadgeVariant } from '@shared/badge/badge.component';
 import { SupplierAddComponent } from '../supplier-add/supplier-add.component';
 import { SupplierService } from '@services/supplier.service';
 import { UserService } from '@services/user.service';
@@ -16,6 +16,7 @@ import {
   PurchaseStatus,
 } from '@models/purchase.model';
 import { SupplierPaymentSummaryDto, PAYMENT_MODE_LABELS, SUPPLIER_PAYMENT_STATUS_LABELS } from '@models/supplier-payment.model';
+import { formatNumber } from '@app/utils/format';
 
 @Component({
   selector: 'app-supplier-detail',
@@ -83,14 +84,14 @@ export class SupplierDetailComponent implements OnInit {
     this.loadAll(this.supplierId());
   }
 
-  // ── Display helpers ─────────────────────────────────────────────────────────
+  // â”€â”€ Display helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   initials(name: string): string {
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
 
   shortId(id: string): string {
-    return id.slice(0, 8) + '…';
+    return id.slice(0, 8) + 'â€¦';
   }
 
   statusVariant(isActive: boolean): BadgeVariant {
@@ -102,7 +103,7 @@ export class SupplierDetailComponent implements OnInit {
   }
 
   formatDate(iso: string | null): string {
-    if (!iso) return '—';
+    if (!iso) return 'â€”';
     return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
@@ -136,6 +137,7 @@ export class SupplierDetailComponent implements OnInit {
   }
 
   fmt(n: number): string {
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+    return formatNumber(n);
   }
 }
+

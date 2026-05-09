@@ -1,0 +1,250 @@
+<!-- Breadcrumb -->
+<div class="kl-breadcrumb">
+  <a routerLink="/farmers" class="kl-link">Farmers</a>
+  <span class="kl-breadcrumb-sep">›</span>
+  <span>{{ fullName }}</span>
+  <span class="kl-breadcrumb-sep">·</span>
+  <code class="kl-mono">{{ farmer.farmerCode }}</code>
+</div>
+
+<!-- Header -->
+<kl-detail-header backLink="/farmers">
+  <ng-container breadcrumbs>
+    <a routerLink="/farmers">Farmers</a>
+    <span class="sep">/</span>
+    <span>{{ fullName }}</span>
+  </ng-container>
+  <ng-container actions>
+    <button class="kl-btn kl-btn-secondary" (click)="editDrawerOpen.set(true)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+      </svg>
+      Edit
+    </button>
+  </ng-container>
+</kl-detail-header>
+
+<!-- KPI pills -->
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+  <div class="kl-stat-pill">
+    <div class="kl-stat-pill-label">Outstanding</div>
+    <div class="kl-stat-pill-val" [style.color]="farmer.currentOutstanding > 0 ? '#dc2626' : 'inherit'">
+      @if (farmer.currentOutstanding > 0) { ₹{{ farmer.currentOutstanding | number:'1.0-0' }} }
+      @else { Nil }
+    </div>
+  </div>
+  <div class="kl-stat-pill">
+    <div class="kl-stat-pill-label">Available Credit</div>
+    <div class="kl-stat-pill-val">
+      @if (farmer.isCreditAllowed) { ₹{{ farmer.availableCredit | number:'1.0-0' }} }
+      @else { Disabled }
+    </div>
+  </div>
+  <div class="kl-stat-pill">
+    <div class="kl-stat-pill-label">Crops</div>
+    <div class="kl-stat-pill-val">{{ cropCount }}</div>
+  </div>
+  <div class="kl-stat-pill">
+    <div class="kl-stat-pill-label">Total Area</div>
+    <div class="kl-stat-pill-val">{{ totalAreaAcres | number:'1.0-1' }}<span class="kl-stat-pill-unit">ac</span></div>
+  </div>
+  <div class="kl-stat-pill">
+    <div class="kl-stat-pill-label">Profile</div>
+    <div class="kl-stat-pill-val" [style.color]="completenessColor">{{ farmer.profileCompleteness }}%</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="kl-tabs" style="margin-bottom:16px;">
+  <button class="kl-tab" [class.is-active]="activeTab()==='overview'" (click)="activeTab.set('overview')">Overview</button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='crops'" (click)="activeTab.set('crops')">
+    Crops <span class="kl-count">{{ crops.length }}</span>
+  </button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='calculator'" (click)="activeTab.set('calculator')">Seed Calculator</button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='recommendations'" (click)="activeTab.set('recommendations')">
+    Input Recommendations <span class="kl-count">{{ recommendations().length }}</span>
+  </button>
+</div>
+
+<!-- ── Overview tab ──────────────────────────────────────────────── -->
+@if (activeTab() === 'overview') {
+  <div class="kl-detail-grid">
+
+    <!-- Left: Profile info -->
+    <kl-card>
+      <div style="display:flex; align-items:center; gap:14px; padding:0 0 20px;">
+        <div class="kl-avatar-lg">{{ initials }}</div>
+        <div>
+          <div style="font-weight:700; font-size:16px;">{{ fullName }}</div>
+          <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ farmer.farmerCode }}</div>
+          <kl-badge [variant]="farmer.isActive ? 'success' : 'neutral'" style="margin-top:6px;">
+            {{ farmer.isActive ? 'Active' : 'Inactive' }}
+          </kl-badge>
+        </div>
+      </div>
+
+      <!-- Profile completeness -->
+      <div style="margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:#6b7280; margin-bottom:4px;">
+          <span>Profile completeness</span>
+          <span [style.color]="completenessColor">{{ farmer.profileCompleteness }}%</span>
+        </div>
+        <div style="height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden;">
+          <div [style.width.%]="farmer.profileCompleteness" [style.background]="completenessColor" style="height:100%; border-radius:99px; transition:width 0.3s;"></div>
+        </div>
+      </div>
+
+      <dl class="kl-dl">
+        <dt>Mobile</dt>     <dd>{{ farmer.mobileNumber ?? '—' }}</dd>
+        <dt>Gender</dt>     <dd>{{ farmer.gender ?? '—' }}</dd>
+        <dt>Date of birth</dt><dd>{{ farmer.dateOfBirth ? (farmer.dateOfBirth | date:'dd MMM yyyy') : '—' }}</dd>
+        <dt>Village</dt>    <dd>{{ farmer.village ?? '—' }}</dd>
+        <dt>Taluka</dt>     <dd>{{ farmer.taluka ?? '—' }}</dd>
+        <dt>District</dt>   <dd>{{ farmer.district ?? '—' }}</dd>
+        <dt>State</dt>      <dd>{{ farmer.state ?? '—' }}</dd>
+        <dt>Pincode</dt>    <dd>{{ farmer.pincode ?? '—' }}</dd>
+        @if (farmer.notes) {
+          <dt>Notes</dt>    <dd style="white-space:pre-wrap; font-size:12px;">{{ farmer.notes }}</dd>
+        }
+      </dl>
+    </kl-card>
+
+    <!-- Right: Credit info -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <kl-card title="Credit Profile">
+        <dl class="kl-dl">
+          <dt>Credit allowed</dt>
+          <dd>
+            <kl-badge [variant]="farmer.isCreditAllowed ? 'success' : 'neutral'">
+              {{ farmer.isCreditAllowed ? 'Yes' : 'No' }}
+            </kl-badge>
+          </dd>
+          @if (farmer.isCreditAllowed) {
+            <dt>Credit limit</dt>   <dd>₹{{ farmer.creditLimit | number:'1.0-0' }}</dd>
+            <dt>Credit days</dt>    <dd>{{ farmer.creditDays }} days</dd>
+            <dt>Outstanding</dt>
+            <dd [style.color]="farmer.currentOutstanding > 0 ? '#dc2626' : '#3C9A4A'">
+              ₹{{ farmer.currentOutstanding | number:'1.0-0' }}
+            </dd>
+            <dt>Available credit</dt>
+            <dd [style.color]="farmer.availableCredit <= 0 ? '#dc2626' : 'inherit'">
+              ₹{{ farmer.availableCredit | number:'1.0-0' }}
+            </dd>
+          }
+        </dl>
+      </kl-card>
+
+      <kl-card [title]="'Current Season — ' + activeSeason.seasonName + ' ' + activeSeason.seasonYear">
+        @if (kharif2026Crops.length === 0) {
+          <p style="color:#6b7280; font-size:13px; padding:4px 0;">No crops recorded for current season.</p>
+          <button class="kl-btn kl-btn-secondary" style="margin-top:8px;" (click)="activeTab.set('crops')">Add crop →</button>
+        } @else {
+          <table class="kl-table">
+            <thead><tr><th>Crop</th><th>Area</th><th>Sowing</th><th>Harvest</th></tr></thead>
+            <tbody>
+              @for (c of kharif2026Crops; track c.id) {
+                <tr>
+                  <td style="font-weight:500;">{{ c.cropName }}</td>
+                  <td>{{ c.areaUnderCrop }} {{ c.areaUnit }}</td>
+                  <td class="kl-fg-3">{{ monthName(c.expectedSowingMonth) }}</td>
+                  <td class="kl-fg-3">{{ monthName(c.expectedHarvestMonth) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </kl-card>
+    </div>
+
+  </div>
+}
+
+<!-- ── Crops tab ──────────────────────────────────────────────────── -->
+@if (activeTab() === 'crops') {
+  <kl-card title="All Crops">
+    <button class="kl-btn kl-btn-primary" card-actions (click)="openAddCrop()">+ Add crop</button>
+    @if (crops.length === 0) {
+      <p style="color:#6b7280; padding:16px 0; text-align:center;">No crops recorded yet. Click "Add crop" to begin.</p>
+    } @else {
+      <table class="kl-table">
+        <thead>
+          <tr>
+            <th>Crop</th>
+            <th>Season</th>
+            <th>Area</th>
+            <th>Irrigation</th>
+            <th>Soil</th>
+            <th>Sowing</th>
+            <th>Harvest</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of crops; track c.id) {
+            <tr>
+              <td style="font-weight:500;">{{ c.cropName }}</td>
+              <td class="kl-fg-3">{{ c.seasonName }} {{ c.seasonYear }}</td>
+              <td>{{ c.areaUnderCrop }} {{ c.areaUnit }}</td>
+              <td class="kl-fg-3">{{ c.irrigationSource ?? '—' }}</td>
+              <td class="kl-fg-3">{{ c.soilType ?? '—' }}</td>
+              <td class="kl-fg-3">{{ monthName(c.expectedSowingMonth) }}</td>
+              <td class="kl-fg-3">{{ monthName(c.expectedHarvestMonth) }}</td>
+              <td>
+                <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:3px 8px;" (click)="openEditCrop(c.id)">Edit</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </kl-card>
+}
+
+<!-- ── Seed Calculator tab ───────────────────────────────────────── -->
+@if (activeTab() === 'calculator') {
+  <kl-card title="Seed Quantity Calculator" subtitle="Calculate how many packets to recommend based on land area and spacing">
+    <app-seed-calculator [crops]="kharif2026Crops" />
+  </kl-card>
+}
+
+<!-- ── Input Recommendations tab ─────────────────────────────────── -->
+@if (activeTab() === 'recommendations') {
+  <kl-card title="Crop Input Recommendations" subtitle="Based on this farmer's active crops for Kharif 2026">
+    @if (recommendations().length === 0) {
+      <p style="color:#6b7280; padding:16px 0; text-align:center;">No recommendations configured for the crops this farmer grows.</p>
+    } @else {
+      <table class="kl-table">
+        <thead>
+          <tr><th>Crop</th><th>Stage</th><th>Days After Sowing</th><th>Product</th><th>Qty / Acre</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          @for (r of recommendations(); track r.id) {
+            <tr>
+              <td style="font-weight:500;">{{ r.cropName }}</td>
+              <td><kl-badge variant="neutral">{{ r.growthStage }}</kl-badge></td>
+              <td class="kl-fg-3">{{ r.daysAfterSowing }}</td>
+              <td>{{ r.productName }}</td>
+              <td>{{ r.quantityPerAcre }} {{ r.unit }}</td>
+              <td class="kl-fg-3" style="font-size:12px;">{{ r.notes ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </kl-card>
+}
+
+<!-- Edit farmer drawer -->
+<app-farmer-add
+  [open]="editDrawerOpen()"
+  [farmerId]="farmer.id"
+  (close)="editDrawerOpen.set(false)"
+  (saved)="editDrawerOpen.set(false)" />
+
+<!-- Add/Edit crop drawer -->
+<app-farmer-crop-add
+  [open]="cropDrawerOpen()"
+  [cropId]="editCropId()"
+  [farmerId]="farmer.id"
+  (close)="cropDrawerOpen.set(false)"
+  (saved)="cropDrawerOpen.set(false)" />

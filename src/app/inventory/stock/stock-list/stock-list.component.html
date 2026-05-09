@@ -1,0 +1,57 @@
+<div class="kl-page-header">
+  <p class="kl-fg-3">Current stock levels across all stores.</p>
+  <div style="display:flex; gap:8px;">
+    @if (lowStockCount() > 0) {
+      <a routerLink="/inventory/low-stock" class="kl-btn kl-btn-secondary" style="color:var(--kl-warning);">
+        ⚠ {{ lowStockCount() }} below reorder level
+      </a>
+    }
+    <a routerLink="/inventory/adjustments" class="kl-btn kl-btn-secondary">Adjustments</a>
+  </div>
+</div>
+
+<kl-card>
+  <div card-actions style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+    <!-- Store filter -->
+    <select class="kl-input" style="width:auto; font-size:13px; padding:4px 8px;" (change)="setStore($any($event.target).value || undefined)">
+      <option value="">All stores</option>
+      @for (s of stores; track s.id) {
+        <option [value]="s.id">{{ s.name }}</option>
+      }
+    </select>
+    <!-- Category filter -->
+    <select class="kl-input" style="width:auto; font-size:13px; padding:4px 8px;" (change)="setCategory($any($event.target).value || undefined)">
+      <option value="">All categories</option>
+      @for (c of categories; track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+    <!-- Status tabs -->
+    <div style="display:flex; gap:4px; margin-left:8px;">
+      <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'all'" (click)="setStatus('all')">All</button>
+      <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'ok'" (click)="setStatus('ok')">OK</button>
+      <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'low'" (click)="setStatus('low')">Low</button>
+      <button class="kl-filter-btn" [class.is-active]="statusFilter() === 'out'" (click)="setStatus('out')">Out</button>
+    </div>
+  </div>
+
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showActions]="false"
+    [searchValue]="query()"
+    searchPlaceholder="Search by product name or SKU…"
+    emptyMessage="No stock records match your filters."
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (rowClick)="onRowClick($event)">
+  </kl-grid>
+</kl-card>
+
+<app-stock-movements-drawer
+  [open]="movementsOpen()"
+  [productId]="movementsProductId()"
+  (closeDrawer)="closeMovements()" />

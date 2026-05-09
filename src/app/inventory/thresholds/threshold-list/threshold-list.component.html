@@ -1,0 +1,26 @@
+<div class="kl-page-header">
+  <p class="kl-fg-3">Set reorder levels and preferred suppliers per product per store.</p>
+  <button class="kl-btn kl-btn-primary" (click)="openAdd()">Set threshold</button>
+</div>
+
+<kl-card>
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [loading]="false"
+    [pageIndex]="pageIndex()"
+    [showActions]="true"
+    [searchValue]="query()"
+    searchPlaceholder="Search by product or store…"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (editClick)="openEdit($event)">
+  </kl-grid>
+</kl-card>
+
+<app-threshold-add
+  [open]="drawerOpen()"
+  [thresholdId]="editId()"
+  (close)="closeDrawer()"
+  (saved)="closeDrawer()" />

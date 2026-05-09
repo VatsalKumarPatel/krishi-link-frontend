@@ -1,0 +1,93 @@
+<kl-drawer
+  [open]="open"
+  [title]="isEdit ? 'Edit Product' : 'Add Product'"
+  [subtitle]="isEdit ? shortId() : 'New product entry'"
+  (closeDrawer)="closeDrawer()">
+
+  @if (saveError) {
+    <kl-alert variant="danger" [message]="saveError" />
+  }
+
+  <form #f="ngForm" (ngSubmit)="submit()">
+
+    <div class="kl-form-section">Identity</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group full">
+        <label>Product name <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.name" name="name" required placeholder="e.g. Urea (46% N)" />
+      </div>
+    </div>
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>SKU <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.sku" name="sku" required placeholder="e.g. FERT-001" />
+      </div>
+      <div class="kl-form-group">
+        <label>HSN Code</label>
+        <input class="kl-input" [(ngModel)]="form.hsn" name="hsn" placeholder="e.g. 3102" />
+      </div>
+    </div>
+
+    <div class="kl-form-section">Classification</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Category <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.category" name="category">
+          @for (c of categories; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>Base Unit <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.baseUnit" name="baseUnit" required placeholder="e.g. Bag (50kg)" />
+      </div>
+    </div>
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Secondary Unit</label>
+        <input class="kl-input" [(ngModel)]="form.secondaryUnit" name="secondaryUnit" placeholder="e.g. Bottle (500ml)" />
+      </div>
+      <div class="kl-form-group">
+        <label>Conversion Factor</label>
+        <input class="kl-input" type="number" [(ngModel)]="form.conversionFactor" name="conversionFactor" placeholder="Base per secondary" />
+      </div>
+    </div>
+
+    <div class="kl-form-section">Pricing</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>GST Rate <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.gstRate" name="gstRate">
+          @for (r of gstRates; track r) {
+            <option [value]="r">{{ r === 0 ? 'Exempt (0%)' : r + '%' }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (isEdit) {
+      <div class="kl-form-section">Status</div>
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" [(ngModel)]="form.isActive" name="isActive" />
+            Active
+          </label>
+        </div>
+      </div>
+    }
+
+  </form>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving || f.invalid" (click)="submit()">
+      {{ saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Add product') }}
+    </button>
+  </ng-container>
+
+</kl-drawer>

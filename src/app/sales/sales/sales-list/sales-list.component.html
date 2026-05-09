@@ -1,0 +1,39 @@
+<div class="kl-page-header">
+  <div>
+    <div style="font-size:20px; font-weight:700; color:#14251B;">Sales</div>
+    <div style="font-size:13px; color:#6B7A6E; margin-top:2px;">{{ salesData().totalCount }} sale(s) · outstanding {{ fmtInr(totalOutstanding()) }}</div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <select class="kl-select" style="font-size:13px;" [value]="modeFilter()" (change)="modeFilter.set($any($event.target).value); pageIndex.set(0)">
+      <option value="">All modes</option>
+      <option value="Cash">Cash</option>
+      <option value="Credit">Credit</option>
+      <option value="UPI">UPI</option>
+      <option value="Mixed">Mixed</option>
+    </select>
+    <a routerLink="/sales/new" class="kl-btn kl-btn-primary" style="font-size:13px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Sale
+    </a>
+  </div>
+</div>
+
+<div class="kl-tabs" style="margin-bottom:12px;">
+  <button class="kl-tab" [class.is-active]="activeTab()==='all'"      (click)="setActiveTab('all')">All</button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='draft'"    (click)="setActiveTab('draft')">Draft</button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='invoiced'" (click)="setActiveTab('invoiced')">Invoiced / Partial</button>
+  <button class="kl-tab" [class.is-active]="activeTab()==='overdue'"  (click)="setActiveTab('overdue')">Outstanding</button>
+</div>
+
+<kl-card>
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="salesData()"
+    [loading]="false"
+    [showSearch]="true"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    (rowClick)="onRowClick($event)"
+    emptyMessage="No sales found."
+  />
+</kl-card>

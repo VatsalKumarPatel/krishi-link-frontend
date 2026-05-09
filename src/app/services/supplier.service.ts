@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { environment } from '@app/environment';
 import {
   SupplierDto,
   SupplierSummaryDto,
-  SupplierDtoPagedResult,
   SupplierBalanceDto,
   SupplierLedgerPagedResult,
   CreateSupplierCommand,
@@ -14,20 +13,24 @@ import {
 import { PurchaseSummaryPagedResult } from '@models/purchase.model';
 import { SupplierPaymentSummaryPagedResult } from '@models/supplier-payment.model';
 import { DropdownItem } from '@app/models/shared.model';
+import { PaginatedResponse } from '@app/models/pagination.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupplierService {
   private readonly base = `${environment.apiBaseUrl}/${environment.version}/suppliers`;
+  private abort$ = new Subject<void>();
 
   constructor(private readonly http: HttpClient) {}
 
-  getAll(page = 1, pageSize = 20, search?: string, isActive?: boolean): Observable<SupplierDtoPagedResult> {
+  getAll(page = 1, pageSize = 20, search?: string, isActive?: boolean): Observable<PaginatedResponse<SupplierSummaryDto>> {
     let params = new HttpParams()
       .set('page', String(page))
       .set('pageSize', String(pageSize));
     if (search)            params = params.set('search', search);
     if (isActive != null)  params = params.set('isActive', String(isActive));
-    return this.http.get<SupplierDtoPagedResult>(this.base, { params });
+    return this.http.get<PaginatedResponse<SupplierSummaryDto>>(this.base, { params }).pipe(
+      takeUntil(this.abort$),
+    );
   }
 
   getDropdown(): Observable<DropdownItem[]> {

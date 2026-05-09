@@ -1,11 +1,11 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../../shared/kl-card/kl-card.component';
-import { BadgeComponent, BadgeVariant } from '../../../../shared/badge/badge.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { BadgeComponent, BadgeVariant } from '@shared/badge/badge.component';
 import { TenantAddComponent } from '../tenant-add/tenant-add.component';
-import { KlActivityFeedComponent, FeedGroup, FeedItem } from '../../../../shared/kl-activity-feed/kl-activity-feed.component';
+import { KlActivityFeedComponent, FeedGroup, FeedItem } from '@shared/kl-activity-feed/kl-activity-feed.component';
 import { TenantService } from '@services/tenant.service';
 import { TenantDto, ActivityLogDto } from '@models/tenant.model';
 import { StoresListComponent } from '../../stores/stores-list/stores-list.component';
@@ -22,7 +22,7 @@ export class TenantDetailComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly id: string;
 
-  // ── Page state ──────────────────────────────────────────────────────────────
+  // â”€â”€ Page state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   loading = signal(true);
   error = signal<string | null>(null);
   tenant = signal<TenantDto | null>(null);
@@ -66,10 +66,10 @@ export class TenantDetailComponent implements OnInit {
     this.loadTenant();
   }
 
-  // ── Display helpers ─────────────────────────────────────────────────────────
+  // â”€â”€ Display helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   shortId(id: string): string {
-    return id.slice(0, 8) + '…';
+    return id.slice(0, 8) + 'â€¦';
   }
 
   initials(name: string | null): string {
@@ -86,13 +86,13 @@ export class TenantDetailComponent implements OnInit {
   }
 
   formatDate(iso: string | null): string {
-    if (!iso) return '—';
+    if (!iso) return 'â€”';
     return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   location(t: TenantDto): string {
     const parts = [t.city, t.state].filter((v): v is string => !!v);
-    return parts.length ? parts.join(', ') : '—';
+    return parts.length ? parts.join(', ') : 'â€”';
   }
 
   addressLine(t: TenantDto): string {
@@ -101,7 +101,7 @@ export class TenantDetailComponent implements OnInit {
       .join(', ');
   }
 
-  // ── Activity log → FeedGroup[] ─────────────────────────────────────────────
+  // â”€â”€ Activity log â†’ FeedGroup[] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private toFeedGroups(logs: ActivityLogDto[]): FeedGroup[] {
     if (!logs.length) return [];

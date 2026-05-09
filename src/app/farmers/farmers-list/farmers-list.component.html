@@ -1,0 +1,36 @@
+<div class="kl-page-header">
+  <div>
+    <h1 class="kl-page-title">Farmers</h1>
+    <p class="kl-page-sub">{{ filteredData().totalCount }} registered · Kharif 2026</p>
+  </div>
+  <button class="kl-btn kl-btn-primary" (click)="openAdd()">+ Add farmer</button>
+</div>
+
+<!-- Status tabs -->
+<div class="kl-tabs" style="margin-bottom:16px;">
+  <button class="kl-tab" [class.is-active]="statusTab()==='all'" (click)="setTab('all')">
+    All <span class="kl-count">{{ activeCount() + inactiveCount() }}</span>
+  </button>
+  <button class="kl-tab" [class.is-active]="statusTab()==='active'" (click)="setTab('active')">
+    Active <span class="kl-count">{{ activeCount() }}</span>
+  </button>
+  <button class="kl-tab" [class.is-active]="statusTab()==='inactive'" (click)="setTab('inactive')">
+    Inactive <span class="kl-count">{{ inactiveCount() }}</span>
+  </button>
+</div>
+
+<kl-card>
+  <kl-grid
+    [columns]="columns"
+    [inputdata]="filteredData()"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
+    (rowClick)="onRowClick($event)" />
+</kl-card>
+
+<app-farmer-add
+  [open]="drawerOpen()"
+  [farmerId]="editId()"
+  (close)="drawerOpen.set(false)"
+  (saved)="drawerOpen.set(false)" />

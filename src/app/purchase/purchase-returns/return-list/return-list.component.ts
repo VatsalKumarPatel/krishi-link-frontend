@@ -1,10 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+﻿import { Component, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
-import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { KlGridComponent } from '@shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@shared/kl-grid/kl-grid.types';
 import { ReturnAddComponent } from '../return-add/return-add.component';
 import { PurchaseReturnService } from '@services/purchase-return.service';
 import {
@@ -12,7 +12,9 @@ import {
   PurchaseReturnStatus,
   RETURN_STATUS_LABELS,
 } from '@models/purchase-return.model';
-import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
+import { PaginatedResponse, createEmptyPaginatedResponse, toPagedResponse } from '@app/models/pagination.model';
+import { formatMoneyWithSymbol } from '@app/utils/format';
+import { PagedListBase } from '@app/utils/paged-list-base';
 
 type ReturnRow = PurchaseReturnSummaryDto & { statusLabel: string; totalAmountFmt: string };
 
@@ -22,23 +24,16 @@ function returnStatusVariant(s: PurchaseReturnStatus): 'neutral' | 'warning' | '
   return 'success';
 }
 
-const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
-
 @Component({
   selector: 'app-return-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, KlGridComponent, ReturnAddComponent],
+  imports: [KlCardComponent, KlGridComponent, ReturnAddComponent],
   templateUrl: './return-list.component.html',
   styleUrls: ['./return-list.component.scss'],
 })
-export class ReturnListComponent {
+export class ReturnListComponent extends PagedListBase {
   private readonly returnService = inject(PurchaseReturnService);
   private readonly router = inject(Router);
-
-  pageIndex = signal(0);
-  pageSize = signal(20);
-  drawerOpen = signal(false);
-  returnIdForEdit = signal<string | null>(null);
 
   readonly columns: GridColumn[] = [
     { field: 'debitNoteNumber', header: 'Debit Note #', sortable: false },
@@ -46,7 +41,7 @@ export class ReturnListComponent {
     { field: 'storeName', header: 'Store', sortable: false },
     { field: 'purchaseRef', header: 'Original Purchase', sortable: false },
     { field: 'returnDate', header: 'Return Date', type: 'date', sortable: false },
-    { field: 'totalAmountFmt', header: 'Total (₹)', sortable: false },
+    { field: 'totalAmountFmt', header: 'Total (â‚¹)', sortable: false },
     { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
       badgeVariant: (_v, row: ReturnRow) => returnStatusVariant(row.status) },
   ];
@@ -60,45 +55,21 @@ export class ReturnListComponent {
     params: () => this.queryParams(),
     stream: ({ params }) =>
       this.returnService.getAll(params.pageIndex + 1, params.pageSize).pipe(
-        map(r => ({
-          items: r.items.map(x => ({
-            ...x,
-            statusLabel: RETURN_STATUS_LABELS[x.status],
-            totalAmountFmt: `₹${fmt(x.totalAmount)}`,
-          })),
-          totalCount: r.totalCount,
-          pageNumber: r.page,
-          pageSize: r.pageSize,
-          totalPages: r.totalPages,
-          hasPreviousPage: r.hasPreviousPage,
-          hasNextPage: r.hasNextPage,
-        }))
+        map(r => toPagedResponse(r, x => ({
+          ...x,
+          statusLabel: RETURN_STATUS_LABELS[x.status],
+          totalAmountFmt: formatMoneyWithSymbol(x.totalAmount),
+        })))
       ),
   });
 
   returns = computed(() => this.returnsResource.value() ?? createEmptyPaginatedResponse<ReturnRow>());
 
-  onPageChange(e: { pageIndex: number; pageSize: number }): void {
-    this.pageIndex.set(e.pageIndex);
-    this.pageSize.set(e.pageSize);
-  }
-
   onRowClick(row: ReturnRow): void {
     this.router.navigate(['/purchase/purchase-returns', row.id]);
   }
 
-  openAdd(): void {
-    this.returnIdForEdit.set(null);
-    this.drawerOpen.set(true);
-  }
-
-  openEdit(row: ReturnRow): void {
-    this.returnIdForEdit.set(row.id);
-    this.drawerOpen.set(true);
-  }
-
   onDrawerSaved(): void {
-    this.drawerOpen.set(false);
-    this.returnsResource.reload();
+    this.closeDrawerAndReload(this.returnsResource);
   }
 }

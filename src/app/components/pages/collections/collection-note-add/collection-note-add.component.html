@@ -1,0 +1,56 @@
+<kl-drawer
+  [open]="open"
+  [title]="title"
+  [subtitle]="subtitle"
+  (close)="closeDrawer()">
+
+  <div class="kl-form">
+
+    <!-- Note -->
+    <div class="kl-form-section">Follow-up Note</div>
+    <div class="full">
+      <label class="kl-form-label">Note <span style="color:#C0392B;">*</span></label>
+      <textarea
+        class="kl-input"
+        [(ngModel)]="noteText"
+        name="noteText"
+        rows="4"
+        placeholder="e.g. Called Ramesh. He confirmed payment of ₹10,000 by 15 May after wheat harvest."
+        style="resize:vertical; min-height:96px;"></textarea>
+    </div>
+
+    <!-- To-Do -->
+    <div class="full" style="display:flex; align-items:center; gap:10px; padding:4px 0;">
+      <input
+        type="checkbox"
+        id="createTodo"
+        [(ngModel)]="createTodo"
+        name="createTodo"
+        style="width:16px; height:16px; accent-color:#3C9A4A; cursor:pointer;" />
+      <label for="createTodo" style="font-size:14px; color:#445245; cursor:pointer; user-select:none;">
+        Create a To-Do reminder
+      </label>
+    </div>
+
+    @if (createTodo) {
+      <div class="full">
+        <label class="kl-form-label">Reminder date <span style="color:#C0392B;">*</span></label>
+        <input
+          class="kl-input"
+          [(ngModel)]="todoDate"
+          name="todoDate"
+          type="date" />
+        <span class="kl-form-hint">A to-do will be created for this date to remind you to follow up.</span>
+      </div>
+    }
+
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()" [disabled]="saving">Cancel</button>
+    <button class="kl-btn kl-btn-primary" (click)="submit()" [disabled]="saving || !noteText.trim()">
+      @if (saving) { Saving… } @else { Add Note }
+    </button>
+  </ng-container>
+
+</kl-drawer>

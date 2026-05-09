@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
-import { KlCardComponent } from '../../shared/kl-card/kl-card.component';
-import { StatCardComponent } from '../../shared/stat-card/stat-card.component';
-import { BadgeComponent } from '../../shared/badge/badge.component';
-import { KlTodoComponent } from '../../shared/kl-todo/kl-todo.component';
+﻿import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { StatCardComponent } from '@shared/stat-card/stat-card.component';
+import { BadgeComponent } from '@shared/badge/badge.component';
+import { KlTodoComponent } from '@shared/kl-todo/kl-todo.component';
+import { MOCK_STOCK } from '@app/inventory/inventory.data';
+import { MOCK_FARMERS, MOCK_FARMER_CROPS } from '@app/farmers/farmers.data';
 
 export interface ActivityItem {
   who: string; what: string; plot: string; ago: string;
@@ -11,18 +14,38 @@ export interface ActivityItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [KlCardComponent, StatCardComponent, BadgeComponent, KlTodoComponent],
+  imports: [RouterLink, KlCardComponent, StatCardComponent, BadgeComponent, KlTodoComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
+  readonly lowStockCount = MOCK_STOCK.filter(s => s.stockStatus !== 'ok').length;
+  readonly outOfStockCount = MOCK_STOCK.filter(s => s.stockStatus === 'out').length;
+
+  private readonly currentMonth = 5; // May 2026
+
+  readonly sowingThisMonth = MOCK_FARMER_CROPS.filter(c =>
+    c.isActive && c.expectedSowingMonth === this.currentMonth
+  ).length;
+
+  readonly harvestThisMonth = MOCK_FARMER_CROPS.filter(c =>
+    c.isActive && c.expectedHarvestMonth === this.currentMonth
+  ).length;
+
+  readonly overdueCount = MOCK_FARMERS.filter(f =>
+    f.isActive && f.currentOutstanding > 0
+  ).length;
+
+  readonly overdueTotal = MOCK_FARMERS
+    .filter(f => f.isActive && f.currentOutstanding > 0)
+    .reduce((s, f) => s + f.currentOutstanding, 0);
   readonly sparkPoints = [180, 210, 250, 220, 280, 320, 360, 340, 410, 460, 520, 610];
 
   readonly activity: ActivityItem[] = [
-    { who: 'Sunita Poudel', what: 'logged irrigation cycle',    plot: 'KL-0441 · Kaski',   ago: '12m',  tone: 'brand' },
+    { who: 'Sunita Poudel', what: 'logged irrigation cycle',    plot: 'KL-0441 Â· Kaski',   ago: '12m',  tone: 'brand' },
     { who: 'System',        what: 'flagged low seed inventory', plot: 'Bardiya warehouse',  ago: '38m',  tone: 'warn'  },
-    { who: 'Arjun Rai',     what: 'uploaded soil test results', plot: 'KL-0440 · Jhapa',   ago: '1h',   tone: 'info'  },
-    { who: 'Maya Gurung',   what: 'completed harvest record',   plot: 'KL-0439 · Lamjung', ago: '3h',   tone: 'soil'  },
+    { who: 'Arjun Rai',     what: 'uploaded soil test results', plot: 'KL-0440 Â· Jhapa',   ago: '1h',   tone: 'info'  },
+    { who: 'Maya Gurung',   what: 'completed harvest record',   plot: 'KL-0439 Â· Lamjung', ago: '3h',   tone: 'soil'  },
     { who: 'Riya Acharya',  what: 'approved 14 registrations',  plot: 'Regional queue',    ago: '5h',   tone: 'brand' },
   ];
 

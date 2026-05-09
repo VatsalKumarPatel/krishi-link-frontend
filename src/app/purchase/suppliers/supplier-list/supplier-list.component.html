@@ -1,4 +1,3 @@
-<!-- Header -->
 <div class="kl-page-header" style="align-items:center;">
   <p class="kl-fg-3" style="font-size:13px; margin:0;">Manage the suppliers you purchase from.</p>
   <div style="display:flex; gap:8px;">
@@ -17,7 +16,6 @@
 </div>
 
 <kl-card>
-  <!-- Active/Inactive filter alongside kl-grid's built-in search -->
   <div style="display:flex; gap:6px;" card-actions>
     <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === undefined" (click)="setFilter(undefined)">All</button>
     <button class="kl-btn kl-btn-secondary" [class.is-active]="isActiveFilter() === true" (click)="setFilter(true)">Active</button>
@@ -33,22 +31,20 @@
     [searchValue]="query()"
     searchPlaceholder="Search by name or code…"
     emptyMessage="No suppliers match the current filters."
-    (searchChange)="onSearch($event)"
-    (pageChange)="onPageChange($event)"
-    (sortChange)="onSortChange($event)"
+    [setSearch]="setSearch"
+    [setPage]="setPage"
+    [setSort]="setSort"
     (rowClick)="onRowClick($event)"
     (editClick)="openEdit($event)">
   </kl-grid>
 </kl-card>
 
-<!-- Add / Edit drawer -->
 <app-supplier-add
   [open]="drawerOpen()"
-  [supplierId]="editSupplierId()"
-  (close)="drawerOpen.set(false)"
-  (saved)="onDrawerSaved()" />
+  [supplierId]="editId()"
+  (close)="closeDrawer()"
+  (saved)="closeDrawer(true)" />
 
-<!-- Deactivate confirm dialog -->
 @if (confirmDeactivateId()) {
   <div class="kl-overlay" (click)="cancelDeactivate()">
     <div class="kl-dialog" (click)="$event.stopPropagation()">

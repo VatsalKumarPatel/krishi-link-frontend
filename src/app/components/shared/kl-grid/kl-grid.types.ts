@@ -9,5 +9,6 @@ export interface GridColumn {
   isCustomTemplate?: boolean;
   type?: GridColumnType;
   badgeVariant?: BadgeVariant | ((value: any, row: any) => BadgeVariant);
+  displayValue?: (value: any, row: any) => string;
   dateFormat?: string;
 }

@@ -1,0 +1,63 @@
+<kl-drawer
+  [open]="open"
+  [title]="isEdit ? 'Edit Threshold' : 'Set Threshold'"
+  subtitle="Reorder level per product per store"
+  (closeDrawer)="closeDrawer()">
+
+  <form #f="ngForm">
+    <div class="kl-form-section">Location & Product</div>
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Store <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.storeId" name="storeId">
+          @for (s of stores; track s.id) { <option [value]="s.id">{{ s.name }}</option> }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label>Product <span style="color:#C0392B;">*</span></label>
+        <select class="kl-input" [(ngModel)]="form.productId" name="productId">
+          @for (p of products; track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-section">Thresholds</div>
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Reorder Level <span style="color:#C0392B;">*</span></label>
+        <input class="kl-input" type="number" [(ngModel)]="form.reorderLevel" name="reorderLevel" min="0" required placeholder="Alert below this qty" />
+      </div>
+      <div class="kl-form-group">
+        <label>Reorder Qty (optional)</label>
+        <input class="kl-input" type="number" [(ngModel)]="form.reorderQty" name="reorderQty" min="0" placeholder="Suggested order qty" />
+      </div>
+    </div>
+
+    <div class="kl-form-section">Supplier (optional)</div>
+    <div class="kl-form-row">
+      <div class="kl-form-group full">
+        <label>Preferred Supplier</label>
+        <input class="kl-input" [(ngModel)]="form.preferredSupplierName" name="preferredSupplierName" placeholder="e.g. IFFCO" />
+      </div>
+    </div>
+
+    @if (isEdit) {
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" [(ngModel)]="form.isActive" name="isActive" />
+            Active
+          </label>
+        </div>
+      </div>
+    }
+  </form>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving || f.invalid" (click)="submit()">
+      {{ saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Set threshold') }}
+    </button>
+  </ng-container>
+
+</kl-drawer>

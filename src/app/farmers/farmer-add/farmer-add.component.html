@@ -1,0 +1,128 @@
+<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="closeDrawer()">
+
+  @if (saveError) {
+    <kl-alert variant="danger" [message]="saveError" style="display:block; margin-bottom:12px;" />
+  }
+
+  <div class="kl-form">
+
+    <!-- Personal -->
+    <div class="kl-form-section">Personal</div>
+
+    <div class="kl-form-group">
+      <label>First name <span style="color:#C0392B;">*</span></label>
+      <input class="kl-input" [(ngModel)]="form.firstName" placeholder="e.g. Ramesh" />
+    </div>
+
+    <div class="kl-form-group">
+      <label>Last name</label>
+      <input class="kl-input" [(ngModel)]="form.lastName" placeholder="e.g. Waghmare" />
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Mobile number</label>
+        <input class="kl-input" [(ngModel)]="form.mobileNumber" (ngModelChange)="onMobileChange()" placeholder="10-digit mobile" maxlength="10" />
+        @if (mobileWarning) {
+          <p style="color:#d97706; font-size:12px; margin-top:4px;">
+            This number is already used by another farmer. Family sharing is allowed — proceeding is fine.
+          </p>
+        }
+      </div>
+      <div class="kl-form-group">
+        <label>Gender</label>
+        <select class="kl-input" [(ngModel)]="form.gender">
+          <option value="">— Select —</option>
+          @for (g of genders; track g) { <option [value]="g">{{ g }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-group">
+      <label>Date of birth</label>
+      <input class="kl-input" type="date" [(ngModel)]="form.dateOfBirth" />
+    </div>
+
+    <!-- Location -->
+    <div class="kl-form-section">Location</div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>Village</label>
+        <input class="kl-input" [(ngModel)]="form.village" placeholder="e.g. Hingna" />
+      </div>
+      <div class="kl-form-group">
+        <label>Taluka</label>
+        <input class="kl-input" [(ngModel)]="form.taluka" placeholder="e.g. Hingna" />
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label>District</label>
+        <input class="kl-input" [(ngModel)]="form.district" placeholder="e.g. Nagpur" />
+      </div>
+      <div class="kl-form-group">
+        <label>State</label>
+        <select class="kl-input" [(ngModel)]="form.state">
+          @for (s of states; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+    </div>
+
+    <div class="kl-form-group">
+      <label>Pincode</label>
+      <input class="kl-input" [(ngModel)]="form.pincode" placeholder="6-digit pincode" maxlength="6" />
+    </div>
+
+    <!-- Credit -->
+    <div class="kl-form-section">Credit</div>
+
+    <div class="kl-form-group">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+        <input type="checkbox" [(ngModel)]="form.isCreditAllowed" style="width:16px; height:16px; accent-color:var(--kl-primary,#3C9A4A);" />
+        Allow credit sales for this farmer
+      </label>
+    </div>
+
+    @if (form.isCreditAllowed) {
+      <div class="kl-form-row">
+        <div class="kl-form-group">
+          <label>Credit limit (₹)</label>
+          <input class="kl-input" type="number" [(ngModel)]="form.creditLimit" placeholder="e.g. 50000" min="0" />
+        </div>
+        <div class="kl-form-group">
+          <label>Credit days</label>
+          <input class="kl-input" type="number" [(ngModel)]="form.creditDays" placeholder="e.g. 120" min="0" />
+        </div>
+      </div>
+    }
+
+    <!-- Notes -->
+    <div class="kl-form-section">Notes</div>
+
+    <div class="kl-form-group">
+      <textarea class="kl-input" rows="3" [(ngModel)]="form.notes" placeholder="Private notes visible only to your team…" style="resize:vertical;"></textarea>
+    </div>
+
+    <!-- Status — edit only -->
+    @if (isEdit) {
+      <div class="kl-form-section">Status</div>
+      <div class="kl-form-group">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" [(ngModel)]="form.isActive" style="width:16px; height:16px; accent-color:var(--kl-primary,#3C9A4A);" />
+          Farmer is active
+        </label>
+      </div>
+    }
+
+  </div>
+
+  <ng-container drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Cancel</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving || !canSubmit" (click)="submit()">
+      {{ saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Create farmer') }}
+    </button>
+  </ng-container>
+
+</kl-drawer>

@@ -1,0 +1,30 @@
+<kl-drawer
+  [open]="open"
+  [title]="productName"
+  subtitle="Stock movement history"
+  (closeDrawer)="close()">
+
+  <table class="kl-table" style="font-size:13px;">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Qty</th>
+        <th>Reference</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (e of entries; track e.id) {
+        <tr>
+          <td class="kl-fg-3">{{ e.date }}</td>
+          <td><kl-badge [variant]="entryVariant(e.entryType)" style="font-size:11px;">{{ e.entryType }}</kl-badge></td>
+          <td [style.color]="e.quantity < 0 ? 'var(--kl-danger)' : 'var(--kl-success)'" style="font-weight:500;">
+            {{ e.quantity > 0 ? '+' : '' }}{{ e.quantity }} {{ e.unit }}
+          </td>
+          <td class="kl-fg-3">{{ e.reference }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+</kl-drawer>

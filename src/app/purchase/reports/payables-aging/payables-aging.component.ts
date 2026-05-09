@@ -1,9 +1,10 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
 import { environment } from '@app/environment';
+import { formatNumber } from '@app/utils/format';
 
 interface PayablesAgingRow {
   supplierName: string;
@@ -56,5 +57,6 @@ export class PayablesAgingComponent implements OnInit {
     a.download = `payables-aging-${this.asOfDate()}.csv`; a.click();
   }
 
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n); }
+  fmt(n: number): string { return formatNumber(n); }
 }
+

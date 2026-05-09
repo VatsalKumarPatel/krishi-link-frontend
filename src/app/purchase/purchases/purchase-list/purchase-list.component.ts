@@ -1,10 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { KlGridComponent } from '@app/components/shared/kl-grid/kl-grid.component';
-import { GridColumn } from '@app/components/shared/kl-grid/kl-grid.types';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { KlGridComponent } from '@shared/kl-grid/kl-grid.component';
+import { GridColumn } from '@shared/kl-grid/kl-grid.types';
 import { PurchaseAddComponent } from '../purchase-add/purchase-add.component';
 import { PurchaseService } from '@services/purchase.service';
 import { UserService } from '@services/user.service';
@@ -14,7 +14,9 @@ import {
   PURCHASE_STATUS_LABELS,
   PURCHASE_STATUS_BADGE,
 } from '@models/purchase.model';
-import { PaginatedResponse, createEmptyPaginatedResponse } from '@app/models/pagination.model';
+import { PaginatedResponse, createEmptyPaginatedResponse, toPagedResponse } from '@app/models/pagination.model';
+import { formatMoneyWithSymbol } from '@app/utils/format';
+import { PagedListBase } from '@app/utils/paged-list-base';
 
 type ListTab = 'all' | 'pending' | 'overdue';
 type PurchaseRow = PurchaseSummaryDto & {
@@ -24,16 +26,14 @@ type PurchaseRow = PurchaseSummaryDto & {
   outstandingFmt: string;
 };
 
-const fmt = (n: number) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
-
 @Component({
   selector: 'app-purchase-list',
   standalone: true,
-  imports: [RouterLink, KlCardComponent, KlGridComponent, PurchaseAddComponent],
+  imports: [KlCardComponent, KlGridComponent, PurchaseAddComponent],
   templateUrl: './purchase-list.component.html',
   styleUrls: ['./purchase-list.component.scss'],
 })
-export class PurchaseListComponent {
+export class PurchaseListComponent extends PagedListBase {
   private readonly purchaseService = inject(PurchaseService);
   readonly userService = inject(UserService);
   private readonly router = inject(Router);
@@ -45,10 +45,6 @@ export class PurchaseListComponent {
   );
   fromDate = signal('');
   toDate = signal('');
-  pageIndex = signal(0);
-  pageSize = signal(20);
-  drawerOpen = signal(false);
-  purchaseIdForEdit = signal<string | null>(null);
 
   readonly statusOptions = [
     { value: undefined, label: 'All Statuses' },
@@ -66,8 +62,8 @@ export class PurchaseListComponent {
     { field: 'storeName', header: 'Store', sortable: false },
     { field: 'purchaseDate', header: 'Date', type: 'date', sortable: false },
     { field: 'dueDate', header: 'Due Date', type: 'date', sortable: false },
-    { field: 'totalAmountFmt', header: 'Total (₹)', sortable: false },
-    { field: 'outstandingFmt', header: 'Outstanding (₹)', sortable: false },
+    { field: 'totalAmountFmt', header: 'Total (â‚¹)', sortable: false },
+    { field: 'outstandingFmt', header: 'Outstanding (â‚¹)', sortable: false },
     { field: 'statusLabel', header: 'Status', type: 'badge', sortable: false,
       badgeVariant: (_v, row: PurchaseRow) => PURCHASE_STATUS_BADGE[row.status] },
     { field: 'overdueLabel', header: '', type: 'badge', sortable: false,
@@ -101,62 +97,30 @@ export class PurchaseListComponent {
             });
 
       return req.pipe(
-        map(r => ({
-          items: r.items.map(p => ({
-            ...p,
-            statusLabel: PURCHASE_STATUS_LABELS[p.status],
-            overdueLabel: this.isOverdue(p) ? 'Overdue' : '',
-            totalAmountFmt: `₹${fmt(p.totalAmount)}`,
-            outstandingFmt: p.outstandingAmount > 0 ? `₹${fmt(p.outstandingAmount)}` : '—',
-          })),
-          totalCount: r.totalCount,
-          pageNumber: r.page,
-          pageSize: r.pageSize,
-          totalPages: r.totalPages,
-          hasPreviousPage: r.hasPreviousPage,
-          hasNextPage: r.hasNextPage,
-        }))
+        map(r => toPagedResponse(r, p => ({
+          ...p,
+          statusLabel: PURCHASE_STATUS_LABELS[p.status],
+          overdueLabel: this.isOverdue(p) ? 'Overdue' : '',
+          totalAmountFmt: formatMoneyWithSymbol(p.totalAmount),
+          outstandingFmt: p.outstandingAmount > 0 ? formatMoneyWithSymbol(p.outstandingAmount) : 'â€“',
+        })))
       );
     },
   });
 
   purchases = computed(() => this.purchasesResource.value() ?? createEmptyPaginatedResponse<PurchaseRow>());
 
-  setTab(tab: ListTab): void {
-    this.activeTab.set(tab);
-    this.pageIndex.set(0);
-  }
-
-  setStatus(val: string): void {
-    this.statusFilter.set(val ? +val : undefined);
-    this.pageIndex.set(0);
-  }
-
-  setFromDate(val: string): void { this.fromDate.set(val); this.pageIndex.set(0); }
-  setToDate(val: string): void { this.toDate.set(val); this.pageIndex.set(0); }
-
-  onPageChange(e: { pageIndex: number; pageSize: number }): void {
-    this.pageIndex.set(e.pageIndex);
-    this.pageSize.set(e.pageSize);
-  }
+  setTab(tab: ListTab): void { this.filterSet(this.activeTab, tab); }
+  setStatus(val: string): void { this.filterSet(this.statusFilter, val ? +val : undefined); }
+  setFromDate(val: string): void { this.filterSet(this.fromDate, val); }
+  setToDate(val: string): void { this.filterSet(this.toDate, val); }
 
   onRowClick(row: PurchaseRow): void {
     this.router.navigate(['/purchase/purchases', row.id]);
   }
 
-  openAdd(): void {
-    this.purchaseIdForEdit.set(null);
-    this.drawerOpen.set(true);
-  }
-
-  openEdit(row: PurchaseRow): void {
-    this.purchaseIdForEdit.set(row.id);
-    this.drawerOpen.set(true);
-  }
-
   onDrawerSaved(): void {
-    this.drawerOpen.set(false);
-    this.purchasesResource.reload();
+    this.closeDrawerAndReload(this.purchasesResource);
   }
 
   private isOverdue(p: PurchaseSummaryDto): boolean {

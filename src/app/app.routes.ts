@@ -49,6 +49,24 @@ export const routes: Routes = [
           import('./purchase/purchase.routes').then(m => m.purchaseRoutes),
       },
 
+      // ── Products module (lazy, store users only) ──────────────────────────
+      {
+        path: 'products',
+        canActivate: [roleGuard],
+        data: { excludeSuperAdmin: true },
+        loadChildren: () =>
+          import('./products/products.routes').then(m => m.productsRoutes),
+      },
+
+      // ── Inventory module (lazy, store users only) ─────────────────────────
+      {
+        path: 'inventory',
+        canActivate: [roleGuard],
+        data: { excludeSuperAdmin: true },
+        loadChildren: () =>
+          import('./inventory/inventory.routes').then(m => m.inventoryRoutes),
+      },
+
       // ── Tenant / store users only (SuperAdmin is excluded) ─────────────────
       {
         path: 'dashboard',
@@ -57,54 +75,31 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./components/pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
       },
-      {
-        path: 'products',
-        canActivate: [roleGuard],
-        data: { title: 'Products', subtitle: 'Manage your product catalogue', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/products/products-list/products-list.component').then(m => m.ProductsListComponent),
-      },
-      {
-        path: 'products/create',
-        canActivate: [roleGuard],
-        data: { title: 'Add product', subtitle: 'Create a new product entry', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/products/product-create/product-create.component').then(m => m.ProductCreateComponent),
-      },
-      {
-        path: 'products/:id',
-        canActivate: [roleGuard],
-        data: { title: 'Product detail', subtitle: 'View and edit product info', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent),
-      },
-      {
-        path: 'inventory',
-        canActivate: [roleGuard],
-        data: { title: 'Inventory', subtitle: 'Stock levels across all stores', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/inventory/inventory-list/inventory-list.component').then(m => m.InventoryListComponent),
-      },
-      {
-        path: 'transfers',
-        canActivate: [roleGuard],
-        data: { title: 'Transfers', subtitle: 'Inter-store stock movements', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/transfers/transfers-list/transfers-list.component').then(m => m.TransfersListComponent),
-      },
+      // ── Farmers module (lazy, store users only) ───────────────────────
       {
         path: 'farmers',
         canActivate: [roleGuard],
-        data: { title: 'Farmers', subtitle: 'All regions · 12,480 registered', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/farmers/farmers-list/farmers-list.component').then(m => m.FarmersListComponent),
+        data: { excludeSuperAdmin: true },
+        loadChildren: () =>
+          import('./farmers/farmers.routes').then(m => m.farmersRoutes),
       },
+
+      // ── Collections module (lazy, store users only) ────────────────────
       {
-        path: 'farmers/:id',
+        path: 'collections',
         canActivate: [roleGuard],
-        data: { title: 'Farmer detail', subtitle: '', excludeSuperAdmin: true },
-        loadComponent: () =>
-          import('./components/pages/farmers/farmer-detail/farmer-detail.component').then(m => m.FarmerDetailComponent),
+        data: { title: 'Collections', subtitle: 'Outstanding farmer receivables', excludeSuperAdmin: true },
+        loadChildren: () =>
+          import('./collections/collections.routes').then(m => m.collectionsRoutes),
+      },
+
+      // ── Sales module (lazy, store users only) ──────────────────────────
+      {
+        path: 'sales',
+        canActivate: [roleGuard],
+        data: { title: 'Sales', subtitle: 'Farmer invoices and receipts', excludeSuperAdmin: true },
+        loadChildren: () =>
+          import('./sales/sales.routes').then(m => m.salesRoutes),
       },
 
       // ── SuperAdmin only ────────────────────────────────────────────────────

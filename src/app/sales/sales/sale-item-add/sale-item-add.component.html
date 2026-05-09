@@ -1,0 +1,84 @@
+<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="closeDrawer()">
+
+  <div class="kl-form" style="padding:4px 0;">
+
+    @if (error()) {
+      <div style="padding:10px 12px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px; margin-bottom:12px;">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="kl-form-row">
+      <div class="kl-form-group" style="grid-column:1/-1;">
+        <label class="kl-label">Product <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.productName" placeholder="e.g. Wheat Seed HD-3385 (20kg)" />
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Unit</label>
+        <select class="kl-select" [(ngModel)]="form.unitName">
+          @for (u of units; track u) { <option [value]="u">{{ u }}</option> }
+        </select>
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Quantity <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="number" min="0.01" step="0.01" [(ngModel)]="form.quantity" />
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Rate Per Unit (₹) <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="number" min="0" step="0.01" [(ngModel)]="form.ratePerUnit" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Discount %</label>
+        <input class="kl-input" type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discountPercent" />
+      </div>
+    </div>
+
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">HSN Code</label>
+        <input class="kl-input" [(ngModel)]="form.hsnCode" placeholder="e.g. 1001" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">GST Rate</label>
+        <select class="kl-select" [(ngModel)]="form.taxRatePercent">
+          @for (r of gstRates; track r) { <option [value]="r">{{ r }}%</option> }
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:1px solid #E5EBE6; border-bottom:1px solid #E5EBE6; margin-top:4px;">
+      <span style="font-size:13px; color:#6B7A6E;">Line Total (incl. GST)</span>
+      <span style="font-size:16px; font-weight:700; color:#14251B;">₹{{ fmt(lineTotal) }}</span>
+    </div>
+
+  </div>
+
+  @if (addedItems().length > 0) {
+    <div style="margin-top:16px; border-top:1px solid #E5EBE6; padding-top:12px;">
+      <div style="font-size:11px; font-weight:600; color:#6B7A6E; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Added this session</div>
+      @for (item of addedItems(); track $index) {
+        <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #F1F3EF; font-size:13px;">
+          <div>
+            <span style="font-weight:500;">{{ item.productName }}</span>
+            <span class="kl-fg-3" style="margin-left:6px;">× {{ item.quantity }}</span>
+          </div>
+          <span style="font-weight:600;">₹{{ fmt(item.lineTotal) }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <div drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Done</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="submit()">
+      {{ saving() ? 'Adding…' : 'Add Item' }}
+    </button>
+  </div>
+
+</kl-drawer>

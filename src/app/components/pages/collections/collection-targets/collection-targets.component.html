@@ -1,0 +1,112 @@
+<!-- Header -->
+<div class="kl-page-header" style="align-items:center;">
+  <div>
+    <p class="kl-fg-3" style="font-size:13px; margin:0;">
+      Set and track daily and weekly collection goals for your store.
+    </p>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <a routerLink="/collections" class="kl-btn kl-btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Back to Queue
+    </a>
+    <button class="kl-btn kl-btn-primary" (click)="drawerOpen.set(true)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Set Target
+    </button>
+  </div>
+</div>
+
+<!-- Target cards row -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+
+  <!-- Daily Target -->
+  @if (daily(); as d) {
+    <kl-card title="Today's Target">
+      <div class="kl-card-body">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:26px; font-weight:700; color:#445245; line-height:1.1;">
+            ₹{{ d.amountCollected | number:'1.0-0' }}
+            <span style="font-size:15px; font-weight:400; color:#9AA69C;">of ₹{{ d.targetAmount | number:'1.0-0' }}</span>
+          </div>
+          <div style="font-size:13px; color:#6B7A6E; margin-top:4px;">collected today</div>
+        </div>
+        <!-- Progress bar -->
+        <div style="background:#E5EBE6; border-radius:4px; height:10px; margin:12px 0; overflow:hidden;">
+          <div [style.width.%]="pct(d.amountCollected, d.targetAmount)"
+               style="background:#3C9A4A; border-radius:4px; height:10px; transition:width 0.3s;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:#6B7A6E;">
+          <span><strong style="color:#3C9A4A;">{{ pct(d.amountCollected, d.targetAmount) }}%</strong> collected</span>
+          <span>₹{{ (d.targetAmount - d.amountCollected) | number:'1.0-0' }} remaining</span>
+        </div>
+      </div>
+    </kl-card>
+  } @else {
+    <kl-card title="Today's Target">
+      <div class="kl-card-body" style="text-align:center; padding:32px 20px; color:#9AA69C;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#C8D5CA;">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+        <div style="font-size:13px; margin-bottom:8px;">No daily target set</div>
+        <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:5px 12px;" (click)="drawerOpen.set(true)">Set Daily Target</button>
+      </div>
+    </kl-card>
+  }
+
+  <!-- Weekly Target -->
+  @if (weekly(); as w) {
+    <kl-card title="This Week's Target">
+      <div class="kl-card-body">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:26px; font-weight:700; color:#445245; line-height:1.1;">
+            ₹{{ w.amountCollected | number:'1.0-0' }}
+            <span style="font-size:15px; font-weight:400; color:#9AA69C;">of ₹{{ w.targetAmount | number:'1.0-0' }}</span>
+          </div>
+          <div style="font-size:13px; color:#6B7A6E; margin-top:4px;">collected this week</div>
+        </div>
+        <!-- Progress bar -->
+        <div style="background:#E5EBE6; border-radius:4px; height:10px; margin:12px 0; overflow:hidden;">
+          <div [style.width.%]="pct(w.amountCollected, w.targetAmount)"
+               style="background:#3C9A4A; border-radius:4px; height:10px; transition:width 0.3s;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:#6B7A6E;">
+          <span><strong style="color:#3C9A4A;">{{ pct(w.amountCollected, w.targetAmount) }}%</strong> collected</span>
+          <span>{{ daysRemaining(w) }} day{{ daysRemaining(w) !== 1 ? 's' : '' }} remaining</span>
+        </div>
+      </div>
+    </kl-card>
+  } @else {
+    <kl-card title="This Week's Target">
+      <div class="kl-card-body" style="text-align:center; padding:32px 20px; color:#9AA69C;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px; display:block; color:#C8D5CA;">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+        <div style="font-size:13px; margin-bottom:8px;">No weekly target set</div>
+        <button class="kl-btn kl-btn-secondary" style="font-size:12px; padding:5px 12px;" (click)="drawerOpen.set(true)">Set Weekly Target</button>
+      </div>
+    </kl-card>
+  }
+
+</div>
+
+<!-- Recent collections table -->
+<kl-card title="Recent Collections" subtitle="Payments recorded this week">
+  <kl-grid
+    [columns]="recentColumns"
+    [inputdata]="recentPaymentsData"
+    [loading]="false"
+    [showSearch]="false"
+    emptyMessage="No payments recorded this week.">
+  </kl-grid>
+</kl-card>
+
+<!-- Set Target drawer -->
+<app-collection-target-add
+  [open]="drawerOpen()"
+  (close)="drawerOpen.set(false)"
+  (saved)="drawerOpen.set(false)" />

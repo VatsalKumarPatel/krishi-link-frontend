@@ -1,0 +1,101 @@
+<kl-drawer [open]="open" [title]="title" [subtitle]="subtitle" (close)="closeDrawer()">
+
+  <div class="kl-form" style="padding:4px 0;">
+
+    @if (error()) {
+      <div style="padding:10px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; color:#991B1B; font-size:13px; margin-bottom:4px;">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Product & Unit -->
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Product ID <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.productId" placeholder="Product UUID" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Unit ID <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" [(ngModel)]="form.unitId" placeholder="Unit UUID" />
+      </div>
+    </div>
+
+    <!-- Qty & Rate -->
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Quantity <span style="color:#DC2626;">*</span></label>
+        <input class="kl-input" type="number" min="0.001" step="0.001" [(ngModel)]="form.quantity" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Rate per Unit (₹)</label>
+        <input class="kl-input" type="number" min="0" step="0.01" [(ngModel)]="form.ratePerUnit" />
+      </div>
+    </div>
+
+    <!-- Discount & HSN -->
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Discount %</label>
+        <input class="kl-input" type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discountPercent" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">HSN Code</label>
+        <input class="kl-input" [(ngModel)]="form.hsnCode" placeholder="e.g. 1001" />
+      </div>
+    </div>
+
+    <!-- GST Rate -->
+    <div class="kl-form-group">
+      <label class="kl-label">GST Rate</label>
+      <select class="kl-select" [(ngModel)]="form.taxRatePercent">
+        @for (r of gstRates; track r) {
+          <option [value]="r">{{ r }}%</option>
+        }
+      </select>
+    </div>
+
+    <!-- Batch & Expiry (optional) -->
+    <div class="kl-form-row">
+      <div class="kl-form-group">
+        <label class="kl-label">Batch Number <span class="kl-fg-3" style="font-weight:400;">(optional)</span></label>
+        <input class="kl-input" [(ngModel)]="form.batchNumber" placeholder="e.g. BTH-001" />
+      </div>
+      <div class="kl-form-group">
+        <label class="kl-label">Expiry Date <span class="kl-fg-3" style="font-weight:400;">(optional)</span></label>
+        <input class="kl-input" type="date" [(ngModel)]="form.expiryDate" />
+      </div>
+    </div>
+
+    <!-- Line total preview -->
+    <div style="display:flex; justify-content:flex-end; padding:10px 0 4px; border-top:1px solid #E5E7EB; margin-top:4px;">
+      <span class="kl-fg-3" style="font-size:13px; margin-right:8px;">Line Total:</span>
+      <span style="font-weight:700; font-size:15px;">₹{{ fmt(lineTotal) }}</span>
+    </div>
+
+  </div>
+
+  <!-- Added items this session -->
+  @if (addedItems().length > 0) {
+    <div style="margin-top:16px; border-top:1px solid #E5E7EB; padding-top:12px;">
+      <div style="font-size:12px; font-weight:600; color:#6B7A6E; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Added this session</div>
+      @for (item of addedItems(); track item.id) {
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid #F3F4F6;">
+          <div>
+            <span style="font-weight:500;">{{ item.productName }}</span>
+            <span class="kl-fg-3" style="margin-left:6px;">× {{ item.quantity }} {{ item.unitName }}</span>
+          </div>
+          <span style="font-variant-numeric:tabular-nums;">₹{{ fmt(item.lineTotal) }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Footer actions -->
+  <div drawer-actions>
+    <button class="kl-btn kl-btn-secondary" (click)="closeDrawer()">Done</button>
+    <button class="kl-btn kl-btn-primary" [disabled]="saving()" (click)="submit()">
+      {{ saving() ? 'Adding…' : 'Add Item' }}
+    </button>
+  </div>
+
+</kl-drawer>

@@ -1,11 +1,12 @@
-import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
+﻿import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { KlCardComponent } from '../../../components/shared/kl-card/kl-card.component';
-import { BadgeComponent } from '../../../components/shared/badge/badge.component';
+import { KlCardComponent } from '@shared/kl-card/kl-card.component';
+import { BadgeComponent } from '@shared/badge/badge.component';
 import { environment } from '@app/environment';
+import { formatPreciseNumber } from '@app/utils/format';
 
 interface BatchDetailDto {
   id: string;
@@ -47,5 +48,6 @@ export class BatchDetailComponent implements OnInit {
 
   isExpired(): boolean { return this.batch() ? new Date(this.batch()!.expiryDate) < new Date() : false; }
   initials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }
-  fmt(n: number): string { return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 4 }).format(n); }
+  fmt(n: number): string { return formatPreciseNumber(n); }
 }
+
